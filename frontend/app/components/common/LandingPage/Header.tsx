@@ -29,19 +29,19 @@ export default function Header() {
 		>
 			<div className='flex items-center gap-16'>
 				{/* Logo */}
-				<div className='flex items-center gap-2'>
-					<div className='relative w-8 h-8 flex items-center justify-center'>
+				<div className='flex items-center gap-3'>
+					<div className='relative w-12 h-12 flex items-center justify-center'>
 						<Image
 							src={logoSrc}
 							alt='InterV Logo'
-							width={32}
-							height={32}
+							width={48}
+							height={48}
 							className='brightness-0 invert object-contain'
 							priority
 						/>
 					</div>
-					<span className='font-logo font-bold text-xl tracking-tight text-white'>
-						InterV
+					<span className='font-logo font-bold text-3xl tracking-tight text-white'>
+						InterV<span className='text-[var(--chart-1)]'>.</span>
 					</span>
 				</div>
 
@@ -83,7 +83,7 @@ export default function Header() {
 					Đăng nhập
 				</button>
 				<Button
-					onClick={() => router.push("/signin")}
+					onClick={() => router.push("/register")}
 					className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold px-5 py-2 h-auto border-none transition-all duration-300 shadow-[0_0_15px_rgba(187,244,81,0.15)]'
 				>
 					Tham gia ngay

@@ -2,6 +2,8 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono, Inter} from "next/font/google";
 import "./globals.css";
 import {cn} from "@/app/lib/Utils";
+import { AuthProvider } from "@/app/contexts/AuthContext";
+import { Toaster } from "@/app/components/ui/sonner";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 
@@ -38,7 +40,12 @@ export default function RootLayout({
 				inter.variable,
 			)}
 		>
-			<body className='min-h-full flex flex-col'>{children}</body>
+			<body className='min-h-full flex flex-col'>
+				<AuthProvider>
+					{children}
+					<Toaster />
+				</AuthProvider>
+			</body>
 		</html>
 	);
 }
