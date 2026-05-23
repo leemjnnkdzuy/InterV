@@ -1,0 +1,11 @@
+export { default as Header } from "./Header";
+export { default as Hero } from "./Hero";
+export { default as WhoIsThisFor } from "./WhoIsThisFor";
+export { default as CandidatePractice } from "./CandidatePractice";
+export { default as AiScreening } from "./AiScreening";
+export { default as HowItWorks } from "./HowItWorks";
+export { default as WhyOurAi } from "./WhyOurAi";
+export { default as Testimonials } from "./Testimonials";
+export { default as FinalCta } from "./FinalCta";
+export { default as Faq } from "./Faq";
+export { default as Footer } from "./Footer";
