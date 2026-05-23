@@ -33,7 +33,6 @@ interface OrbitItem {
 		| "globe";
 	color?: string;
 	angle: number;
-	glow: string;
 }
 
 interface OrbitRingConfig {
@@ -51,8 +50,8 @@ const orbitRings: OrbitRingConfig[] = [
 	{
 		size: 600,
 		itemRadius: 300,
-		borderColor: "rgba(255,255,255,0.4)",
-		boxShadow: "0 0 15px 1px rgba(168,130,255,0.06)",
+		borderColor: "rgba(255,255,255,0.25)",
+		boxShadow: "0 0 15px 1px rgba(168,130,255,0.12)",
 		maskFrom: "0deg",
 		duration: 120,
 		direction: 1,
@@ -62,15 +61,13 @@ const orbitRings: OrbitRingConfig[] = [
 				alt: "Curly Hair Specialist",
 				angle: -75,
 				icon: "users",
-				color: "text-white",
-				glow: "shadow-[0_8px_30px_rgba(255,255,255,0.02)] border-white/10 bg-zinc-900/80",
+				color: "text-[var(--chart-1)]",
 			},
 			{
 				type: "badge",
 				icon: "megaphone",
 				color: "text-rose-400",
 				angle: 15,
-				glow: "shadow-[0_10px_25px_rgba(244,63,94,0.12)] border-rose-500/20 bg-zinc-900/80 backdrop-blur-md",
 			},
 			{
 				type: "avatar",
@@ -78,22 +75,20 @@ const orbitRings: OrbitRingConfig[] = [
 				angle: 100,
 				icon: "message",
 				color: "text-violet-400",
-				glow: "shadow-[0_8px_30px_rgba(255,255,255,0.02)] border-white/10 bg-zinc-900/80",
 			},
 			{
 				type: "badge",
 				icon: "star",
 				color: "text-amber-400",
 				angle: 200,
-				glow: "shadow-[0_10px_25px_rgba(245,158,11,0.12)] border-amber-500/20 bg-zinc-900/80 backdrop-blur-md",
 			},
 		],
 	},
 	{
 		size: 400,
 		itemRadius: 200,
-		borderColor: "rgba(255,255,255,0.35)",
-		boxShadow: "0 0 12px 1px rgba(168,130,255,0.05)",
+		borderColor: "rgba(255,255,255,0.20)",
+		boxShadow: "0 0 12px 1px rgba(168,130,255,0.08)",
 		maskFrom: "45deg",
 		duration: 90,
 		direction: -1,
@@ -104,23 +99,21 @@ const orbitRings: OrbitRingConfig[] = [
 				angle: -160,
 				icon: "cloud",
 				color: "text-sky-400",
-				glow: "shadow-[0_8px_30px_rgba(255,255,255,0.02)] border-white/10 bg-zinc-900/80",
 			},
 			{
 				type: "avatar",
 				alt: "Red Hair Specialist",
 				angle: -20,
 				icon: "zap",
-				color: "text-rose-400",
-				glow: "shadow-[0_8px_30px_rgba(255,255,255,0.02)] border-white/10 bg-zinc-900/80",
+				color: "text-[var(--chart-1)]",
 			},
 		],
 	},
 	{
 		size: 200,
 		itemRadius: 100,
-		borderColor: "rgba(255,255,255,0.30)",
-		boxShadow: "0 0 10px 1px rgba(168,130,255,0.04)",
+		borderColor: "rgba(255,255,255,0.15)",
+		boxShadow: "0 0 10px 1px rgba(168,130,255,0.06)",
 		maskFrom: "90deg",
 		duration: 70,
 		direction: 1,
@@ -130,14 +123,12 @@ const orbitRings: OrbitRingConfig[] = [
 				icon: "bell",
 				color: "text-sky-400",
 				angle: -110,
-				glow: "shadow-[0_10px_25px_rgba(56,189,248,0.12)] border-sky-500/20 bg-zinc-900/80 backdrop-blur-md",
 			},
 			{
 				type: "badge",
 				icon: "heart",
-				color: "text-violet-400",
+				color: "text-rose-400",
 				angle: 35,
-				glow: "shadow-[0_10px_25px_rgba(139,92,246,0.12)] border-violet-500/20 bg-zinc-900/80 backdrop-blur-md",
 			},
 			{
 				type: "avatar",
@@ -145,7 +136,6 @@ const orbitRings: OrbitRingConfig[] = [
 				angle: 135,
 				icon: "globe",
 				color: "text-amber-400",
-				glow: "shadow-[0_8px_30px_rgba(255,255,255,0.02)] border-white/10 bg-zinc-900/80",
 			},
 		],
 	},
@@ -295,7 +285,7 @@ export default function Hero() {
 											return (
 												<motion.div
 													key={itemIdx}
-													className='absolute z-20 cursor-pointer'
+													className='absolute z-20 cursor-pointer group'
 													style={{
 														left: ix,
 														top: iy,
@@ -316,13 +306,15 @@ export default function Hero() {
 													}}
 												>
 													<div
-														className={`flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-2xl border border-zinc-100 ${item.glow}`}
+														className="flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-2xl border border-white/15 bg-zinc-950/60 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.06)] group-hover:border-white/40 group-hover:bg-zinc-900/70 group-hover:shadow-[0_0_25px_rgba(255,255,255,0.18)] transition-all duration-300"
 													>
-														{renderBadgeIcon(
-															item.icon,
-															item.color ??
-																"text-white",
-														)}
+														<div className="transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+															{renderBadgeIcon(
+																item.icon,
+																item.color ??
+																	"text-white",
+															)}
+														</div>
 													</div>
 												</motion.div>
 											);
@@ -334,11 +326,11 @@ export default function Hero() {
 
 						{/* Center Core – stays static */}
 						<div className='relative z-10 flex flex-col items-center justify-center text-center'>
-							<span className='text-4xl sm:text-5xl font-bold tracking-tight text-white'>
-								20k+
+							<span className='text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,255,255,0.15)]'>
+								50k+
 							</span>
-							<span className='text-[10px] sm:text-xs tracking-wider text-zinc-400 font-bold uppercase mt-1'>
-								Chuyên gia
+							<span className='text-[9px] sm:text-[11px] tracking-wider text-zinc-400 font-bold uppercase mt-1 max-w-[110px] leading-tight'>
+								Phỏng vấn AI
 							</span>
 						</div>
 					</div>

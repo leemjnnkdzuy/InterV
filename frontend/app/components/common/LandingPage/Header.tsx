@@ -27,50 +27,52 @@ export default function Header() {
 				:	"bg-transparent border-b border-transparent py-6 px-12 md:px-36"
 			}`}
 		>
-			{/* Logo */}
-			<div className='flex items-center gap-2'>
-				<div className='relative w-8 h-8 flex items-center justify-center'>
-					<Image
-						src={logoSrc}
-						alt='InterV Logo'
-						width={32}
-						height={32}
-						className='brightness-0 invert object-contain'
-						priority
-					/>
+			<div className='flex items-center gap-16'>
+				{/* Logo */}
+				<div className='flex items-center gap-2'>
+					<div className='relative w-8 h-8 flex items-center justify-center'>
+						<Image
+							src={logoSrc}
+							alt='InterV Logo'
+							width={32}
+							height={32}
+							className='brightness-0 invert object-contain'
+							priority
+						/>
+					</div>
+					<span className='font-logo font-bold text-xl tracking-tight text-white'>
+						InterV
+					</span>
 				</div>
-				<span className='font-logo font-bold text-xl tracking-tight text-white'>
-					InterV
-				</span>
-			</div>
 
-			{/* Nav Menu */}
-			<nav className='hidden md:flex items-center gap-8'>
-				<Link
-					href='#your-team'
-					className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
-				>
-					Đội ngũ
-				</Link>
-				<Link
-					href='#solutions'
-					className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
-				>
-					Giải pháp
-				</Link>
-				<Link
-					href='#blog'
-					className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
-				>
-					Blog
-				</Link>
-				<Link
-					href='#pricing'
-					className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
-				>
-					Bảng giá
-				</Link>
-			</nav>
+				{/* Nav Menu */}
+				<nav className='hidden md:flex items-center gap-8'>
+					<Link
+						href='#your-team'
+						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
+					>
+						Đội ngũ
+					</Link>
+					<Link
+						href='#solutions'
+						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
+					>
+						Giải pháp
+					</Link>
+					<Link
+						href='#blog'
+						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
+					>
+						Blog
+					</Link>
+					<Link
+						href='#pricing'
+						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
+					>
+						Bảng giá
+					</Link>
+				</nav>
+			</div>
 
 			{/* Actions */}
 			<div className='flex items-center gap-6'>
