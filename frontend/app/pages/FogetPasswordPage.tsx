@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/app/lib/Client";
 import { Spinner } from "@/app/components/ui/spinner";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
@@ -162,169 +163,187 @@ export default function FogetPasswordPage() {
         <div className="absolute -bottom-60 left-[10%] w-[800px] h-[800px] rounded-full bg-[var(--chart-3)]/10 blur-[150px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden">
         <h1 className="text-3xl font-extrabold text-center">Quên mật khẩu</h1>
 
-        {phase === "email" && (
-          <>
-            <p className="text-sm text-zinc-400 text-center mt-2">
-              Nhập email của bạn để nhận mã khôi phục mật khẩu
-            </p>
-            <form onSubmit={handleSendPin} className="flex flex-col gap-4 mt-6">
-              <label className="text-xs text-zinc-400">Email đăng ký</label>
-              <Input
-                type="email"
-                placeholder="Nhập email đăng ký..."
-                aria-label="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-              <Button
-                type="submit"
-                className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner className="mr-2" />
-                    Đang gửi mã...
-                  </>
-                ) : (
-                  "Gửi mã khôi phục"
-                )}
-              </Button>
-            </form>
-          </>
-        )}
-
-        {phase === "pin" && (
-          <>
-            <p className="text-sm text-zinc-400 text-center mt-2">
-              Chúng tôi đã gửi mã PIN 6 số đến email: <br />
-              <strong className="text-white">{email}</strong>
-            </p>
-            <form onSubmit={handleVerifyPin} className="flex flex-col gap-4 mt-6">
-              <label className="text-xs text-zinc-400 text-center">Nhập mã PIN xác nhận</label>
-              <Input
-                type="text"
-                placeholder="------"
-                maxLength={6}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                className="text-center text-2xl tracking-[0.5em] font-mono"
-                required
-                disabled={isLoading}
-              />
-              <Button
-                type="submit"
-                className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner className="mr-2" />
-                    Đang xác thực...
-                  </>
-                ) : (
-                  "Xác nhận mã PIN"
-                )}
-              </Button>
-            </form>
-
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <p className="text-sm text-zinc-400">Bạn không nhận được mã?</p>
-              <button
-                type="button"
-                onClick={handleResendPin}
-                className={`text-sm font-bold hover:underline cursor-pointer ${
-                  countdown > 0 ? "text-zinc-500 cursor-not-allowed" : "text-amber-400"
-                }`}
-                disabled={isLoading || countdown > 0}
-              >
-                {countdown > 0 ? `Gửi lại sau (${countdown}s)` : "Gửi lại mã PIN"}
-              </button>
-            </div>
-
-            <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
-              <button
-                type="button"
-                onClick={() => setPhase("email")}
-                className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" /> Quay lại
-              </button>
-            </div>
-          </>
-        )}
-
-        {phase === "newPassword" && (
-          <>
-            <p className="text-sm text-zinc-400 text-center mt-2">
-              Thiết lập mật khẩu mới cho tài khoản của bạn
-            </p>
-            <form onSubmit={handleResetPassword} className="flex flex-col gap-4 mt-6">
-              <label className="text-xs text-zinc-400">Mật khẩu mới</label>
-              <Input
-                type="password"
-                placeholder="Mật khẩu mới"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-
-              <label className="text-xs text-zinc-400">Xác nhận mật khẩu mới</label>
-              <Input
-                type="password"
-                placeholder="Nhập lại mật khẩu mới"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-
-              <Button
-                type="submit"
-                className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner className="mr-2" />
-                    Đang lưu mật khẩu...
-                  </>
-                ) : (
-                  "Đặt lại mật khẩu"
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
-              <button
-                type="button"
-                onClick={() => setPhase("pin")}
-                className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" /> Quay lại
-              </button>
-            </div>
-          </>
-        )}
-
-        {phase === "email" && (
-          <p className="text-sm text-zinc-400 text-center mt-6">
-            Quay lại{" "}
-            <button
-              onClick={() => router.push("/login")}
-              className="text-white font-bold cursor-pointer hover:underline"
-              disabled={isLoading}
+        <AnimatePresence mode="wait">
+          {phase === "email" && (
+            <motion.div
+              key="email-phase"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              Đăng nhập
-            </button>
-          </p>
-        )}
+              <p className="text-sm text-zinc-400 text-center mt-2">
+                Nhập email của bạn để nhận mã khôi phục mật khẩu
+              </p>
+              <form onSubmit={handleSendPin} className="flex flex-col gap-4 mt-6">
+                <label className="text-xs text-zinc-400">Email đăng ký</label>
+                <Input
+                  type="email"
+                  placeholder="Nhập email đăng ký..."
+                  aria-label="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner className="mr-2" />
+                      Đang gửi mã...
+                    </>
+                  ) : (
+                    "Gửi mã khôi phục"
+                  )}
+                </Button>
+              </form>
+
+              <p className="text-sm text-zinc-400 text-center mt-6">
+                Quay lại{" "}
+                <button
+                  onClick={() => router.push("/login")}
+                  className="text-white font-bold cursor-pointer hover:underline"
+                  disabled={isLoading}
+                >
+                  Đăng nhập
+                </button>
+              </p>
+            </motion.div>
+          )}
+
+          {phase === "pin" && (
+            <motion.div
+              key="pin-phase"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              <p className="text-sm text-zinc-400 text-center mt-2">
+                Chúng tôi đã gửi mã PIN 6 số đến email: <br />
+                <strong className="text-white">{email}</strong>
+              </p>
+              <form onSubmit={handleVerifyPin} className="flex flex-col gap-4 mt-6">
+                <label className="text-xs text-zinc-400 text-center">Nhập mã PIN xác nhận</label>
+                <Input
+                  type="text"
+                  placeholder="------"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-2xl tracking-[0.5em] font-mono"
+                  required
+                  disabled={isLoading}
+                />
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner className="mr-2" />
+                      Đang xác thực...
+                    </>
+                  ) : (
+                    "Xác nhận mã PIN"
+                  )}
+                </Button>
+              </form>
+
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <p className="text-sm text-zinc-400">Bạn không nhận được mã?</p>
+                <button
+                  type="button"
+                  onClick={handleResendPin}
+                  className={`text-sm font-bold hover:underline cursor-pointer ${
+                    countdown > 0 ? "text-zinc-500 cursor-not-allowed" : "text-amber-400"
+                  }`}
+                  disabled={isLoading || countdown > 0}
+                >
+                  {countdown > 0 ? `Gửi lại sau (${countdown}s)` : "Gửi lại mã PIN"}
+                </button>
+              </div>
+
+              <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setPhase("email")}
+                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Quay lại
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "newPassword" && (
+            <motion.div
+              key="newPassword-phase"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              <p className="text-sm text-zinc-400 text-center mt-2">
+                Thiết lập mật khẩu mới cho tài khoản của bạn
+              </p>
+              <form onSubmit={handleResetPassword} className="flex flex-col gap-4 mt-6">
+                <label className="text-xs text-zinc-400">Mật khẩu mới</label>
+                <Input
+                  type="password"
+                  placeholder="Mật khẩu mới"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+
+                <label className="text-xs text-zinc-400">Xác nhận mật khẩu mới</label>
+                <Input
+                  type="password"
+                  placeholder="Nhập lại mật khẩu mới"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold mt-4 py-2 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner className="mr-2" />
+                      Đang lưu mật khẩu...
+                    </>
+                  ) : (
+                    "Đặt lại mật khẩu"
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setPhase("pin")}
+                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Quay lại
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
