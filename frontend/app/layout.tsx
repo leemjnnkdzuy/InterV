@@ -4,8 +4,10 @@ import "./globals.css";
 import {cn} from "@/app/lib/Utils";
 import { AuthProvider } from "@/app/contexts/AuthContext";
 import { Toaster } from "@/app/components/ui/sonner";
+import { TooltipProvider } from "@/app/components/ui/tooltip";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
+
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -42,8 +44,10 @@ export default function RootLayout({
 		>
 			<body className='min-h-full flex flex-col'>
 				<AuthProvider>
-					{children}
-					<Toaster />
+					<TooltipProvider>
+						{children}
+						<Toaster />
+					</TooltipProvider>
 				</AuthProvider>
 			</body>
 		</html>

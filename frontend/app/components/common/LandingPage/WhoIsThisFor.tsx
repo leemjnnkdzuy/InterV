@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/app/components/ui/button";
-import { Briefcase, GraduationCap, ChevronRight } from "lucide-react";
+import { Suitcase, SquareAcademicCap, AltArrowRight } from "@solar-icons/react";
 
 export default function WhoIsThisFor() {
   return (
@@ -30,8 +30,8 @@ export default function WhoIsThisFor() {
             <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[var(--chart-1)]/5 blur-3xl group-hover:bg-[var(--chart-1)]/10 transition-colors" />
             
             <div className="flex flex-col gap-6 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--chart-1)]/10 flex items-center justify-center text-[var(--chart-1)] shadow-sm">
-                <GraduationCap className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center text-[var(--chart-1)]">
+                <SquareAcademicCap weight="BoldDuotone" className="w-11 h-11" />
               </div>
               <div className="flex flex-col gap-3">
                 <span className="text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">Dành cho Ứng viên</span>
@@ -46,7 +46,7 @@ export default function WhoIsThisFor() {
 
             <Button className="w-full sm:w-fit rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold px-6 py-4 h-auto text-sm transition-colors flex items-center gap-2 group/btn z-10 mt-4 border-none shadow-[0_4px_20px_rgba(187,244,81,0.15)]">
               Luyện tập ngay
-              <ChevronRight className="w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform" />
+              <AltArrowRight className="w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform" />
             </Button>
           </div>
 
@@ -58,8 +58,8 @@ export default function WhoIsThisFor() {
             <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
 
             <div className="flex flex-col gap-6 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shadow-sm">
-                <Briefcase className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center text-emerald-400">
+                <Suitcase weight="BoldDuotone" className="w-11 h-11" />
               </div>
               <div className="flex flex-col gap-3">
                 <span className="text-emerald-400 text-xs font-bold tracking-wider uppercase">Dành cho Doanh nghiệp</span>
@@ -74,7 +74,7 @@ export default function WhoIsThisFor() {
 
             <Button className="w-full sm:w-fit rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-4 h-auto text-sm transition-colors flex items-center gap-2 group/btn z-10 mt-4 border-none shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
               Trải nghiệm giải pháp doanh nghiệp
-              <ChevronRight className="w-4 h-4 text-emerald-100 group-hover/btn:translate-x-1 transition-transform" />
+              <AltArrowRight className="w-4 h-4 text-emerald-100 group-hover/btn:translate-x-1 transition-transform" />
             </Button>
           </div>
 

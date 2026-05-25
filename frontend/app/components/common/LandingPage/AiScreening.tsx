@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, BarChart3, Users, ChevronRight, Check, ArrowLeft, Sparkles, Clock } from "lucide-react";
+import { ChevronRight, Check, ArrowLeft, Clock } from "lucide-react";
+import { UsersGroupRounded, Chart, ShieldCheck } from "@solar-icons/react";
 import { Progress } from "@/app/components/ui/progress";
 
 interface Candidate {
@@ -307,8 +308,8 @@ export default function AiScreening() {
             <div className="flex flex-col gap-6">
               {/* Feature 1 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-emerald-400 shadow-sm">
-                  <Users className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-emerald-400">
+                  <UsersGroupRounded weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Sàng lọc tự động 24/7</h4>
@@ -320,8 +321,8 @@ export default function AiScreening() {
 
               {/* Feature 2 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-emerald-400 shadow-sm">
-                  <BarChart3 className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-emerald-400">
+                  <Chart weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Báo cáo đánh giá chi tiết</h4>
@@ -333,8 +334,8 @@ export default function AiScreening() {
 
               {/* Feature 3 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-emerald-400 shadow-sm">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-emerald-400">
+                  <ShieldCheck weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Chống gian lận thông minh</h4>

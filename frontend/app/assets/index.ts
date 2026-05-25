@@ -21,3 +21,6 @@ export const defaultAvatars = [
   defualtAvatar9,
   defualtAvatar10,
 ];
+
+import logo from "./logo.svg";
+export { logo };

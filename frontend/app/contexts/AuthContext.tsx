@@ -11,12 +11,14 @@ import {
 import { useRouter } from "next/navigation";
 import api from "@/app/lib/Client";
 import { toast } from "sonner";
+import AppLoadingScreen from "@/app/components/common/AppLoadingScreen";
 
 export interface User {
   id: string;
   username: string;
   email: string;
   role: string;
+  avatar?: string;
   createdAt: string;
 }
 
@@ -140,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshUser,
       }}
     >
-      {children}
+      {loading ? <AppLoadingScreen /> : children}
     </AuthContext.Provider>
   );
 }

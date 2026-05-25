@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FileUp, MessageSquareCode, Award } from "lucide-react";
+import { UploadMinimalistic, ChatSquareCode, Diploma } from "@solar-icons/react";
 
 interface Step {
   num: string;
@@ -19,7 +19,7 @@ const steps: Step[] = [
     num: "001",
     title: "CHỌN VỊ TRÍ & TẢI JD",
     description: "Chọn ngành nghề mong muốn hoặc tải lên mô tả công việc (JD). Trợ lý AI sẽ lập tức thiết kế bộ câu hỏi chuyên sâu tương ứng.",
-    icon: <FileUp className="w-5 h-5 text-rose-400" />,
+    icon: <UploadMinimalistic weight="BoldDuotone" className="w-7 h-7 text-rose-400" />,
     colorClass: "rose",
     bgGradient: "from-rose-500/5 to-purple-500/5 border-rose-500/10",
     badgeColor: "bg-rose-500/15 border-rose-500/20 text-rose-400"
@@ -28,7 +28,7 @@ const steps: Step[] = [
     num: "002",
     title: "PHỎNG VẤN TRỰC TIẾP",
     description: "Khởi động Camera và Micro, bắt đầu buổi phỏng vấn trực quan qua video/audio trực tiếp với trợ lý ảo AI ngay trên trình duyệt.",
-    icon: <MessageSquareCode className="w-5 h-5 text-amber-400" />,
+    icon: <ChatSquareCode weight="BoldDuotone" className="w-7 h-7 text-amber-400" />,
     colorClass: "amber",
     bgGradient: "from-amber-500/5 to-yellow-500/5 border-amber-500/10",
     badgeColor: "bg-amber-500/15 border-amber-500/20 text-amber-400"
@@ -37,7 +37,7 @@ const steps: Step[] = [
     num: "003",
     title: "NHẬN BÁO CÁO AI",
     description: "Nhận ngay kết quả phân tích kỹ năng nói, độ tự tin và gợi ý hoàn thiện câu trả lời cùng điểm số đánh giá từ AI.",
-    icon: <Award className="w-5 h-5 text-emerald-400" />,
+    icon: <Diploma weight="BoldDuotone" className="w-7 h-7 text-emerald-400" />,
     colorClass: "emerald",
     bgGradient: "from-emerald-500/5 to-teal-500/5 border-emerald-500/10",
     badgeColor: "bg-emerald-500/15 border-emerald-500/20 text-emerald-400"
@@ -114,7 +114,7 @@ export default function HowItWorks() {
               {/* Top row */}
               <div className="flex items-center justify-between">
                 <span className="text-xl font-black text-zinc-500/70 tracking-wider">{step.num}</span>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${step.badgeColor}`}>
+                <div className="w-10 h-10 flex items-center justify-center">
                   {step.icon}
                 </div>
               </div>

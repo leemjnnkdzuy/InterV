@@ -1,21 +1,19 @@
 "use client";
 
-import React from "react";
-// images replaced with icons — Image import removed
 import {Button} from "@/app/components/ui/button";
 import {motion} from "framer-motion";
 import {
 	Cloud,
-	Megaphone,
-	MessageSquare,
-	Users,
-	ChevronRight,
+	Siren,
+	ChatSquare,
+	UsersGroupRounded,
+	AltArrowRight,
 	Star,
-	Zap,
+	Lightning,
 	Bell,
 	Heart,
-	Globe,
-} from "lucide-react";
+	Global,
+} from "@solar-icons/react";
 
 interface OrbitItem {
 	type: "avatar" | "badge";
@@ -107,6 +105,12 @@ const orbitRings: OrbitRingConfig[] = [
 				icon: "zap",
 				color: "text-[var(--chart-1)]",
 			},
+			{
+				type: "badge",
+				icon: "bell",
+				color: "text-sky-400",
+				angle: 80,
+			},
 		],
 	},
 	{
@@ -120,12 +124,6 @@ const orbitRings: OrbitRingConfig[] = [
 		items: [
 			{
 				type: "badge",
-				icon: "bell",
-				color: "text-sky-400",
-				angle: -110,
-			},
-			{
-				type: "badge",
 				icon: "heart",
 				color: "text-rose-400",
 				angle: 35,
@@ -133,7 +131,7 @@ const orbitRings: OrbitRingConfig[] = [
 			{
 				type: "avatar",
 				alt: "Blonde Specialist",
-				angle: 135,
+				angle: 180,
 				icon: "globe",
 				color: "text-amber-400",
 			},
@@ -157,23 +155,23 @@ export default function Hero() {
 	) => {
 		switch (icon) {
 			case "cloud":
-				return <Cloud className={`w-5 h-5 ${color}`} />;
+				return <Cloud weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "megaphone":
-				return <Megaphone className={`w-5 h-5 ${color}`} />;
+				return <Siren weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "message":
-				return <MessageSquare className={`w-5 h-5 ${color}`} />;
+				return <ChatSquare weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "users":
-				return <Users className={`w-5 h-5 ${color}`} />;
+				return <UsersGroupRounded weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "star":
-				return <Star className={`w-5 h-5 ${color}`} />;
+				return <Star weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "zap":
-				return <Zap className={`w-5 h-5 ${color}`} />;
+				return <Lightning weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "bell":
-				return <Bell className={`w-5 h-5 ${color}`} />;
+				return <Bell weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "heart":
-				return <Heart className={`w-5 h-5 ${color}`} />;
+				return <Heart weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			case "globe":
-				return <Globe className={`w-5 h-5 ${color}`} />;
+				return <Global weight="BoldDuotone" className={`w-11 h-11 sm:w-14 sm:h-14 ${color}`} />;
 			default:
 				return null;
 		}
@@ -215,7 +213,7 @@ export default function Hero() {
 						{/* Start Button */}
 						<Button className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] border-none text-zinc-950 font-bold px-6 py-5 h-auto text-sm shadow-[0_4px_25px_rgba(187,244,81,0.2)] flex items-center gap-2 group/btn transition-all duration-300'>
 							Bắt đầu Miễn phí
-							<ChevronRight className='w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform' />
+							<AltArrowRight className='w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform' />
 						</Button>
 					</div>
 				</div>
@@ -306,7 +304,7 @@ export default function Hero() {
 													}}
 												>
 													<div
-														className="flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-2xl border border-white/15 bg-zinc-950/60 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.06)] group-hover:border-white/40 group-hover:bg-zinc-900/70 group-hover:shadow-[0_0_25px_rgba(255,255,255,0.18)] transition-all duration-300"
+														className="flex items-center justify-center transition-all duration-300"
 													>
 														<div className="transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
 															{renderBadgeIcon(

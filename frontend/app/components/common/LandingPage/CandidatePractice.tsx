@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Mic, MonitorPlay, MessageSquareText, ShieldAlert } from "lucide-react";
+import { MonitorCamera, ChatSquareCode, Library } from "@solar-icons/react";
+import { Mic } from "lucide-react";
 import { Progress } from "@/app/components/ui/progress";
 
 export default function CandidatePractice() {
@@ -31,8 +32,8 @@ export default function CandidatePractice() {
               
               {/* Feature 1 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-[var(--chart-1)] shadow-sm">
-                  <MonitorPlay className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-[var(--chart-1)]">
+                  <MonitorCamera weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Phỏng vấn giả định như thật</h4>
@@ -44,8 +45,8 @@ export default function CandidatePractice() {
 
               {/* Feature 2 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-[var(--chart-1)] shadow-sm">
-                  <MessageSquareText className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-[var(--chart-1)]">
+                  <ChatSquareCode weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Phản hồi thông minh tức thì</h4>
@@ -57,8 +58,8 @@ export default function CandidatePractice() {
 
               {/* Feature 3 */}
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-[var(--chart-1)] shadow-sm">
-                  <ShieldAlert className="w-5 h-5" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-[var(--chart-1)]">
+                  <Library weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Thư viện câu hỏi đa dạng</h4>

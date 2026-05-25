@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BrainCircuit, Activity, Lock } from "lucide-react";
+import { CpuBolt, Pulse, LockKeyhole } from "@solar-icons/react";
 
 interface Benefit {
   title: string;
@@ -17,26 +17,26 @@ const benefits: Benefit[] = [
   {
     title: "Đối thoại thông minh tự nhiên",
     description: "Công nghệ AI đàm thoại thế hệ mới giúp trợ lý ảo hỏi đáp và phản hồi ngữ cảnh thực tế, không rập khuôn theo kịch bản có sẵn.",
-    icon: <BrainCircuit className="w-6 h-6" />,
+    icon: <CpuBolt weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-[var(--chart-1)]/5",
     iconColor: "text-[var(--chart-1)]",
-    iconBg: "bg-[var(--chart-1)]/10",
+    iconBg: "",
   },
   {
     title: "Phân tích tâm lý & kỹ năng sâu",
     description: "Đánh giá chính xác từ vựng chuyên ngành, đo lường tốc độ nói, phát hiện từ đệm thừa và phân tích biểu cảm tự tin khuôn mặt.",
-    icon: <Activity className="w-6 h-6" />,
+    icon: <Pulse weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-emerald-500/5",
     iconColor: "text-emerald-400",
-    iconBg: "bg-emerald-500/10",
+    iconBg: "",
   },
   {
     title: "Bảo mật thông tin tuyệt đối",
     description: "Cam kết bảo mật 100% dữ liệu cuộc gọi video của ứng viên và thông tin tuyển dụng doanh nghiệp theo tiêu chuẩn bảo mật dữ liệu toàn cầu.",
-    icon: <Lock className="w-6 h-6" />,
+    icon: <LockKeyhole weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-violet-500/5",
     iconColor: "text-violet-400",
-    iconBg: "bg-violet-500/10",
+    iconBg: "",
   },
 ];
 
@@ -59,16 +59,15 @@ export default function WhyOurAi() {
         {/* Benefits Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {benefits.map((benefit, idx) => (
-            <motion.div
+            <div
               key={idx}
-              className="relative group rounded-3xl border border-white/[0.08] bg-zinc-900/50 backdrop-blur-md p-8 flex flex-col gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:border-white/15 transition-all duration-300"
-              whileHover={{ y: -5 }}
+              className="relative group rounded-3xl border border-white/[0.08] bg-zinc-900/50 backdrop-blur-md p-8 flex flex-col gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300"
             >
               {/* Radial gradient background hover glow */}
               <div className={`absolute -top-24 -left-24 w-48 h-48 rounded-full ${benefit.bgGlow} blur-3xl`} />
 
               {/* Icon Container */}
-              <div className={`w-12 h-12 rounded-2xl ${benefit.iconBg} ${benefit.iconColor} flex items-center justify-center shadow-sm z-10`}>
+              <div className={`w-12 h-12 ${benefit.iconColor} flex items-center justify-center z-10`}>
                 {benefit.icon}
               </div>
 
@@ -82,7 +81,7 @@ export default function WhyOurAi() {
                 </p>
               </div>
 
-            </motion.div>
+            </div>
           ))}
         </div>
 
