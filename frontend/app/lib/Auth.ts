@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || "access_secret_key";
@@ -55,4 +56,34 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
   } catch {
     return null;
   }
+}
+
+export async function verifyAdmin(request: NextRequest) {
+  const accessToken = request.cookies.get("access_token")?.value;
+
+  if (!accessToken) {
+    return { error: "Không tìm thấy token", status: 401 };
+  }
+
+  const payload = verifyAccessToken(accessToken);
+  if (!payload) {
+    return { error: "Token không hợp lệ hoặc đã hết hạn", status: 401 };
+  }
+
+  const connectDB = (await import("./ConnectDB")).default;
+  await connectDB();
+
+  const mongoose = (await import("mongoose")).default;
+  const User = mongoose.models.User || (await import("@/app/models/User")).default;
+
+  const user = await User.findById(payload.userId).select("role");
+  if (!user) {
+    return { error: "Không tìm thấy người dùng", status: 404 };
+  }
+
+  if (user.role !== "admin") {
+    return { error: "Không có quyền truy cập", status: 403 };
+  }
+
+  return { user, error: null };
 }
