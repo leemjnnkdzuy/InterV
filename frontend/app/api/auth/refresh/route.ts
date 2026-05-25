@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (payload.sessionId) {
       await connectDB();
       const session = await Session.findOne({
-        sessionId: payload.sessionId,
+        _id: payload.sessionId,
         userId: payload.userId,
       }).lean();
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       }
 
       await Session.updateOne(
-        { sessionId: payload.sessionId },
+        { _id: payload.sessionId },
         { $set: { lastActiveAt: new Date() } }
       );
     }

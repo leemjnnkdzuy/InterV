@@ -19,6 +19,7 @@ export interface User {
   email: string;
   role: string;
   avatar?: string;
+  dob?: string;
   createdAt: string;
 }
 

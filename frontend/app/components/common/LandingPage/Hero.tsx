@@ -200,9 +200,6 @@ export default function Hero() {
 						<span className='bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent'>
 							Tuyển dụng
 						</span>
-						<span className='bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent'>
-							,
-						</span>
 						<br className='hidden lg:block' />
 						<span className='hero-shimmer-text'>
 							Chỉ Với Một Cú Nhấp Chuột!

@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   role: "user" | "admin";
   avatar?: string;
+  dob?: Date;
   isVerified: boolean;
   isActive: boolean;
   createdAt: Date;
@@ -47,6 +48,9 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: String,
       default: "",
+    },
+    dob: {
+      type: Date,
     },
     isVerified: {
       type: Boolean,

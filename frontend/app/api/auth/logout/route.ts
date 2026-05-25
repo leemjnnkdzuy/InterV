@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       if (payload && payload.sessionId) {
         await connectDB();
         await Session.updateOne(
-          { sessionId: payload.sessionId },
+          { _id: payload.sessionId },
           { $set: { isActive: false } }
         );
       }

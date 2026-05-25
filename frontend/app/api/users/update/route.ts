@@ -3,7 +3,7 @@ import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import { verifyAccessToken } from "@/app/lib/Auth";
 
-export async function GET(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const accessToken = request.cookies.get("access_token")?.value;
 
@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { dob } = await request.json();
+
     await connectDB();
-    const user = await User.findById(payload.userId).select("-password").lean();
+    const user = await User.findById(payload.userId);
 
     if (!user) {
       return NextResponse.json(
@@ -32,8 +34,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (dob !== undefined) {
+      user.dob = dob ? new Date(dob) : undefined;
+    }
+
+    await user.save();
+
     return NextResponse.json({
       success: true,
+      message: "Cập nhật ngày sinh thành công",
       user: {
         id: user._id.toString(),
         username: user.username,
@@ -45,7 +54,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("GET /api/auth/me error:", error);
+    console.error("PUT /api/users/update error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },
       { status: 500 }

@@ -1,10 +1,27 @@
-"use client";
+﻿"use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { logo } from "@/app/assets";
+import { toast } from "sonner";
+import { Button } from "@/app/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/app/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/app/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -18,15 +35,16 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import {
-  LayoutDashboard,
+  Widget as LayoutDashboard,
   PlayCircle,
   History,
   Settings,
-  LogOut,
+  Logout as LogOut,
   User as UserIcon,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
+  AltArrowRight as ChevronRight,
+  MenuDots,
+  WalletMoney,
+} from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 
 export default function HomeSidebar() {
@@ -35,29 +53,30 @@ export default function HomeSidebar() {
   const { user, logout } = useAuthContext();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const menuItems = [
     {
-      title: "Bảng điều khiển",
-      subtitle: "Tổng quan tiến độ",
+      title: "Báº£ng Ä‘iá»u khiá»ƒn",
+      subtitle: "Tá»•ng quan tiáº¿n Ä‘á»™",
       url: "/",
       icon: LayoutDashboard,
     },
     {
-      title: "Luyện phỏng vấn",
-      subtitle: "Giả lập AI thực tế",
+      title: "Luyá»‡n phá»ng váº¥n",
+      subtitle: "Giáº£ láº­p AI thá»±c táº¿",
       url: "/practice",
       icon: PlayCircle,
     },
     {
-      title: "Lịch sử luyện tập",
-      subtitle: "Kết quả & Đánh giá",
+      title: "Lá»‹ch sá»­ luyá»‡n táº­p",
+      subtitle: "Káº¿t quáº£ & ÄÃ¡nh giÃ¡",
       url: "/history",
       icon: History,
     },
     {
-      title: "Cài đặt tài khoản",
-      subtitle: "Tùy chỉnh hệ thống",
+      title: "CÃ i Ä‘áº·t tÃ i khoáº£n",
+      subtitle: "TÃ¹y chá»‰nh há»‡ thá»‘ng",
       url: "/settings",
       icon: Settings,
     },
@@ -145,19 +164,17 @@ export default function HomeSidebar() {
 
                   {/* Menu Item Content */}
                   <div className={cn("relative z-10 flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
-                    <div className={cn(
-                      "transition-all duration-300",
+                    <item.icon className={cn(
+                      "shrink-0 transition-all duration-300",
                       isCollapsed 
-                        ? "text-current" 
+                        ? "h-8 w-8 text-current" 
                         : cn(
-                            "p-1.5 rounded-xl border",
                             isActive
-                              ? "bg-background/10 border-background/20 text-background"
-                              : "bg-muted border-border/20 text-muted-foreground group-hover/btn:border-foreground/20 group-hover/btn:text-foreground"
+                              ? "text-background"
+                              : "text-muted-foreground group-hover/btn:text-foreground",
+                            "h-7 w-7"
                           )
-                    )}>
-                      <item.icon className={cn("shrink-0", isCollapsed ? "h-6 w-6" : "h-5 w-5")} />
-                    </div>
+                    )} />
 
                     <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
                       <span className={cn(
@@ -202,8 +219,8 @@ export default function HomeSidebar() {
                     ? "justify-center p-0 bg-transparent border-transparent cursor-pointer group/user" 
                     : "gap-3 px-3 py-3 rounded-2xl border border-border/20 bg-card/40 backdrop-blur-md shadow-sm"
                 )}
-                onClick={isCollapsed ? () => logout() : undefined}
-                title={isCollapsed ? "Đăng xuất" : undefined}
+                onClick={isCollapsed ? () => setShowLogoutConfirm(true) : undefined}
+                title={isCollapsed ? "ÄÄƒng xuáº¥t" : undefined}
               >
                 {/* Avatar with Glow ring */}
                 <div className={cn(
@@ -222,13 +239,13 @@ export default function HomeSidebar() {
                         {user.username.charAt(0).toUpperCase()}
                       </span>
                     ) : (
-                      <UserIcon className={cn("transition-opacity duration-300", isCollapsed ? "h-6 w-6 group-hover/user:opacity-0" : "h-5 w-5")} />
+                      <UserIcon className={cn("transition-opacity duration-300", isCollapsed ? "h-7 w-7 group-hover/user:opacity-0" : "h-6 w-6")} />
                     )}
 
                     {/* LogOut icon overlay when collapsed and hovered */}
                     {isCollapsed && (
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/user:opacity-100 transition-opacity duration-300 text-destructive">
-                        <LogOut className="h-6 w-6" />
+                        <LogOut className="h-7 w-7" />
                       </div>
                     )}
                   </div>
@@ -242,9 +259,6 @@ export default function HomeSidebar() {
                 <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
                   <span className="truncate text-sm font-bold text-foreground leading-none flex items-center gap-1.5">
                     {user.username}
-                    <span className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary border border-primary/20">
-                      Ứng viên
-                    </span>
                   </span>
                   <span className="truncate text-xs text-muted-foreground mt-1">
                     {user.email}
@@ -252,23 +266,75 @@ export default function HomeSidebar() {
                 </div>
 
                 {/* Logout button on the right when expanded */}
-                {!isCollapsed && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      logout();
-                    }}
-                    title="Đăng xuất"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 transition-all duration-300 cursor-pointer"
-                  >
-                    <LogOut className="h-4.5 w-4.5" />
-                  </button>
+                 {!isCollapsed && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        title="TÃ¹y chá»n tÃ i khoáº£n"
+                        className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-sidebar-accent border border-transparent hover:border-border/20 transition-all duration-300 cursor-pointer"
+                      >
+                        <MenuDots className="h-5 w-5 rotate-90" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg">
+                      <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
+                        <UserIcon className="w-4 h-4 mr-2" />
+                        <span>TÃ i khoáº£n</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info("Sá»‘ dÆ° tÃ i khoáº£n: 100.000Ä‘")} className="cursor-pointer">
+                        <WalletMoney className="w-4 h-4 mr-2" />
+                        <span>Sá»‘ dÆ°</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
+                        <Settings className="w-4 h-4 mr-2" />
+                        <span>CÃ i Ä‘áº·t</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setShowLogoutConfirm(true)} 
+                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
+                      >
+                        <LogOut className="w-4 h-4 mr-2 text-destructive" />
+                        <span>ÄÄƒng xuáº¥t</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             </SidebarMenuItem>
           )}
         </SidebarMenu>
       </SidebarFooter>
+
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="sm:max-w-[360px]" showCloseButton={false}>
+          <DialogHeader className="text-center pt-2">
+            <DialogTitle className="text-lg font-bold">XÃ¡c nháº­n Ä‘Äƒng xuáº¥t</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-2">
+              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n Ä‘Äƒng xuáº¥t khá»i tÃ i khoáº£n cá»§a mÃ¬nh khÃ´ng?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-row gap-3 sm:justify-center mt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutConfirm(false)}
+              className="flex-1 rounded-2xl cursor-pointer"
+            >
+              Há»§y
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                logout();
+              }}
+              className="flex-1 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 font-semibold cursor-pointer transition-colors"
+            >
+              ÄÄƒng xuáº¥t
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 }
+

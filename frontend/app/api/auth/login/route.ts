@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
+
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import Session from "@/app/models/Session";
@@ -81,16 +81,15 @@ export async function POST(request: NextRequest) {
       await Session.updateMany({ _id: { $in: revokeIds } }, { $set: { isActive: false } });
     }
 
-    const sessionId = randomUUID();
     const deviceInfo = request.headers.get("user-agent") || "Unknown device";
     const ipAddress = request.headers.get("x-forwarded-for") || (request as any).ip || "";
 
-    await Session.create({
+    const session = await Session.create({
       userId: user._id,
-      sessionId,
       deviceInfo,
       ipAddress,
     });
+    const sessionId = session._id.toString();
 
     const accessToken = generateAccessToken(userId, sessionId);
     const refreshToken = generateRefreshToken(userId, rememberMe, sessionId);
@@ -105,6 +104,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
       role: user.role || "user",
       avatar: user.avatar,
+      dob: user.dob,
       createdAt: user.createdAt,
     };
 

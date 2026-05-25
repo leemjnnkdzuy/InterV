@@ -2,7 +2,6 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface ISession extends Document {
   userId: mongoose.Types.ObjectId;
-  sessionId: string;
   deviceInfo: string;
   ipAddress: string;
   isActive: boolean;
@@ -18,11 +17,6 @@ const sessionSchema = new Schema<ISession>(
       ref: "User",
       required: true,
       index: true,
-    },
-    sessionId: {
-      type: String,
-      required: true,
-      unique: true,
     },
     deviceInfo: {
       type: String,
@@ -54,5 +48,13 @@ if (mongoose.models.Session) {
 }
 
 const Session: Model<ISession> = mongoose.model<ISession>("Session", sessionSchema);
+
+if (mongoose.connection.readyState === 1) {
+  Session.collection.dropIndex("sessionId_1").catch(() => {});
+} else {
+  mongoose.connection.once("open", () => {
+    Session.collection.dropIndex("sessionId_1").catch(() => {});
+  });
+}
 
 export default Session;

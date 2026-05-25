@@ -1,4 +1,4 @@
-import type {Metadata} from "next";
+﻿import type {Metadata} from "next";
 import {Geist, Geist_Mono, Inter} from "next/font/google";
 import "./globals.css";
 import {cn} from "@/app/lib/Utils";
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: "InterV",
-	description: "Nền tảng luyện phỏng vấn AI thông minh",
+	description: "Ná»n táº£ng luyá»‡n phá»ng váº¥n AI thÃ´ng minh",
 };
 
 export default function RootLayout({
@@ -53,3 +53,4 @@ export default function RootLayout({
 		</html>
 	);
 }
+

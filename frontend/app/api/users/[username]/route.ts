@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
-import { verifyAccessToken } from "@/app/lib/Auth";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ username: string }> }
+) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-
-    if (!accessToken) {
+    const { username } = await params;
+    if (!username) {
       return NextResponse.json(
-        { success: false, message: "Không tìm thấy access token" },
-        { status: 401 }
+        { success: false, message: "Username không hợp lệ" },
+        { status: 400 }
       );
     }
 
-    const payload = verifyAccessToken(accessToken);
-    if (!payload) {
-      return NextResponse.json(
-        { success: false, message: "Access token không hợp lệ hoặc đã hết hạn" },
-        { status: 401 }
-      );
-    }
-
+    const lowercaseUsername = username.toLowerCase();
     await connectDB();
-    const user = await User.findById(payload.userId).select("-password").lean();
+    const user = await User.findOne({ username: lowercaseUsername }).select("-password").lean();
 
     if (!user) {
       return NextResponse.json(
@@ -45,7 +39,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("GET /api/auth/me error:", error);
+    console.error("GET /api/users/[username] error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },
       { status: 500 }
