@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { Spinner } from "@/app/components/ui/spinner";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface EmailDialogProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export default function EmailDialog({
   currentUser,
   refreshUser,
 }: EmailDialogProps) {
+  const { t } = useLanguage();
   const [emailPhase, setEmailPhase] = useState(1); // 1: verify current pin, 2: enter new email, 3: verify new pin
   const [currentPin, setCurrentPin] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -50,11 +52,11 @@ export default function EmailDialog({
       setIsEmailSending(true);
       const res = await userService.changeEmail({ action: "send-current-pin" });
       if (!res.success) {
-        toast.error(res.message || "Không thể gửi OTP");
+        toast.error(res.message || t("dialogs.otpSendFailed"));
         onOpenChange(false);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi gửi mã OTP");
+      toast.error(err.response?.data?.message || t("dialogs.emailResendError"));
       onOpenChange(false);
     } finally {
       setIsEmailSending(false);
@@ -63,7 +65,7 @@ export default function EmailDialog({
 
   const handleVerifyCurrentPin = async () => {
     if (currentPin.length !== 6) {
-      toast.error("Vui lòng nhập đủ mã PIN 6 số");
+      toast.error(t("dialogs.otpRequired"));
       return;
     }
     try {
@@ -73,13 +75,13 @@ export default function EmailDialog({
         pin: currentPin,
       });
       if (res.success) {
-        toast.success("Xác thực email hiện tại thành công");
+        toast.success(t("dialogs.verifyCurrentSuccess"));
         setEmailPhase(2);
       } else {
-        toast.error(res.message || "Mã PIN không đúng");
+        toast.error(res.message || t("dialogs.otpVerifyFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi xác thực PIN");
+      toast.error(err.response?.data?.message || t("dialogs.otpVerifyFailed"));
     } finally {
       setIsEmailSending(false);
     }
@@ -87,7 +89,7 @@ export default function EmailDialog({
 
   const handleSendNewPin = async () => {
     if (!newEmail) {
-      toast.error("Vui lòng nhập địa chỉ email mới");
+      toast.error(t("dialogs.invalidEmail"));
       return;
     }
     try {
@@ -99,10 +101,10 @@ export default function EmailDialog({
       if (res.success) {
         setEmailPhase(3);
       } else {
-        toast.error(res.message || "Địa chỉ email không khả dụng");
+        toast.error(res.message || t("dialogs.emailUnavailable"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi gửi mã OTP");
+      toast.error(err.response?.data?.message || t("dialogs.otpSendFailed"));
     } finally {
       setIsEmailSending(false);
     }
@@ -110,7 +112,7 @@ export default function EmailDialog({
 
   const handleVerifyNewPin = async () => {
     if (newEmailPin.length !== 6) {
-      toast.error("Vui lòng nhập đủ mã PIN 6 số");
+      toast.error(t("dialogs.otpRequired"));
       return;
     }
     try {
@@ -120,14 +122,14 @@ export default function EmailDialog({
         pin: newEmailPin,
       });
       if (res.success) {
-        toast.success("Thay đổi địa chỉ email thành công!");
+        toast.success(t("dialogs.otpVerifySuccess"));
         await refreshUser();
         onOpenChange(false);
       } else {
-        toast.error(res.message || "Mã PIN không đúng");
+        toast.error(res.message || t("dialogs.otpVerifyFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi xác thực PIN");
+      toast.error(err.response?.data?.message || t("dialogs.otpVerifyFailed"));
     } finally {
       setIsEmailSending(false);
     }
@@ -154,16 +156,16 @@ export default function EmailDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] overflow-hidden" showCloseButton={true}>
         <DialogHeader>
-          <DialogTitle>Thay đổi địa chỉ Email</DialogTitle>
-          <DialogDescription>Bảo vệ email tài khoản của bạn thông qua bảo mật 2 lớp OTP.</DialogDescription>
+          <DialogTitle>{t("dialogs.emailTitle")}</DialogTitle>
+          <DialogDescription>{t("dialogs.emailDesc")}</DialogDescription>
         </DialogHeader>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-between mt-3 px-1 border-b border-border/10 pb-3">
           <span className="text-[10px] font-bold text-primary tracking-wider uppercase">
-            {emailPhase === 1 && "Bước 1: Xác thực email cũ"}
-            {emailPhase === 2 && "Bước 2: Nhập email mới"}
-            {emailPhase === 3 && "Bước 3: Xác thực email mới"}
+            {emailPhase === 1 && t("dialogs.emailStep1")}
+            {emailPhase === 2 && t("dialogs.emailStep2")}
+            {emailPhase === 3 && t("dialogs.emailStep3")}
           </span>
           <div className="flex gap-1.5">
             <span className={`h-1.5 w-6 rounded-full transition-all duration-300 ${emailPhase >= 1 ? "bg-primary" : "bg-muted/40"}`} />
@@ -176,7 +178,7 @@ export default function EmailDialog({
           {isEmailSending && emailPhase === 1 && currentPin === "" ? (
             <div className="flex flex-col items-center justify-center min-h-[150px] space-y-3">
               <Spinner className="size-8 text-primary" />
-              <p className="text-sm text-muted-foreground">Đang gửi OTP đến email hiện tại...</p>
+              <p className="text-sm text-muted-foreground">{t("dialogs.sendingOtp")}</p>
             </div>
           ) : (
             <AnimatePresence mode="wait" custom={emailPhase}>
@@ -192,13 +194,13 @@ export default function EmailDialog({
                 >
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-muted-foreground">
-                      Mã OTP đã được gửi đến email hiện tại: <span className="text-foreground font-semibold block mt-1">{currentUser?.email}</span>
+                      {t("dialogs.otpSentTo")} <span className="text-foreground font-semibold block mt-1">{currentUser?.email}</span>
                     </label>
                     <Input
                       maxLength={6}
-                      placeholder="Nhập mã PIN 6 số..."
+                      placeholder={t("dialogs.emailOtpPlaceholder")}
                       value={currentPin}
-                      onChange={(e) => setCurrentPin(e.target.value)}
+                      onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ""))}
                       className="rounded-2xl text-center font-mono text-lg placeholder:tracking-normal placeholder:font-sans tracking-[0.5em] placeholder:text-muted-foreground/40 bg-background/50 border-border/40 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 py-6 h-12 transition-all"
                     />
                   </div>
@@ -207,7 +209,7 @@ export default function EmailDialog({
                     disabled={isEmailSending}
                     className="w-full rounded-2xl cursor-pointer"
                   >
-                    {isEmailSending ? "Đang xác thực..." : "Xác thực mã PIN"}
+                    {isEmailSending ? t("common.loading") : t("dialogs.emailVerifyOtp")}
                   </Button>
                 </motion.div>
               )}
@@ -220,16 +222,16 @@ export default function EmailDialog({
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="space-y-4 w-full"
+                  className="space-y-4 w-full text-left"
                 >
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground">Địa chỉ email mới</label>
+                    <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.emailLabel")}</label>
                     <Input
                       type="email"
                       placeholder="example@gmail.com"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      className="rounded-2xl bg-background/50 border-border/40 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 h-12 transition-all"
+                      className="rounded-2xl bg-background/50 border-border/40 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 h-12 transition-all text-left"
                     />
                   </div>
                   <Button
@@ -237,7 +239,7 @@ export default function EmailDialog({
                     disabled={isEmailSending}
                     className="w-full rounded-2xl cursor-pointer"
                   >
-                    {isEmailSending ? <Spinner className="size-4 text-background" /> : "Gửi mã PIN đến email mới"}
+                    {isEmailSending ? <Spinner className="size-4 text-background" /> : t("dialogs.emailSendOtp")}
                   </Button>
                 </motion.div>
               )}
@@ -254,13 +256,13 @@ export default function EmailDialog({
                 >
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-muted-foreground">
-                      Mã OTP đã được gửi đến email mới: <span className="text-foreground font-semibold block mt-1">{newEmail}</span>
+                      {t("dialogs.otpSentToNew")} <span className="text-foreground font-semibold block mt-1">{newEmail}</span>
                     </label>
                     <Input
                       maxLength={6}
-                      placeholder="Nhập mã PIN 6 số..."
+                      placeholder={t("dialogs.emailOtpPlaceholder")}
                       value={newEmailPin}
-                      onChange={(e) => setNewEmailPin(e.target.value)}
+                      onChange={(e) => setNewEmailPin(e.target.value.replace(/\D/g, ""))}
                       className="rounded-2xl text-center font-mono text-lg placeholder:tracking-normal placeholder:font-sans tracking-[0.5em] placeholder:text-muted-foreground/40 bg-background/50 border-border/40 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 py-6 h-12 transition-all"
                     />
                   </div>
@@ -269,7 +271,7 @@ export default function EmailDialog({
                     disabled={isEmailSending}
                     className="w-full rounded-2xl cursor-pointer"
                   >
-                    {isEmailSending ? <Spinner className="size-4 text-background" /> : "Xác nhận thay đổi email"}
+                    {isEmailSending ? <Spinner className="size-4 text-background" /> : t("common.confirm")}
                   </Button>
                 </motion.div>
               )}

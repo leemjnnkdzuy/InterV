@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { CheckCircle } from "@solar-icons/react";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface UsernameDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export default function UsernameDialog({
   currentUser,
   refreshUser,
 }: UsernameDialogProps) {
+  const { t } = useLanguage();
   const [usernamePhase, setUsernamePhase] = useState(1); // 1: input, 2: password, 3: success
   const [newUsername, setNewUsername] = useState("");
   const [usernamePassword, setUsernamePassword] = useState("");
@@ -82,7 +84,7 @@ export default function UsernameDialog({
 
   const handleUpdateUsername = async () => {
     if (!usernamePassword) {
-      toast.error("Vui lòng nhập mật khẩu hiện tại");
+      toast.error(t("dialogs.confirmPasswordRequired"));
       return;
     }
     try {
@@ -95,10 +97,10 @@ export default function UsernameDialog({
         await refreshUser();
         setUsernamePhase(3);
       } else {
-        toast.error(res.message || "Mật khẩu không chính xác");
+        toast.error(res.message || t("dialogs.updateUsernameFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi cập nhật tên đăng nhập");
+      toast.error(err.response?.data?.message || t("dialogs.updateUsernameError"));
     } finally {
       setIsUpdatingUsername(false);
     }
@@ -125,8 +127,8 @@ export default function UsernameDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] overflow-hidden" showCloseButton={true}>
         <DialogHeader>
-          <DialogTitle>Thay đổi tên đăng nhập</DialogTitle>
-          <DialogDescription>Cập nhật tên tài khoản duy nhất của bạn trên hệ thống.</DialogDescription>
+          <DialogTitle>{t("dialogs.usernameTitle")}</DialogTitle>
+          <DialogDescription>{t("dialogs.usernameDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="relative pt-2">
@@ -142,13 +144,13 @@ export default function UsernameDialog({
                 className="space-y-4 w-full"
               >
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">Tên đăng nhập mới</label>
-                  <div className="relative">
+                  <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.usernameLabel")}</label>
+                  <div className="relative text-left">
                     <Input
-                      placeholder="Nhập username mới..."
+                      placeholder={t("dialogs.usernamePlaceholder")}
                       value={newUsername}
                       onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
-                      className="rounded-2xl pr-10"
+                      className="rounded-2xl pr-10 text-left"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                       {isCheckingUsername && <Spinner className="text-muted-foreground" />}
@@ -166,7 +168,7 @@ export default function UsernameDialog({
                   disabled={isCheckingUsername || usernameStatus !== "available"}
                   className="w-full rounded-2xl cursor-pointer"
                 >
-                  Tiếp tục
+                  {t("dialogs.continue")}
                 </Button>
               </motion.div>
             )}
@@ -181,14 +183,14 @@ export default function UsernameDialog({
                 exit="exit"
                 className="space-y-4 w-full"
               >
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">Xác nhận mật khẩu hiện tại</label>
+                <div className="space-y-1 text-left">
+                  <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.usernamePasswordLabel")}</label>
                   <Input
                     type="password"
-                    placeholder="Nhập mật khẩu..."
+                    placeholder={t("dialogs.usernamePasswordPlaceholder")}
                     value={usernamePassword}
                     onChange={(e) => setUsernamePassword(e.target.value)}
-                    className="rounded-2xl"
+                    className="rounded-2xl text-left"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -197,14 +199,14 @@ export default function UsernameDialog({
                     onClick={() => setUsernamePhase(1)}
                     className="flex-1 rounded-2xl cursor-pointer"
                   >
-                    Quay lại
+                    {t("dialogs.back")}
                   </Button>
                   <Button
                     onClick={handleUpdateUsername}
                     disabled={isUpdatingUsername}
                     className="flex-1 rounded-2xl cursor-pointer"
                   >
-                    {isUpdatingUsername ? <Spinner className="size-4 text-background" /> : "Xác nhận"}
+                    {isUpdatingUsername ? <Spinner className="size-4 text-background" /> : t("common.confirm")}
                   </Button>
                 </div>
               </motion.div>
@@ -222,13 +224,13 @@ export default function UsernameDialog({
               >
                 <CheckCircle className="w-16 h-16 text-primary" />
                 <div>
-                  <h3 className="font-bold text-lg">Thành công!</h3>
+                  <h3 className="font-bold text-lg">{t("dialogs.usernameSuccessTitle")}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Tên đăng nhập mới của bạn đã được cập nhật thành: <strong>@{newUsername}</strong>
+                    {t("dialogs.usernameSuccessDesc").replace("{{username}}", newUsername)}
                   </p>
                 </div>
                 <Button onClick={() => onOpenChange(false)} className="w-full rounded-2xl cursor-pointer">
-                  Đóng
+                  {t("dialogs.close")}
                 </Button>
               </motion.div>
             )}

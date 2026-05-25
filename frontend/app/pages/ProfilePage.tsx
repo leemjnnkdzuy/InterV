@@ -12,10 +12,12 @@ import {
   AltArrowLeft,
   Camera,
   Calendar,
+  User,
 } from "@solar-icons/react";
 import { toast } from "sonner";
 import { userService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface ProfilePageProps {
   targetUsername?: string;
@@ -24,6 +26,7 @@ interface ProfilePageProps {
 export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const router = useRouter();
   const { user, refreshUser } = useAuthContext();
+  const { language, t } = useLanguage();
 
   const [profileUser, setProfileUser] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
@@ -52,37 +55,37 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         const fetchedUser = await userService.getProfileByUsername(targetUsername!);
         setProfileUser(fetchedUser);
       } catch (err: any) {
-        setError(err.message || "Lỗi kết nối. Vui lòng thử lại sau.");
+        setError(err.message || t("common.error"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [targetUsername, isOwnProfile, user]);
+  }, [targetUsername, isOwnProfile, user, t]);
 
   const handleUpdateDob = async (newDate: Date) => {
     try {
       const response = await userService.updateProfile({ dob: newDate });
       if (response.success) {
-        toast.success("Cập nhật ngày sinh thành công!");
+        toast.success(t("profile.updateDobSuccess"));
         await refreshUser();
         // If we are viewing own profile as targetUsername
         if (targetUsername) {
           setProfileUser(response.user);
         }
       } else {
-        toast.error(response.message || "Cập nhật ngày sinh thất bại");
+        toast.error(response.message || t("profile.updateDobFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi kết nối. Vui lòng thử lại sau.");
+      toast.error(err.response?.data?.message || t("common.error"));
       throw err;
     }
   };
 
   const handleAvatarChange = () => {
     if (!isOwnProfile) return;
-    toast.info("Tính năng đổi ảnh đại diện đang được phát triển.");
+    toast.info(t("profile.avatarPending"));
   };
 
   const displayedUser = isOwnProfile ? user : profileUser;
@@ -98,21 +101,24 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   if (error || !displayedUser) {
     return (
       <div className="min-h-screen bg-background text-foreground pb-12 flex flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">{error || "Không tìm thấy người dùng"}</p>
+        <p className="text-muted-foreground">{error || t("profile.userNotFound")}</p>
         <Button onClick={() => router.push("/")} variant="outline" className="rounded-full cursor-pointer">
-          Quay lại Trang chủ
+          {t("profile.backToHome")}
         </Button>
       </div>
     );
   }
 
   const creationDate = displayedUser.createdAt
-    ? new Date(displayedUser.createdAt).toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "Không rõ";
+    ? new Date(displayedUser.createdAt).toLocaleDateString(
+        language === "vi" ? "vi-VN" : language === "zh" ? "zh-CN" : "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }
+      )
+    : t("common.error");
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-12">
@@ -124,7 +130,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
           className="rounded-full flex items-center gap-2 border-border/40 hover:bg-muted/50 cursor-pointer"
         >
           <AltArrowLeft className="w-5 h-5" />
-          <span>Trang chủ</span>
+          <span>{t("common.home")}</span>
         </Button>
         <h1 className="font-logo text-xl font-bold tracking-tight text-foreground">
           InterV<span className="text-[var(--chart-1)]">.</span>
@@ -167,10 +173,6 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
             <div className="text-left mt-4 w-full">
               <h2 className="text-xl font-bold truncate">{displayedUser.username}</h2>
               <p className="text-sm text-muted-foreground truncate mt-1">{displayedUser.email}</p>
-              
-              <div className="mt-3 inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary border border-primary/20 capitalize">
-                {displayedUser.role === "admin" ? "Quản trị viên" : "Ứng viên"}
-              </div>
             </div>
 
             {/* Separator */}
@@ -178,20 +180,23 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
             {/* Join Date info */}
             <div className="w-full flex items-center gap-3 text-sm text-muted-foreground">
-              <Calendar className="w-5 h-5 text-[var(--chart-1)] shrink-0" />
-              <span>Thành viên từ: <strong>{creationDate}</strong></span>
+              <User className="w-5 h-5 text-[var(--chart-1)] shrink-0" />
+              <span>{t("profile.memberSince")} <strong>{creationDate}</strong></span>
             </div>
 
             {/* Birthdate info */}
             <div className="w-full flex items-center justify-between text-sm text-muted-foreground mt-3">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-[var(--chart-1)] shrink-0" />
-                <span>Ngày sinh: <strong>{displayedUser.dob
-                  ? new Date(displayedUser.dob).toLocaleDateString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
+                <span>{t("profile.birthdate")} <strong>{displayedUser.dob
+                  ? new Date(displayedUser.dob).toLocaleDateString(
+                      language === "vi" ? "vi-VN" : language === "zh" ? "zh-CN" : "en-US",
+                      {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      }
+                    )
                   : "--/--/----"}</strong></span>
               </div>
               {isOwnProfile && (
@@ -206,33 +211,33 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
           <Card className="border-none bg-card/40 backdrop-blur-md shadow-lg rounded-4xl p-6 min-h-[480px]">
             <div className="space-y-8">
               <div>
-                <h3 className="text-lg font-bold">Thống kê luyện tập</h3>
-                <p className="text-sm text-muted-foreground mt-1">Tổng quan tiến trình và đánh giá năng lực từ hệ thống AI.</p>
+                <h3 className="text-lg font-bold">{t("profile.practiceStats")}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{t("profile.statsSub")}</p>
               </div>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
                   <span className="text-3xl font-bold text-primary">12</span>
-                  <span className="block text-xs text-muted-foreground mt-1">Lượt phỏng vấn</span>
+                  <span className="block text-xs text-muted-foreground mt-1">{t("profile.interviews")}</span>
                 </div>
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
                   <span className="text-3xl font-bold text-violet-400">85%</span>
-                  <span className="block text-xs text-muted-foreground mt-1">Điểm trung bình</span>
+                  <span className="block text-xs text-muted-foreground mt-1">{t("profile.averageScore")}</span>
                 </div>
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
                   <span className="text-3xl font-bold text-[var(--chart-1)]">3.2h</span>
-                  <span className="block text-xs text-muted-foreground mt-1">Thời lượng luyện tập</span>
+                  <span className="block text-xs text-muted-foreground mt-1">{t("profile.practiceDuration")}</span>
                 </div>
               </div>
 
               {/* Progress bars for skills */}
               <div className="space-y-5">
-                <h4 className="text-sm font-semibold border-b border-border/10 pb-2">Đánh giá kỹ năng từ AI</h4>
+                <h4 className="text-sm font-semibold border-b border-border/10 pb-2">{t("profile.aiSkillEval")}</h4>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-medium">
-                    <span>Giao tiếp & Ứng xử</span>
+                    <span>{t("profile.communication")}</span>
                     <span className="text-primary font-bold">90%</span>
                   </div>
                   <Progress value={90} className="h-2" />
@@ -240,7 +245,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-medium">
-                    <span>Kiến thức chuyên môn</span>
+                    <span>{t("profile.knowledge")}</span>
                     <span className="text-violet-400 font-bold">82%</span>
                   </div>
                   <Progress value={82} className="h-2" />
@@ -248,7 +253,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-medium">
-                    <span>Giải quyết vấn đề</span>
+                    <span>{t("profile.problemSolving")}</span>
                     <span className="text-orange-400 font-bold">78%</span>
                   </div>
                   <Progress value={78} className="h-2" />
@@ -256,7 +261,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-medium">
-                    <span>Sự tự tin</span>
+                    <span>{t("profile.confidence")}</span>
                     <span className="text-[var(--chart-1)] font-bold">88%</span>
                   </div>
                   <Progress value={88} className="h-2" />
@@ -269,4 +274,3 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
     </div>
   );
 }
-

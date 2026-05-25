@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface PasswordDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface PasswordDialogProps {
 }
 
 export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogProps) {
+  const { t } = useLanguage();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,15 +37,15 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
 
   const handleUpdatePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      toast.error("Vui lòng điền đầy đủ các trường");
+      toast.error(t("dialogs.fillAllFields"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu nhập lại không khớp");
+      toast.error(t("dialogs.passwordsNotMatch"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("Mật khẩu mới phải từ 6 ký tự");
+      toast.error(t("dialogs.passwordMinLength"));
       return;
     }
     try {
@@ -53,13 +55,13 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
         newPassword,
       });
       if (res.success) {
-        toast.success("Thay đổi mật khẩu thành công!");
+        toast.success(t("dialogs.updatePasswordSuccess"));
         onOpenChange(false);
       } else {
-        toast.error(res.message || "Mật khẩu cũ không chính xác");
+        toast.error(res.message || t("dialogs.updatePasswordFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi thay đổi mật khẩu");
+      toast.error(err.response?.data?.message || t("dialogs.updatePasswordError"));
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -69,41 +71,41 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]" showCloseButton={true}>
         <DialogHeader>
-          <DialogTitle>Thay đổi mật khẩu</DialogTitle>
-          <DialogDescription>Mật khẩu mới phải có tối thiểu 6 ký tự để đảm bảo tính bảo mật.</DialogDescription>
+          <DialogTitle>{t("dialogs.passwordTitle")}</DialogTitle>
+          <DialogDescription>{t("dialogs.passwordDesc")}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 text-left">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground">Mật khẩu hiện tại</label>
+            <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.currentPasswordLabel")}</label>
             <Input
               type="password"
-              placeholder="Nhập mật khẩu cũ..."
+              placeholder={t("dialogs.currentPasswordPlaceholder")}
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              className="rounded-2xl"
+              className="rounded-2xl text-left"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground">Mật khẩu mới</label>
+            <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.newPasswordLabel")}</label>
             <Input
               type="password"
-              placeholder="Mật khẩu mới..."
+              placeholder={t("dialogs.newPasswordPlaceholder")}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="rounded-2xl"
+              className="rounded-2xl text-left"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground">Nhập lại mật khẩu mới</label>
+            <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.confirmNewPasswordLabel")}</label>
             <Input
               type="password"
-              placeholder="Nhập lại mật khẩu mới..."
+              placeholder={t("dialogs.confirmNewPasswordPlaceholder")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="rounded-2xl"
+              className="rounded-2xl text-left"
             />
           </div>
 
@@ -113,14 +115,14 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
               onClick={() => onOpenChange(false)}
               className="flex-1 rounded-2xl cursor-pointer"
             >
-              Hủy
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleUpdatePassword}
               disabled={isUpdatingPassword}
               className="flex-1 rounded-2xl cursor-pointer"
             >
-              {isUpdatingPassword ? "Đang lưu..." : "Xác nhận"}
+              {isUpdatingPassword ? t("common.loading") : t("common.confirm")}
             </Button>
           </div>
         </div>

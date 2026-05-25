@@ -4,6 +4,7 @@ import "./globals.css";
 import {cn} from "@/app/lib/Utils";
 import { AuthProvider } from "@/app/contexts/AuthContext";
 import { ThemeProvider } from "@/app/hooks/useTheme";
+import { LanguageProvider } from "@/app/hooks/useLanguage";
 import { Toaster } from "@/app/components/ui/sonner";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { themeInitializerScript } from "@/app/scripts/theme";
@@ -55,10 +56,12 @@ export default function RootLayout({
 			<body className='min-h-full flex flex-col'>
 				<AuthProvider>
 					<ThemeProvider>
-						<TooltipProvider>
-							{children}
-							<Toaster />
-						</TooltipProvider>
+						<LanguageProvider>
+							<TooltipProvider>
+								{children}
+								<Toaster />
+							</TooltipProvider>
+						</LanguageProvider>
 					</ThemeProvider>
 				</AuthProvider>
 			</body>

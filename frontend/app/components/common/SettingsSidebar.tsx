@@ -44,6 +44,7 @@ import {
   WalletMoney,
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface SettingsSidebarProps {
   activeTab: string;
@@ -54,26 +55,27 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
   const router = useRouter();
   const { user, logout } = useAuthContext();
   const { state } = useSidebar();
+  const { t } = useLanguage();
   const isCollapsed = state === "collapsed";
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const menuItems = [
     {
       id: "account",
-      title: "Tài khoản",
-      subtitle: "Cài đặt cá nhân",
+      title: t("sidebar.account"),
+      subtitle: t("sidebar.accountSub"),
       icon: UserIcon,
     },
     {
       id: "security",
-      title: "Bảo mật",
-      subtitle: "Thiết bị & Mật khẩu",
+      title: t("sidebar.security"),
+      subtitle: t("sidebar.securitySub"),
       icon: ShieldKeyhole,
     },
     {
       id: "appearance",
-      title: "Giao diện",
-      subtitle: "Chủ đề & Ngôn ngữ",
+      title: t("sidebar.appearance"),
+      subtitle: t("sidebar.appearanceSub"),
       icon: Settings,
     },
   ];
@@ -234,22 +236,22 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
                   <DropdownMenuContent align="start" side="right" className="w-48 bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg">
                     <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
                       <UserIcon className="w-4 h-4 mr-2" />
-                      <span>Tài khoản</span>
+                      <span>{t("sidebar.account")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast.info("Số dư tài khoản: 100.000đ")} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => toast.info(`${t("sidebar.balance")}: 100.000đ`)} className="cursor-pointer">
                       <WalletMoney className="w-4 h-4 mr-2" />
-                      <span>Số dư</span>
+                      <span>{t("sidebar.balance")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
                       <Settings className="w-4 h-4 mr-2" />
-                      <span>Cài đặt</span>
+                      <span>{t("sidebar.settings")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setShowLogoutConfirm(true)} 
                       className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
                     >
                       <LogOut className="w-4 h-4 mr-2 text-destructive" />
-                      <span>Đăng xuất</span>
+                      <span>{t("sidebar.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -301,22 +303,22 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
                     <DropdownMenuContent align="end" className="w-48 bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg">
                       <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
                         <UserIcon className="w-4 h-4 mr-2" />
-                        <span>Tài khoản</span>
+                        <span>{t("sidebar.account")}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info("Số dư tài khoản: 100.000đ")} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => toast.info(`${t("sidebar.balance")}: 100.000đ`)} className="cursor-pointer">
                         <WalletMoney className="w-4 h-4 mr-2" />
-                        <span>Số dư</span>
+                        <span>{t("sidebar.balance")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
                         <Settings className="w-4 h-4 mr-2" />
-                        <span>Cài đặt</span>
+                        <span>{t("sidebar.settings")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => setShowLogoutConfirm(true)} 
                         className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
                       >
                         <LogOut className="w-4 h-4 mr-2 text-destructive" />
-                        <span>Đăng xuất</span>
+                        <span>{t("sidebar.logout")}</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -330,9 +332,9 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <DialogContent className="sm:max-w-[360px]" showCloseButton={false}>
           <DialogHeader className="text-center pt-2">
-            <DialogTitle className="text-lg font-bold">Xác nhận đăng xuất</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{t("sidebar.logoutConfirmTitle")}</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground mt-2">
-              Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không?
+              {t("sidebar.logoutConfirmDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-row gap-3 sm:justify-center mt-2">
@@ -341,7 +343,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
               onClick={() => setShowLogoutConfirm(false)}
               className="flex-1 rounded-2xl cursor-pointer"
             >
-              Hủy
+              {t("common.cancel")}
             </Button>
             <Button
               variant="ghost"
@@ -351,7 +353,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
               }}
               className="flex-1 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 font-semibold cursor-pointer transition-colors"
             >
-              Đăng xuất
+              {t("sidebar.logout")}
             </Button>
           </DialogFooter>
         </DialogContent>

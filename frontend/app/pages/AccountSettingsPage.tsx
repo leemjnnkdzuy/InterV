@@ -5,9 +5,11 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { User, Letter, Lock } from "@solar-icons/react";
 import { UsernameDialog, EmailDialog, PasswordDialog } from "@/app/components/common/Dialog";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function AccountSettingsPage() {
   const { user, refreshUser } = useAuthContext();
+  const { t } = useLanguage();
 
   const [isUsernameOpen, setIsUsernameOpen] = useState(false);
   const [isEmailOpen, setIsEmailOpen] = useState(false);
@@ -16,8 +18,8 @@ export default function AccountSettingsPage() {
   return (
     <div className="space-y-8 w-full text-left">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Cài đặt tài khoản</h2>
-        <p className="text-sm text-muted-foreground mt-1">Cập nhật thông tin cá nhân và thông tin bảo mật tài khoản.</p>
+        <h2 className="text-xl font-bold text-foreground">{t("account.title")}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t("account.description")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -28,12 +30,12 @@ export default function AccountSettingsPage() {
               <User className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Tên đăng nhập</p>
+              <p className="text-sm font-semibold">{t("account.username")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">@{user?.username}</p>
             </div>
           </div>
           <Button variant="outline" className="rounded-2xl cursor-pointer" onClick={() => setIsUsernameOpen(true)}>
-            Thay đổi
+            {t("common.change")}
           </Button>
         </div>
 
@@ -44,7 +46,7 @@ export default function AccountSettingsPage() {
               <Letter className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Địa chỉ Email</p>
+              <p className="text-sm font-semibold">{t("account.email")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
             </div>
           </div>
@@ -53,7 +55,7 @@ export default function AccountSettingsPage() {
             className="rounded-2xl cursor-pointer"
             onClick={() => setIsEmailOpen(true)}
           >
-            Thay đổi
+            {t("common.change")}
           </Button>
         </div>
 
@@ -64,12 +66,12 @@ export default function AccountSettingsPage() {
               <Lock className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Mật khẩu</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Cập nhật mật khẩu bảo vệ tài khoản của bạn</p>
+              <p className="text-sm font-semibold">{t("account.password")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("account.passwordDesc")}</p>
             </div>
           </div>
           <Button variant="outline" className="rounded-2xl cursor-pointer" onClick={() => setIsPasswordOpen(true)}>
-            Thay đổi
+            {t("common.change")}
           </Button>
         </div>
       </div>
@@ -95,4 +97,3 @@ export default function AccountSettingsPage() {
     </div>
   );
 }
-

@@ -9,6 +9,7 @@ import { Monitor, Smartphone, ShieldKeyhole, TrashBinMinimalistic } from "@solar
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Spinner } from "@/app/components/ui/spinner";
 import { cn } from "@/app/lib/Utils";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface SessionData {
   id: string;
@@ -22,6 +23,7 @@ interface SessionData {
 
 export default function SecuritySettingsPage() {
   const { logout } = useAuthContext();
+  const { language, t } = useLanguage();
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -34,10 +36,10 @@ export default function SecuritySettingsPage() {
       if (res.success) {
         setSessions(res.sessions);
       } else {
-        toast.error(res.message || "Không thể tải danh sách thiết bị");
+        toast.error(res.message || t("security.loadDevicesFailed"));
       }
     } catch (err) {
-      toast.error("Lỗi tải danh sách thiết bị");
+      toast.error(t("security.loadDevicesError"));
     } finally {
       setLoading(false);
     }
@@ -52,35 +54,35 @@ export default function SecuritySettingsPage() {
       setRevokingId(sessionId);
       const res = await userService.revokeSession(sessionId);
       if (res.success) {
-        toast.success("Đã đăng xuất thiết bị thành công!");
+        toast.success(t("security.revokeSuccess"));
         setSessions((prev) =>
           prev.map((s) => (s.id === sessionId ? { ...s, isActive: false } : s))
         );
       } else {
-        toast.error(res.message || "Đăng xuất thiết bị thất bại");
+        toast.error(res.message || t("security.revokeFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi đăng xuất thiết bị");
+      toast.error(err.response?.data?.message || t("security.logoutError"));
     } finally {
       setRevokingId(null);
     }
   };
 
   const handleRevokeAll = async () => {
-    if (!confirm("Bạn có chắc chắn muốn đăng xuất khỏi tất cả thiết bị (bao gồm thiết bị này)?")) {
+    if (!confirm(t("security.logoutAllConfirm"))) {
       return;
     }
     try {
       setIsRevokingAll(true);
       const res = await userService.revokeAllSessions();
       if (res.success) {
-        toast.success("Đã đăng xuất khỏi tất cả thiết bị!");
+        toast.success(t("security.revokeAllSuccess"));
         await logout();
       } else {
-        toast.error(res.message || "Lỗi đăng xuất tất cả thiết bị");
+        toast.error(res.message || t("security.revokeAllFailed"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi đăng xuất tất cả thiết bị");
+      toast.error(err.response?.data?.message || t("security.revokeAllFailed"));
     } finally {
       setIsRevokingAll(false);
     }
@@ -118,7 +120,7 @@ export default function SecuritySettingsPage() {
     if (ua.includes("firefox")) return "Mozilla Firefox";
     if (ua.includes("safari") && !ua.includes("chrome")) return "Apple Safari";
     if (ua.includes("opr") || ua.includes("opera")) return "Opera";
-    return "Trình duyệt";
+    return t("security.browser");
   };
 
   const activeSessions = sessions.filter((s) => s.isActive);
@@ -126,9 +128,9 @@ export default function SecuritySettingsPage() {
   return (
     <div className="space-y-8 w-full text-left">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Bảo mật tài khoản</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("security.title")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Quản lý các phiên đăng nhập đang hoạt động và cấu hình bảo mật tài khoản.
+          {t("security.description")}
         </p>
       </div>
 
@@ -143,20 +145,20 @@ export default function SecuritySettingsPage() {
               <div className="p-2 rounded-xl bg-primary/15 text-primary">
                 <ShieldKeyhole className="w-5 h-5 shrink-0" />
               </div>
-              <h4 className="text-sm font-semibold text-foreground">Khuyến cáo bảo mật</h4>
+              <h4 className="text-sm font-semibold text-foreground">{t("security.recommendationTitle")}</h4>
             </div>
             
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Khi nhận thấy thiết bị lạ đăng nhập trái phép vào tài khoản của mình, hãy thực hiện <span className="font-semibold text-primary">Đăng xuất tất cả thiết bị</span> và ngay lập tức tiến hành thay đổi mật khẩu của bạn để bảo vệ an toàn thông tin cá nhân.
+              {t("security.recommendationDesc")}
             </p>
           </Card>
 
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-border/10 pb-4">
               <div>
-                <h3 className="text-base font-semibold text-foreground">Thiết bị đang kết nối</h3>
+                <h3 className="text-base font-semibold text-foreground">{t("security.devicesTitle")}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Trình duyệt và ứng dụng đang duy trì hoặc từng đăng nhập vào tài khoản của bạn.
+                  {t("security.devicesDesc")}
                 </p>
               </div>
               {activeSessions.length > 0 && (
@@ -167,7 +169,7 @@ export default function SecuritySettingsPage() {
                   disabled={isRevokingAll}
                   className="text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer text-xs"
                 >
-                  Đăng xuất tất cả thiết bị
+                  {t("security.logoutAll")}
                 </Button>
               )}
             </div>
@@ -204,16 +206,16 @@ export default function SecuritySettingsPage() {
                       {session.isCurrent ? (
                         <span className="inline-flex items-center gap-1.5 text-[10px] bg-primary/10 text-primary border border-primary/25 px-2.5 py-0.5 rounded-full font-bold w-fit">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                          Thiết bị này
+                          {t("security.thisDevice")}
                         </span>
                       ) : session.isActive ? (
                         <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 px-2.5 py-0.5 rounded-full font-bold w-fit">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Đang hoạt động
+                          {t("security.active")}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-[10px] bg-muted/10 text-muted-foreground border border-border/10 px-2.5 py-0.5 rounded-full font-bold w-fit">
-                          Đã đăng xuất
+                          {t("security.loggedOut")}
                         </span>
                       )}
                     </div>
@@ -223,17 +225,19 @@ export default function SecuritySettingsPage() {
                     <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                       <span className="font-semibold text-foreground">{getBrowserName(session.deviceInfo)}</span>
                       <div className="flex items-center gap-1.5 text-[11px]">
-                        <span>IP: {session.ipAddress || "Không rõ"}</span>
+                        <span>{t("security.ipAddress").replace("{{ip}}", session.ipAddress || t("security.unknownIp"))}</span>
                         <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                         <span>
                           {session.isCurrent || session.isActive 
-                            ? "Đang hoạt động" 
-                            : `Đã đăng xuất: ${new Date(session.lastActiveAt).toLocaleString("vi-VN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                day: "2-digit",
-                                month: "2-digit",
-                              })}`
+                            ? t("security.active") 
+                            : t("security.loggedOutAt").replace("{{time}}", new Date(session.lastActiveAt).toLocaleString(
+                                language === "vi" ? "vi-VN" : language === "zh" ? "zh-CN" : "en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                }
+                              ))
                           }
                         </span>
                       </div>
@@ -246,7 +250,7 @@ export default function SecuritySettingsPage() {
                         onClick={() => handleRevokeSession(session.id)}
                         disabled={revokingId === session.id}
                         className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-2xl cursor-pointer w-10 h-10 shrink-0 transition-all duration-300"
-                        title="Đăng xuất thiết bị này"
+                        title={t("security.logoutAll")}
                       >
                         {revokingId === session.id ? (
                           <Spinner className="w-4 h-4 text-red-500 animate-spin" />
