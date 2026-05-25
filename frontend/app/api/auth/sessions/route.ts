@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
 
     const sessions = await Session.find({
       userId: payload.userId,
-      isActive: true,
     })
       .sort({ lastActiveAt: -1 })
       .lean();
@@ -38,6 +37,7 @@ export async function GET(request: NextRequest) {
       ipAddress: s.ipAddress,
       createdAt: s.createdAt,
       lastActiveAt: s.lastActiveAt,
+      isActive: s.isActive,
       isCurrent: s._id.toString() === currentSessionId,
     }));
 

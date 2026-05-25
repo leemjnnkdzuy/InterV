@@ -4,16 +4,13 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/app/components/ui/card";
 import { toast } from "sonner";
 import { Sun, Moon, Monitor, CheckCircle } from "@solar-icons/react";
+import { useTheme } from "@/app/hooks/useTheme";
 
 export default function AppearanceSettingsPage() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
+  const { theme, setTheme } = useTheme();
   const [lang, setLang] = useState<"vi" | "en">("vi");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
     const savedLang = localStorage.getItem("lang") as "vi" | "en" | null;
     if (savedLang) {
       setLang(savedLang);
@@ -22,22 +19,6 @@ export default function AppearanceSettingsPage() {
 
   const applyTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-
-    const root = document.documentElement;
-    if (newTheme === "dark") {
-      root.classList.add("dark");
-    } else if (newTheme === "light") {
-      root.classList.remove("dark");
-    } else {
-      // System
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (systemPrefersDark) {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-    }
     toast.success(`Đã đổi giao diện sang: ${newTheme === "dark" ? "Tối" : newTheme === "light" ? "Sáng" : "Hệ thống"}`);
   };
 

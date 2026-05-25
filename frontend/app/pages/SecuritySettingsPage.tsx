@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Monitor, Smartphone, ShieldKeyhole, TrashBinMinimalistic } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Spinner } from "@/app/components/ui/spinner";
+import { cn } from "@/app/lib/Utils";
 
 interface SessionData {
   id: string;
@@ -15,6 +16,7 @@ interface SessionData {
   ipAddress: string;
   createdAt: string;
   lastActiveAt: string;
+  isActive: boolean;
   isCurrent: boolean;
 }
 
@@ -51,7 +53,9 @@ export default function SecuritySettingsPage() {
       const res = await userService.revokeSession(sessionId);
       if (res.success) {
         toast.success("Đã đăng xuất thiết bị thành công!");
-        setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        setSessions((prev) =>
+          prev.map((s) => (s.id === sessionId ? { ...s, isActive: false } : s))
+        );
       } else {
         toast.error(res.message || "Đăng xuất thiết bị thất bại");
       }
@@ -71,7 +75,7 @@ export default function SecuritySettingsPage() {
       const res = await userService.revokeAllSessions();
       if (res.success) {
         toast.success("Đã đăng xuất khỏi tất cả thiết bị!");
-        await logout(); // logs out the current user session on client-side
+        await logout();
       } else {
         toast.error(res.message || "Lỗi đăng xuất tất cả thiết bị");
       }
@@ -82,12 +86,20 @@ export default function SecuritySettingsPage() {
     }
   };
 
-  const getDeviceIcon = (deviceInfo: string) => {
+  const getDeviceIcon = (deviceInfo: string, isCurrent: boolean, isActive: boolean) => {
     const info = deviceInfo.toLowerCase();
+    const iconColor = !isActive 
+      ? "text-muted-foreground/45" 
+      : isCurrent 
+        ? "text-primary" 
+        : info.includes("mobi") || info.includes("android") || info.includes("iphone") 
+          ? "text-violet-400" 
+          : "text-zinc-400 dark:text-zinc-500";
+
     if (info.includes("mobi") || info.includes("android") || info.includes("iphone")) {
-      return <Smartphone className="w-6 h-6 text-violet-400" />;
+      return <Smartphone className={cn("w-6 h-6", iconColor)} />;
     }
-    return <Monitor className="w-6 h-6 text-primary" />;
+    return <Monitor className={cn("w-6 h-6", iconColor)} />;
   };
 
   const formatDeviceName = (deviceInfo: string) => {
@@ -99,12 +111,24 @@ export default function SecuritySettingsPage() {
     return deviceInfo;
   };
 
+  const getBrowserName = (deviceInfo: string) => {
+    const ua = deviceInfo.toLowerCase();
+    if (ua.includes("edg/")) return "Microsoft Edge";
+    if (ua.includes("chrome") && !ua.includes("chromium")) return "Google Chrome";
+    if (ua.includes("firefox")) return "Mozilla Firefox";
+    if (ua.includes("safari") && !ua.includes("chrome")) return "Apple Safari";
+    if (ua.includes("opr") || ua.includes("opera")) return "Opera";
+    return "Trình duyệt";
+  };
+
+  const activeSessions = sessions.filter((s) => s.isActive);
+
   return (
     <div className="space-y-8 w-full text-left">
       <div>
         <h2 className="text-xl font-bold text-foreground">Bảo mật tài khoản</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Quản lý các phiên đăng nhập đang hoạt động. Bạn chỉ được phép đăng nhập tối đa 2 thiết bị cùng lúc.
+          Quản lý các phiên đăng nhập đang hoạt động và cấu hình bảo mật tài khoản.
         </p>
       </div>
 
@@ -113,78 +137,127 @@ export default function SecuritySettingsPage() {
           <Spinner className="size-8 text-primary" />
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-muted-foreground">Thiết bị đang kết nối ({sessions.length}/2)</h3>
-            {sessions.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRevokeAll}
-                disabled={isRevokingAll}
-                className="text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer"
-              >
-                Đăng xuất tất cả thiết bị
-              </Button>
-            )}
-          </div>
+        <div className="space-y-8">
+          <Card className="p-5 border border-primary/10 bg-primary/[0.01] backdrop-blur-md rounded-3xl space-y-4 transition-all duration-300 hover:border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/15 text-primary">
+                <ShieldKeyhole className="w-5 h-5 shrink-0" />
+              </div>
+              <h4 className="text-sm font-semibold text-foreground">Khuyến cáo bảo mật</h4>
+            </div>
+            
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Khi nhận thấy thiết bị lạ đăng nhập trái phép vào tài khoản của mình, hãy thực hiện <span className="font-semibold text-primary">Đăng xuất tất cả thiết bị</span> và ngay lập tức tiến hành thay đổi mật khẩu của bạn để bảo vệ an toàn thông tin cá nhân.
+            </p>
+          </Card>
 
-          <div className="space-y-3">
-            {sessions.map((session) => (
-              <Card
-                key={session.id}
-                className={`p-4 border bg-card/25 backdrop-blur-md rounded-3xl flex items-center justify-between transition-all ${
-                  session.isCurrent ? "border-primary/30 shadow-[0_0_15px_rgba(187,244,81,0.05)]" : "border-border/20"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-2xl bg-muted/40">
-                    {getDeviceIcon(session.deviceInfo)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{formatDeviceName(session.deviceInfo)}</span>
-                      {session.isCurrent && (
-                        <span className="text-[10px] bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b border-border/10 pb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Thiết bị đang kết nối</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Trình duyệt và ứng dụng đang duy trì hoặc từng đăng nhập vào tài khoản của bạn.
+                </p>
+              </div>
+              {activeSessions.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRevokeAll}
+                  disabled={isRevokingAll}
+                  className="text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer text-xs"
+                >
+                  Đăng xuất tất cả thiết bị
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {sessions.map((session) => (
+                <Card
+                  key={session.id}
+                  className={cn(
+                    "p-5 border bg-card/10 backdrop-blur-md rounded-3xl flex flex-row items-center justify-between gap-6 transition-all duration-300",
+                    session.isCurrent 
+                      ? "border-primary/45 shadow-[0_0_20px_rgba(187,244,81,0.08)] bg-primary/[0.02]" 
+                      : !session.isActive
+                        ? "border-border/5 bg-card/5 opacity-60"
+                        : "border-border/15 hover:border-border/30 hover:bg-muted/5"
+                  )}
+                >
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className={cn(
+                      "p-3.5 rounded-2xl flex items-center justify-center transition-all",
+                      session.isCurrent 
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_12px_rgba(187,244,81,0.15)]" 
+                        : !session.isActive
+                          ? "bg-muted/10 text-muted-foreground/45 border border-border/5"
+                          : "bg-muted/20 text-muted-foreground border border-border/10"
+                    )}>
+                      {getDeviceIcon(session.deviceInfo, session.isCurrent, session.isActive)}
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5 text-left">
+                      <span className="text-sm font-bold text-foreground tracking-tight">
+                        {formatDeviceName(session.deviceInfo)}
+                      </span>
+                      {session.isCurrent ? (
+                        <span className="inline-flex items-center gap-1.5 text-[10px] bg-primary/10 text-primary border border-primary/25 px-2.5 py-0.5 rounded-full font-bold w-fit">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           Thiết bị này
+                        </span>
+                      ) : session.isActive ? (
+                        <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 px-2.5 py-0.5 rounded-full font-bold w-fit">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Đang hoạt động
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[10px] bg-muted/10 text-muted-foreground border border-border/10 px-2.5 py-0.5 rounded-full font-bold w-fit">
+                          Đã đăng xuất
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      IP: {session.ipAddress || "Không rõ"} • Hoạt động:{" "}
-                      {new Date(session.lastActiveAt).toLocaleString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                      })}
-                    </p>
                   </div>
-                </div>
 
-                {!session.isCurrent && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRevokeSession(session.id)}
-                    disabled={revokingId === session.id}
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl cursor-pointer"
-                  >
-                    <TrashBinMinimalistic className="w-5 h-5" />
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </div>
+                  <div className="flex items-center gap-5 ml-auto text-right">
+                    <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">{getBrowserName(session.deviceInfo)}</span>
+                      <div className="flex items-center gap-1.5 text-[11px]">
+                        <span>IP: {session.ipAddress || "Không rõ"}</span>
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                        <span>
+                          {session.isCurrent || session.isActive 
+                            ? "Đang hoạt động" 
+                            : `Đã đăng xuất: ${new Date(session.lastActiveAt).toLocaleString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "2-digit",
+                              })}`
+                          }
+                        </span>
+                      </div>
+                    </div>
 
-          <div className="p-4 rounded-3xl border border-border/10 bg-muted/10 flex items-start gap-3 mt-6">
-            <ShieldKeyhole className="w-6 h-6 text-primary shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-semibold">Khuyến cáo bảo mật</h4>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                Khi nhận thấy thiết bị lạ đăng nhập trái phép vào tài khoản của mình, hãy thực hiện Đăng xuất tất cả thiết bị
-                và ngay lập tức tiến hành thay đổi mật khẩu của bạn để bảo vệ an toàn thông tin cá nhân.
-              </p>
+                    {session.isActive && !session.isCurrent && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRevokeSession(session.id)}
+                        disabled={revokingId === session.id}
+                        className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-2xl cursor-pointer w-10 h-10 shrink-0 transition-all duration-300"
+                        title="Đăng xuất thiết bị này"
+                      >
+                        {revokingId === session.id ? (
+                          <Spinner className="w-4 h-4 text-red-500 animate-spin" />
+                        ) : (
+                          <TrashBinMinimalistic className="w-5 h-5" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
         </div>

@@ -1,10 +1,12 @@
-﻿import type {Metadata} from "next";
+import type {Metadata} from "next";
 import {Geist, Geist_Mono, Inter} from "next/font/google";
 import "./globals.css";
 import {cn} from "@/app/lib/Utils";
 import { AuthProvider } from "@/app/contexts/AuthContext";
+import { ThemeProvider } from "@/app/hooks/useTheme";
 import { Toaster } from "@/app/components/ui/sonner";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { themeInitializerScript } from "@/app/scripts/theme";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 
@@ -21,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: "InterV",
-	description: "Ná»n táº£ng luyá»‡n phá»ng váº¥n AI thÃ´ng minh",
+	description: "Nền tảng giả lập phỏng vấn AI thế hệ mới",
 };
 
 export default function RootLayout({
@@ -32,6 +34,7 @@ export default function RootLayout({
 	return (
 		<html
 			lang='en'
+			suppressHydrationWarning
 			data-scroll-behavior='smooth'
 			className={cn(
 				"h-full",
@@ -42,15 +45,23 @@ export default function RootLayout({
 				inter.variable,
 			)}
 		>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: themeInitializerScript,
+					}}
+				/>
+			</head>
 			<body className='min-h-full flex flex-col'>
 				<AuthProvider>
-					<TooltipProvider>
-						{children}
-						<Toaster />
-					</TooltipProvider>
+					<ThemeProvider>
+						<TooltipProvider>
+							{children}
+							<Toaster />
+						</TooltipProvider>
+					</ThemeProvider>
 				</AuthProvider>
 			</body>
 		</html>
 	);
 }
-
