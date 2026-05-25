@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { logo } from "@/app/assets";
 import { toast } from "sonner";
@@ -35,20 +35,21 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import {
-  Widget as LayoutDashboard,
-  PlayCircle,
-  History,
-  Settings,
   Logout as LogOut,
   User as UserIcon,
   AltArrowRight as ChevronRight,
   MenuDots,
-  WalletMoney,
+  ShieldKeyhole,
+  Settings,
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 
-export default function HomeSidebar() {
-  const pathname = usePathname();
+interface SettingsSidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSidebarProps) {
   const router = useRouter();
   const { user, logout } = useAuthContext();
   const { state } = useSidebar();
@@ -57,23 +58,23 @@ export default function HomeSidebar() {
 
   const menuItems = [
     {
-      title: "Bảng điều khiển",
-      subtitle: "Tổng quan tiến độ",
-      url: "/",
-      icon: LayoutDashboard,
+      id: "account",
+      title: "Tài khoản",
+      subtitle: "Cài đặt cá nhân",
+      icon: UserIcon,
     },
     {
-      title: "Luyện phỏng vấn",
-      subtitle: "Giả lập AI thực tế",
-      url: "/practice",
-      icon: PlayCircle,
+      id: "security",
+      title: "Bảo mật",
+      subtitle: "Thiết bị & Mật khẩu",
+      icon: ShieldKeyhole,
     },
     {
-      title: "Lịch sử luyện tập",
-      subtitle: "Kết quả & Đánh giá",
-      url: "/history",
-      icon: History,
-    }
+      id: "appearance",
+      title: "Giao diện",
+      subtitle: "Chủ đề & Ngôn ngữ",
+      icon: Settings,
+    },
   ];
 
   return (
@@ -83,8 +84,8 @@ export default function HomeSidebar() {
         {isCollapsed ? (
           <>
             <div 
-              onClick={() => router.push("/")} 
-              className="relative w-10 h-10 flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
+              onClick={() => router.push("/")}
+              className="relative w-9 h-9 flex items-center justify-center cursor-pointer"
             >
               <Image
                 src={logo}
@@ -130,13 +131,13 @@ export default function HomeSidebar() {
       <SidebarContent className="px-3 py-6 no-scrollbar">
         <SidebarMenu className="gap-2">
           {menuItems.map((item) => {
-            const isActive = pathname === item.url;
+            const isActive = activeTab === item.id;
             return (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   isActive={isActive}
                   tooltip={item.title}
-                  onClick={() => router.push(item.url)}
+                  onClick={() => setActiveTab(item.id)}
                   className={cn(
                     "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
                     isCollapsed 
@@ -247,8 +248,11 @@ export default function HomeSidebar() {
                   )}
                 </div>
 
-                {/* Profile text */}
-                <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                {/* User Info (Visible only when sidebar is expanded) */}
+                <div className={cn(
+                  "flex flex-col text-left overflow-hidden transition-all duration-300",
+                  isCollapsed ? "w-0 opacity-0 pointer-events-none" : "flex-1 opacity-100"
+                )}>
                   <span className="truncate text-sm font-bold text-foreground leading-none flex items-center gap-1.5">
                     {user.username}
                   </span>
@@ -258,7 +262,7 @@ export default function HomeSidebar() {
                 </div>
 
                 {/* Logout button on the right when expanded */}
-                 {!isCollapsed && (
+                {!isCollapsed && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -274,7 +278,7 @@ export default function HomeSidebar() {
                         <span>Tài khoản</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => toast.info("Số dư tài khoản: 100.000đ")} className="cursor-pointer">
-                        <WalletMoney className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         <span>Số dư</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">

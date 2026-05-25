@@ -1,0 +1,240 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { userService } from "@/app/services/UserService";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Check, X } from "lucide-react";
+import { Spinner } from "@/app/components/ui/spinner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/app/components/ui/dialog";
+import { toast } from "sonner";
+import { AnimatePresence, motion, Variants } from "framer-motion";
+import { CheckCircle } from "@solar-icons/react";
+
+interface UsernameDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentUser: { username: string } | null;
+  refreshUser: () => Promise<void>;
+}
+
+export default function UsernameDialog({
+  isOpen,
+  onOpenChange,
+  currentUser,
+  refreshUser,
+}: UsernameDialogProps) {
+  const [usernamePhase, setUsernamePhase] = useState(1); // 1: input, 2: password, 3: success
+  const [newUsername, setNewUsername] = useState("");
+  const [usernamePassword, setUsernamePassword] = useState("");
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "available" | "unavailable">("idle");
+
+  // Reset state when opening/closing
+  useEffect(() => {
+    if (isOpen) {
+      setNewUsername("");
+      setUsernamePassword("");
+      setUsernameStatus("idle");
+      setUsernamePhase(1);
+    }
+  }, [isOpen]);
+
+  // Debounced username check
+  useEffect(() => {
+    if (!newUsername.trim()) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    if (newUsername.trim().toLowerCase() === currentUser?.username) {
+      setUsernameStatus("unavailable");
+      return;
+    }
+
+    setUsernameStatus("idle");
+    setIsCheckingUsername(true);
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await userService.checkUsername(newUsername);
+        if (res.success) {
+          setUsernameStatus("available");
+        } else {
+          setUsernameStatus("unavailable");
+        }
+      } catch (err) {
+        setUsernameStatus("unavailable");
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [newUsername, currentUser?.username]);
+
+  const handleUpdateUsername = async () => {
+    if (!usernamePassword) {
+      toast.error("Vui lòng nhập mật khẩu hiện tại");
+      return;
+    }
+    try {
+      setIsUpdatingUsername(true);
+      const res = await userService.changeUsername({
+        newUsername,
+        password: usernamePassword,
+      });
+      if (res.success) {
+        await refreshUser();
+        setUsernamePhase(3);
+      } else {
+        toast.error(res.message || "Mật khẩu không chính xác");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Lỗi cập nhật tên đăng nhập");
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  };
+
+  const slideVariants: Variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 150 : -150,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.3, ease: "easeInOut" },
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? 150 : -150,
+      opacity: 0,
+      transition: { duration: 0.2, ease: "easeInOut" },
+    }),
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[400px] overflow-hidden" showCloseButton={true}>
+        <DialogHeader>
+          <DialogTitle>Thay đổi tên đăng nhập</DialogTitle>
+          <DialogDescription>Cập nhật tên tài khoản duy nhất của bạn trên hệ thống.</DialogDescription>
+        </DialogHeader>
+
+        <div className="relative pt-2">
+          <AnimatePresence mode="wait" custom={usernamePhase}>
+            {usernamePhase === 1 && (
+              <motion.div
+                key="phase1"
+                custom={usernamePhase}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="space-y-4 w-full"
+              >
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-muted-foreground">Tên đăng nhập mới</label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Nhập username mới..."
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                      className="rounded-2xl pr-10"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                      {isCheckingUsername && <Spinner className="text-muted-foreground" />}
+                      {!isCheckingUsername && usernameStatus === "available" && (
+                        <Check className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
+                      )}
+                      {!isCheckingUsername && usernameStatus === "unavailable" && (
+                        <X className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setUsernamePhase(2)}
+                  disabled={isCheckingUsername || usernameStatus !== "available"}
+                  className="w-full rounded-2xl cursor-pointer"
+                >
+                  Tiếp tục
+                </Button>
+              </motion.div>
+            )}
+
+            {usernamePhase === 2 && (
+              <motion.div
+                key="phase2"
+                custom={usernamePhase}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="space-y-4 w-full"
+              >
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-muted-foreground">Xác nhận mật khẩu hiện tại</label>
+                  <Input
+                    type="password"
+                    placeholder="Nhập mật khẩu..."
+                    value={usernamePassword}
+                    onChange={(e) => setUsernamePassword(e.target.value)}
+                    className="rounded-2xl"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setUsernamePhase(1)}
+                    className="flex-1 rounded-2xl cursor-pointer"
+                  >
+                    Quay lại
+                  </Button>
+                  <Button
+                    onClick={handleUpdateUsername}
+                    disabled={isUpdatingUsername}
+                    className="flex-1 rounded-2xl cursor-pointer"
+                  >
+                    {isUpdatingUsername ? <Spinner className="size-4 text-background" /> : "Xác nhận"}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {usernamePhase === 3 && (
+              <motion.div
+                key="phase3"
+                custom={usernamePhase}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="flex flex-col items-center justify-center space-y-4 w-full text-center py-4"
+              >
+                <CheckCircle className="w-16 h-16 text-primary" />
+                <div>
+                  <h3 className="font-bold text-lg">Thành công!</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tên đăng nhập mới của bạn đã được cập nhật thành: <strong>@{newUsername}</strong>
+                  </p>
+                </div>
+                <Button onClick={() => onOpenChange(false)} className="w-full rounded-2xl cursor-pointer">
+                  Đóng
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

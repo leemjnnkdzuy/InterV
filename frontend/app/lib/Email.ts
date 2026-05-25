@@ -189,3 +189,94 @@ export async function sendPasswordResetEmail(
     return { success: false, error: error.message };
   }
 }
+
+export function getChangeEmailTemplate(pin: string, purpose: "current" | "new"): string {
+  const title = purpose === "current" ? "Xác nhận đổi email tài khoản" : "Xác nhận email mới của bạn";
+  const desc = purpose === "current" 
+    ? "Chúng tôi nhận được yêu cầu đổi địa chỉ email của bạn. Vui lòng sử dụng mã xác thực dưới đây để xác thực email hiện tại của bạn:" 
+    : "Đây là mã xác thực để kích hoạt địa chỉ email mới này cho tài khoản của bạn:";
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - InterV</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #09090b; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #09090b;">
+    <tr>
+      <td align="center" style="padding: 40px 10px;">
+        <table role="presentation" style="width: 100%; max-width: 480px; border-collapse: collapse; background-color: #121214; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 24px; text-align: center;">
+              <h1 style="margin: 0; font-family: 'Merriweather Sans', 'Segoe UI', sans-serif; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
+                InterV<span style="color: #bbf451;">.</span>
+              </h1>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #ffffff; text-align: center;">
+                ${title}
+              </h2>
+              <p style="margin: 0 0 24px; font-size: 14px; color: #a1a1aa; line-height: 1.6;">
+                ${desc}
+              </p>
+            </td>
+          </tr>
+          <!-- OTP Box -->
+          <tr>
+            <td style="padding: 0 40px 24px;">
+              <div style="background-color: #09090b; border: 1px dashed rgba(187, 244, 81, 0.35); border-radius: 12px; padding: 26px 20px; text-align: center;">
+                <p style="margin: 0 0 8px; font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: 3px; font-weight: 600;">MÃ XÁC THỰC OTP</p>
+                <p style="margin: 0; font-size: 38px; font-weight: 800; color: #bbf451; letter-spacing: 12px; font-family: 'Courier New', Courier, monospace; padding-left: 12px;">${pin}</p>
+              </div>
+            </td>
+          </tr>
+          <!-- Expire Notice -->
+          <tr>
+            <td style="padding: 0 40px 32px;">
+              <p style="margin: 0; font-size: 13px; color: #71717a; line-height: 1.5; text-align: center;">
+                Mã OTP này có giá trị trong vòng <strong style="color: #a1a1aa;">10 phút</strong>.<br>
+                Nếu bạn không thực hiện yêu cầu này, bạn có thể an tâm bỏ qua email này.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px; background-color: #18181b; border-radius: 0 0 16px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+              <p style="margin: 0; font-size: 12px; color: #71717a; text-align: center;">
+                © 2026 InterV. Nền tảng luyện phỏng vấn AI thông minh.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendChangeEmailPin(
+  email: string,
+  pin: string,
+  purpose: "current" | "new"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const subject = purpose === "current" ? "Xác nhận đổi email tài khoản - InterV" : "Xác nhận địa chỉ email mới - InterV";
+    await transporter.sendMail({
+      from: `"InterV" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject,
+      html: getChangeEmailTemplate(pin, purpose),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error sending change email OTP:", error);
+    return { success: false, error: error.message };
+  }
+}
