@@ -25,6 +25,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "InterV",
 	description: "Nền tảng giả lập phỏng vấn AI thế hệ mới",
+	icons: {
+		icon: [
+			{
+				url: "/icon-dark.png",
+				media: "(prefers-color-scheme: light)",
+			},
+			{
+				url: "/icon-light.png",
+				media: "(prefers-color-scheme: dark)",
+			},
+		],
+	},
 };
 
 export default function RootLayout({
