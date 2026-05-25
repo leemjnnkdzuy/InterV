@@ -42,6 +42,7 @@ import {
   ShieldKeyhole,
   Settings,
   WalletMoney,
+  HomeAngle
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
@@ -60,6 +61,13 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const menuItems = [
+    {
+      id: "home",
+      title: t("common.home"),
+      subtitle: t("profile.backToHome"),
+      icon: HomeAngle,
+      url: "/",
+    },
     {
       id: "account",
       title: t("sidebar.account"),
@@ -140,7 +148,13 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
                 <SidebarMenuButton
                   isActive={isActive}
                   tooltip={item.title}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    if (item.url) {
+                      router.push(item.url);
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
                   className={cn(
                     "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
                     isCollapsed 

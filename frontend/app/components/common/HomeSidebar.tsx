@@ -35,7 +35,6 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import {
-  Widget as LayoutDashboard,
   PlayCircle,
   History,
   Settings,
@@ -44,6 +43,7 @@ import {
   AltArrowRight as ChevronRight,
   MenuDots,
   WalletMoney,
+  HomeAngle
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
@@ -59,10 +59,11 @@ export default function HomeSidebar() {
 
   const menuItems = [
     {
-      title: t("sidebar.dashboard"),
-      subtitle: t("sidebar.dashboardSub"),
+      id: "home",
+      title: t("common.home"),
+      subtitle: t("profile.backToHome"),
+      icon: HomeAngle,
       url: "/",
-      icon: LayoutDashboard,
     },
     {
       title: t("sidebar.practice"),
