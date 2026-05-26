@@ -27,7 +27,6 @@ export default function AppearanceSettingsPage() {
         : newTheme === "light"
         ? t("appearance.themeLight")
         : t("appearance.themeSystem");
-    toast.success(t("appearance.toastThemeChange").replace("{{theme}}", themeName));
   };
 
   const applyLanguage = (newLang: Language) => {
@@ -38,7 +37,6 @@ export default function AppearanceSettingsPage() {
         : newLang === "en"
         ? t("appearance.langEn")
         : t("appearance.langZh");
-    toast.success(t("appearance.toastLangChange").replace("{{lang}}", langName));
   };
 
   return (

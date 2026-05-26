@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { userService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import { AvatarCropDialog } from "@/app/components/common/Dialog";
 
 interface ProfilePageProps {
   targetUsername?: string;
@@ -31,6 +32,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const [profileUser, setProfileUser] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [isAvatarCropOpen, setIsAvatarCropOpen] = React.useState(false);
 
   const isOwnProfile = React.useMemo(() => {
     if (!targetUsername) return true;
@@ -85,7 +87,26 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
   const handleAvatarChange = () => {
     if (!isOwnProfile) return;
-    toast.info(t("profile.avatarPending"));
+    setIsAvatarCropOpen(true);
+  };
+
+  const handleSaveAvatar = async (base64Image: string) => {
+    try {
+      const response = await userService.updateProfile({ avatar: base64Image });
+      if (response.success) {
+        toast.success(t("dialogs.avatarUpdateSuccess"));
+        await refreshUser();
+        // If we are viewing own profile as targetUsername
+        if (targetUsername) {
+          setProfileUser(response.user);
+        }
+      } else {
+        toast.error(response.message || t("dialogs.avatarUpdateFailed"));
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t("common.error"));
+      throw err;
+    }
   };
 
   const displayedUser = isOwnProfile ? user : profileUser;
@@ -271,6 +292,14 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
           </Card>
         </div>
       </div>
+
+      {isOwnProfile && (
+        <AvatarCropDialog
+          isOpen={isAvatarCropOpen}
+          onOpenChange={setIsAvatarCropOpen}
+          onSave={handleSaveAvatar}
+        />
+      )}
     </div>
   );
 }

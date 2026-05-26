@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { dob } = await request.json();
+    const { dob, avatar } = await request.json();
 
     await connectDB();
     const user = await User.findById(payload.userId);
@@ -38,11 +38,15 @@ export async function PUT(request: NextRequest) {
       user.dob = dob ? new Date(dob) : undefined;
     }
 
+    if (avatar !== undefined) {
+      user.avatar = avatar;
+    }
+
     await user.save();
 
     return NextResponse.json({
       success: true,
-      message: "Cập nhật ngày sinh thành công",
+      message: "Cập nhật thông tin thành công",
       user: {
         id: user._id.toString(),
         username: user.username,

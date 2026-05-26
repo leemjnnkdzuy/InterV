@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { logo } from "@/app/assets";
 import { toast } from "sonner";
@@ -35,21 +35,25 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import {
-  PlayCircle,
-  History,
-  Settings,
   Logout as LogOut,
   User as UserIcon,
   AltArrowRight as ChevronRight,
   MenuDots,
+  Settings,
   WalletMoney,
-  HomeAngle
+  HomeAngle,
+  History,
+  CardRecive,
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
 
-export default function HomeSidebar() {
-  const pathname = usePathname();
+interface CreditSidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+export default function CreditSidebar({ activeTab, setActiveTab }: CreditSidebarProps) {
   const router = useRouter();
   const { user, logout } = useAuthContext();
   const { state } = useSidebar();
@@ -66,17 +70,23 @@ export default function HomeSidebar() {
       url: "/",
     },
     {
-      title: t("sidebar.practice"),
-      subtitle: t("sidebar.practiceSub"),
-      url: "/practice",
-      icon: PlayCircle,
+      id: "balance",
+      title: t("sidebar.balance"),
+      subtitle: "Quản lý & Xem số dư",
+      icon: WalletMoney,
     },
     {
-      title: t("sidebar.history"),
-      subtitle: t("sidebar.historySub"),
-      url: "/history",
+      id: "used",
+      title: "Lịch sử sử dụng",
+      subtitle: "Lượt phỏng vấn & Phân tích",
       icon: History,
-    }
+    },
+    {
+      id: "recharge",
+      title: "Lịch sử nạp",
+      subtitle: "Giao dịch nạp tiền vào ví",
+      icon: CardRecive,
+    },
   ];
 
   return (
@@ -86,8 +96,8 @@ export default function HomeSidebar() {
         {isCollapsed ? (
           <>
             <div 
-              onClick={() => router.push("/")} 
-              className="relative w-10 h-10 flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
+              onClick={() => router.push("/")}
+              className="relative w-9 h-9 flex items-center justify-center cursor-pointer"
             >
               <Image
                 src={logo}
@@ -133,13 +143,19 @@ export default function HomeSidebar() {
       <SidebarContent className="px-3 py-6 no-scrollbar">
         <SidebarMenu className="gap-2">
           {menuItems.map((item) => {
-            const isActive = pathname === item.url;
+            const isActive = activeTab === item.id;
             return (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   isActive={isActive}
                   tooltip={item.title}
-                  onClick={() => router.push(item.url)}
+                  onClick={() => {
+                    if (item.url) {
+                      router.push(item.url);
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
                   className={cn(
                     "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
                     isCollapsed 
@@ -237,7 +253,7 @@ export default function HomeSidebar() {
                       <UserIcon className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.account")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/credit")} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => setActiveTab("balance")} className="cursor-pointer">
                       <WalletMoney className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.balance")}</span>
                     </DropdownMenuItem>
@@ -279,8 +295,8 @@ export default function HomeSidebar() {
                     <span className="absolute bottom-[-1px] right-[-1px] h-3 w-3 rounded-full bg-green-500 border-2 border-background animate-pulse"></span>
                   </div>
 
-                  {/* Profile text */}
-                  <div className="flex flex-col min-w-0 flex-1">
+                  {/* User Info (Visible only when sidebar is expanded) */}
+                  <div className="flex flex-col text-left overflow-hidden transition-all duration-300 flex-1 opacity-100">
                     <span className="truncate text-sm font-bold text-foreground leading-none flex items-center gap-1.5">
                       {user.username}
                     </span>
@@ -304,7 +320,7 @@ export default function HomeSidebar() {
                         <UserIcon className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.account")}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push("/credit")} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => setActiveTab("balance")} className="cursor-pointer">
                         <WalletMoney className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.balance")}</span>
                       </DropdownMenuItem>

@@ -192,6 +192,23 @@
     "passwordsNotMatch": "Passwords do not match",
     "updatePasswordSuccess": "Password updated successfully!",
     "updatePasswordFailed": "Incorrect current password",
-    "updatePasswordError": "Error updating password"
+    "updatePasswordError": "Error updating password",
+    "avatarTitle": "Change Avatar",
+    "avatarDesc": "Choose or drag and drop an image to update your avatar.",
+    "avatarDragActive": "Drop the image here",
+    "avatarDragPlaceholder": "Drag & drop an image or click to select",
+    "avatarUploadLimit": "JPG, PNG, WEBP • Max 5MB",
+    "avatarZoomOut": "Zoom Out",
+    "avatarZoomIn": "Zoom In",
+    "avatarReset": "Reset",
+    "avatarCropInstruction": "Drag to adjust position • Scroll to zoom",
+    "avatarInvalidFile": "Please select an image file (JPG, PNG, WEBP)",
+    "avatarFileTooLarge": "Image too large. Max 5MB.",
+    "avatarCropError": "Failed to process image. Please try again.",
+    "avatarSelectOther": "Choose other image",
+    "avatarSaving": "Saving...",
+    "avatarSave": "Save Avatar",
+    "avatarUpdateSuccess": "Avatar updated successfully!",
+    "avatarUpdateFailed": "Failed to update avatar"
   }
 }

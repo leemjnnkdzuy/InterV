@@ -18,7 +18,7 @@ export const userService = {
     }
     throw new Error(response.data.message || "Không thể lấy thông tin người dùng");
   },
-  updateProfile: async (data: { dob?: Date | string }): Promise<any> => {
+  updateProfile: async (data: { dob?: Date | string; avatar?: string }): Promise<any> => {
     const response = await api.put("/users/update", data);
     return response.data;
   },

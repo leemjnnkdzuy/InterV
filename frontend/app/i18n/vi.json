@@ -192,6 +192,23 @@
     "passwordsNotMatch": "Mật khẩu nhập lại không khớp",
     "updatePasswordSuccess": "Cập nhật mật khẩu thành công!",
     "updatePasswordFailed": "Mật khẩu hiện tại không chính xác",
-    "updatePasswordError": "Lỗi cập nhật mật khẩu"
+    "updatePasswordError": "Lỗi cập nhật mật khẩu",
+    "avatarTitle": "Thay đổi ảnh đại diện",
+    "avatarDesc": "Chọn hoặc kéo thả ảnh vào để cập nhật ảnh đại diện của bạn.",
+    "avatarDragActive": "Thả ảnh vào đây",
+    "avatarDragPlaceholder": "Kéo thả ảnh hoặc nhấn để chọn",
+    "avatarUploadLimit": "JPG, PNG, WEBP • Tối đa 5MB",
+    "avatarZoomOut": "Thu nhỏ",
+    "avatarZoomIn": "Phóng to",
+    "avatarReset": "Đặt lại",
+    "avatarCropInstruction": "Kéo ảnh để điều chỉnh vị trí • Cuộn chuột để zoom",
+    "avatarInvalidFile": "Vui lòng chọn file ảnh (JPG, PNG, WEBP)",
+    "avatarFileTooLarge": "Ảnh quá lớn. Tối đa 5MB.",
+    "avatarCropError": "Không thể xử lý ảnh. Vui lòng thử lại.",
+    "avatarSelectOther": "Chọn ảnh khác",
+    "avatarSaving": "Đang lưu...",
+    "avatarSave": "Lưu ảnh đại diện",
+    "avatarUpdateSuccess": "Cập nhật ảnh đại diện thành công!",
+    "avatarUpdateFailed": "Cập nhật ảnh đại diện thất bại"
   }
 }

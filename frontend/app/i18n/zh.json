@@ -192,6 +192,23 @@
     "passwordsNotMatch": "两次输入密码不匹配",
     "updatePasswordSuccess": "密码更新成功！",
     "updatePasswordFailed": "当前密码不正确",
-    "updatePasswordError": "更新密码出错"
+    "updatePasswordError": "更新密码出错",
+    "avatarTitle": "修改头像",
+    "avatarDesc": "选择或拖放图片以更新您的头像。",
+    "avatarDragActive": "将图片拖放到此处",
+    "avatarDragPlaceholder": "拖放图片或点击选择",
+    "avatarUploadLimit": "JPG, PNG, WEBP • 最大 5MB",
+    "avatarZoomOut": "缩小",
+    "avatarZoomIn": "放大",
+    "avatarReset": "重置",
+    "avatarCropInstruction": "拖动调整位置 • 滚动鼠标缩放",
+    "avatarInvalidFile": "请选择图片文件 (JPG, PNG, WEBP)",
+    "avatarFileTooLarge": "图片太大。最大 5MB。",
+    "avatarCropError": "无法处理图片。请重试。",
+    "avatarSelectOther": "选择其他图片",
+    "avatarSaving": "正在保存...",
+    "avatarSave": "保存头像",
+    "avatarUpdateSuccess": "头像更新成功！",
+    "avatarUpdateFailed": "更新头像失败"
   }
 }

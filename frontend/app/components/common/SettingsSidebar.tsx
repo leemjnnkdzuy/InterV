@@ -252,7 +252,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
                       <UserIcon className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.account")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast.info(`${t("sidebar.balance")}: 100.000đ`)} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => router.push("/credit")} className="cursor-pointer">
                       <WalletMoney className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.balance")}</span>
                     </DropdownMenuItem>
@@ -319,7 +319,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
                         <UserIcon className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.account")}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info(`${t("sidebar.balance")}: 100.000đ`)} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => router.push("/credit")} className="cursor-pointer">
                         <WalletMoney className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.balance")}</span>
                       </DropdownMenuItem>
