@@ -6,52 +6,42 @@ import { History, CpuBolt } from "@solar-icons/react";
 
 interface UsedCreditPageProps {
   setActiveTab: (tab: string) => void;
+  creditLogs: any[];
+  isLoading: boolean;
 }
 
-export default function UsedCreditPage({ setActiveTab }: UsedCreditPageProps) {
-  // Mock usage data
-  const usageHistory = [
-    {
-      id: "USG-4821",
-      type: "AI Interview (Nâng cao)",
-      target: "Front-End Developer",
-      date: "26/05/2026 14:30",
-      amount: "-30.000 đ",
-      status: "success",
-    },
-    {
-      id: "USG-3910",
-      type: "AI Interview (Nâng cao)",
-      target: "Product Manager",
-      date: "20/05/2026 09:15",
-      amount: "-30.000 đ",
-      status: "success",
-    },
-    {
-      id: "USG-2831",
-      type: "Đánh giá & Gợi ý chuyên sâu",
-      target: "Cải thiện kỹ năng giao tiếp",
-      date: "18/05/2026 16:45",
-      amount: "-20.000 đ",
-      status: "success",
-    },
-    {
-      id: "USG-1784",
-      type: "AI Interview (Cơ bản)",
-      target: "Back-End Developer",
-      date: "15/05/2026 11:00",
-      amount: "-10.000 đ",
-      status: "success",
-    },
-    {
-      id: "USG-0921",
-      type: "Hoàn trả chi phí sự cố",
-      target: "Phỏng vấn AI System Architect",
-      date: "10/05/2026 10:20",
-      amount: "+30.000 đ",
-      status: "refunded",
-    },
-  ];
+export default function UsedCreditPage({ setActiveTab, creditLogs, isLoading }: UsedCreditPageProps) {
+  const usageLogs = creditLogs.filter((log) => log.credits < 0);
+
+  const getActionName = (action: string) => {
+    switch (action) {
+      case "REGISTER_BONUS":
+        return "Quà tặng đăng ký";
+      case "RECHARGE":
+        return "Nạp Credits";
+      case "AI_INTERVIEW":
+        return "Phỏng vấn AI";
+      case "ADMIN_ADJUST":
+        return "Điều chỉnh bởi Admin";
+      default:
+        return action;
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
 
   return (
     <div className="space-y-8 w-full text-left">
@@ -69,46 +59,56 @@ export default function UsedCreditPage({ setActiveTab }: UsedCreditPageProps) {
               <tr className="border-b border-border/10 text-muted-foreground font-semibold text-xs uppercase tracking-wider">
                 <th className="px-6 py-4">Mã giao dịch</th>
                 <th className="px-6 py-4">Loại dịch vụ</th>
-                <th className="px-6 py-4">Chi tiết phỏng vấn</th>
+                <th className="px-6 py-4">Chi tiết giao dịch</th>
                 <th className="px-6 py-4">Thời gian</th>
-                <th className="px-6 py-4 text-right">Chi phí</th>
+                <th className="px-6 py-4 text-right">Biến động</th>
                 <th className="px-6 py-4 text-center">Trạng thái</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/10 font-medium">
-              {usageHistory.map((item) => (
-                <tr key={item.id} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-6 py-4.5 font-mono text-xs text-muted-foreground">
-                    {item.id}
-                  </td>
-                  <td className="px-6 py-4.5">
-                    <div className="flex items-center gap-2">
-                      <CpuBolt className="w-4 h-4 text-primary shrink-0" />
-                      <span>{item.type}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4.5 text-muted-foreground">
-                    {item.target}
-                  </td>
-                  <td className="px-6 py-4.5 text-xs text-muted-foreground">
-                    {item.date}
-                  </td>
-                  <td className={`px-6 py-4.5 text-right font-bold ${
-                    item.amount.startsWith("+") ? "text-green-500" : "text-foreground"
-                  }`}>
-                    {item.amount}
-                  </td>
-                  <td className="px-6 py-4.5 text-center">
-                    <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${
-                      item.status === "success"
-                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/10"
-                        : "bg-blue-500/10 text-blue-500 border border-blue-500/10"
-                    }`}>
-                      {item.status === "success" ? "Thành công" : "Đã hoàn tiền"}
-                    </span>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
+                    Đang tải lịch sử sử dụng...
                   </td>
                 </tr>
-              ))}
+              ) : usageLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
+                    Chưa có giao dịch sử dụng nào.
+                  </td>
+                </tr>
+              ) : (
+                usageLogs.map((item) => (
+                  <tr key={item.id} className="hover:bg-muted/10 transition-colors">
+                    <td className="px-6 py-4.5 font-mono text-xs text-muted-foreground">
+                      {item.id.slice(-8).toUpperCase()}
+                    </td>
+                    <td className="px-6 py-4.5">
+                      <div className="flex items-center gap-2">
+                        <CpuBolt className="w-4 h-4 text-primary shrink-0" />
+                        <span>{getActionName(item.action)}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4.5 text-muted-foreground text-xs">
+                      {item.description || "Không có chi tiết"}
+                    </td>
+                    <td className="px-6 py-4.5 text-xs text-muted-foreground">
+                      {formatDate(item.createdAt)}
+                    </td>
+                    <td className={`px-6 py-4.5 text-right font-bold ${
+                      item.credits > 0 ? "text-green-500" : "text-foreground"
+                    }`}>
+                      {item.credits > 0 ? `+${item.credits}` : item.credits} Credits
+                    </td>
+                    <td className="px-6 py-4.5 text-center">
+                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
+                        Thành công
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

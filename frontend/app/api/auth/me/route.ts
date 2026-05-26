@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         avatar: user.avatar,
         dob: user.dob,
         socialLinks: user.socialLinks || [],
+        credits: user.credits || 0,
         createdAt: user.createdAt,
       },
     });

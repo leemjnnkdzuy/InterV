@@ -1,25 +1,6 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
-
-export interface ISocialLink {
-  platform: string;
-  usernameOrUrl: string;
-}
-
-export interface IUser extends Document {
-  username: string;
-  email: string;
-  password: string;
-  role: "user" | "admin";
-  avatar?: string;
-  dob?: Date;
-  socialLinks?: ISocialLink[];
-  isVerified: boolean;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
+import { IUser } from "@/app/types";
 
 const userSchema = new Schema<IUser>(
   {
@@ -74,6 +55,10 @@ const userSchema = new Schema<IUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    credits: {
+      type: Number,
+      default: 500,
     },
   },
   {

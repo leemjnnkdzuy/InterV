@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
       role: user.role || "user",
       avatar: user.avatar,
       dob: user.dob,
+      credits: user.credits || 0,
       createdAt: user.createdAt,
     };
 

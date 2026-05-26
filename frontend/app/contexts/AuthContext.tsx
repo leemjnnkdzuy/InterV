@@ -26,6 +26,7 @@ export interface User {
   avatar?: string;
   dob?: string;
   socialLinks?: SocialLink[];
+  credits: number;
   createdAt: string;
 }
 

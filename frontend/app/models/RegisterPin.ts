@@ -1,16 +1,5 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
-
-export interface IRegisterPin extends Document {
-  email: string;
-  username: string;
-  password: string;
-  pin: string;
-  failedAttempts: number;
-  blockedUntil: Date | null;
-  expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Model, Schema } from "mongoose";
+import { IRegisterPin } from "@/app/types";
 
 const registerPinSchema = new Schema<IRegisterPin>(
   {

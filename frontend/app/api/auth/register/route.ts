@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import RegisterPin from "@/app/models/RegisterPin";
+import CreditLog from "@/app/models/CreditLog";
+import Transaction from "@/app/models/Transaction";
 import { generatePIN, sendVerificationEmail } from "@/app/lib/Email";
 import { defaultAvatars } from "@/app/assets";
 
@@ -139,13 +141,31 @@ export async function POST(request: NextRequest) {
         const selectedAvatar = defaultAvatars[randomIndex];
         const avatarDataURI = `data:${selectedAvatar.image.mime};base64,${selectedAvatar.image.data}`;
 
-        await User.create({
+        const newUser = await User.create({
           username: storedData.username,
           email: storedData.email,
           password: storedData.password,
           avatar: avatarDataURI,
           isVerified: true,
           isActive: true,
+          credits: 500,
+        });
+
+        await CreditLog.create({
+          userId: newUser._id,
+          credits: 500,
+          action: "REGISTER_BONUS",
+          description: "Quà tặng đăng ký tài khoản mới",
+        });
+
+        await Transaction.create({
+          userId: newUser._id,
+          orderCode: Date.now(),
+          amount: 0,
+          credits: 500,
+          status: "PAID",
+          paymentLinkId: "REGISTER_BONUS",
+          paymentUrl: "",
         });
 
         await RegisterPin.deleteOne({ email: normalizedEmail });

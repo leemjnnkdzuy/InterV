@@ -1,14 +1,5 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
-
-export interface ISession extends Document {
-  userId: mongoose.Types.ObjectId;
-  deviceInfo: string;
-  ipAddress: string;
-  isActive: boolean;
-  lastActiveAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Model, Schema } from "mongoose";
+import { ISession } from "@/app/types";
 
 const sessionSchema = new Schema<ISession>(
   {

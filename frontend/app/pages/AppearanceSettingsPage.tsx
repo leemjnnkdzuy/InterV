@@ -7,12 +7,12 @@ import { Sun, Moon, Monitor, CheckCircle } from "@solar-icons/react";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useLanguage, Language } from "@/app/hooks/useLanguage";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/app/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 import { VN, US, CN } from "country-flag-icons/react/3x2";
 
 export default function AppearanceSettingsPage() {
@@ -21,12 +21,6 @@ export default function AppearanceSettingsPage() {
 
   const applyTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
-    const themeName =
-      newTheme === "dark"
-        ? t("appearance.themeDark")
-        : newTheme === "light"
-        ? t("appearance.themeLight")
-        : t("appearance.themeSystem");
   };
 
   const applyLanguage = (newLang: Language) => {
@@ -38,6 +32,28 @@ export default function AppearanceSettingsPage() {
         ? t("appearance.langEn")
         : t("appearance.langZh");
   };
+
+  const getLanguageDetails = (lang: Language) => {
+    switch (lang) {
+      case "vi":
+        return {
+          flag: <VN className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />,
+          label: t("appearance.langVi"),
+        };
+      case "en":
+        return {
+          flag: <US className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />,
+          label: t("appearance.langEn"),
+        };
+      case "zh":
+        return {
+          flag: <CN className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />,
+          label: t("appearance.langZh"),
+        };
+    }
+  };
+
+  const currentLangDetails = getLanguageDetails(language);
 
   return (
     <div className="space-y-8 w-full text-left">
@@ -109,31 +125,35 @@ export default function AppearanceSettingsPage() {
           <p className="text-xs text-muted-foreground mt-0.5">{t("appearance.langSelectPlaceholder")}</p>
         </div>
         <div className="w-full sm:w-auto min-w-[220px]">
-          <Select value={language} onValueChange={(val) => applyLanguage(val as Language)}>
-            <SelectTrigger className="w-full rounded-2xl border border-border/10 bg-muted/40 px-2 py-2 text-sm flex items-center justify-between cursor-pointer">
-              <SelectValue placeholder={t("appearance.langSelectPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent position="popper" className="bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg w-[var(--radix-select-trigger-width)]">
-              <SelectItem value="vi" className="cursor-pointer">
-                <span className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full rounded-2xl border border-border/10 bg-muted/40 px-3 py-2 text-sm flex items-center justify-between cursor-pointer outline-none hover:bg-muted/60 transition-colors">
+              <span className="flex items-center gap-2">
+                {currentLangDetails.flag}
+                <span>{currentLangDetails.label}</span>
+              </span>
+              <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg w-[var(--radix-dropdown-menu-trigger-width)]">
+              <DropdownMenuItem onClick={() => applyLanguage("vi")} className="cursor-pointer">
+                <span className="flex items-center gap-2 w-full">
                   <VN className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />
-                  <span>{t("appearance.langVi")} <span className="text-[10px] text-muted-foreground font-normal"></span></span>
+                  <span>{t("appearance.langVi")}</span>
                 </span>
-              </SelectItem>
-              <SelectItem value="en" className="cursor-pointer">
-                <span className="flex items-center gap-2">
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyLanguage("en")} className="cursor-pointer">
+                <span className="flex items-center gap-2 w-full">
                   <US className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />
-                  <span>{t("appearance.langEn")} <span className="text-[10px] text-muted-foreground font-normal"></span></span>
+                  <span>{t("appearance.langEn")}</span>
                 </span>
-              </SelectItem>
-              <SelectItem value="zh" className="cursor-pointer">
-                <span className="flex items-center gap-2">
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyLanguage("zh")} className="cursor-pointer">
+                <span className="flex items-center gap-2 w-full">
                   <CN className="w-5 h-3.5 object-cover rounded-[2px] inline-block shrink-0 shadow-sm" />
-                  <span>{t("appearance.langZh")} <span className="text-[10px] text-muted-foreground font-normal"></span></span>
+                  <span>{t("appearance.langZh")}</span>
                 </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

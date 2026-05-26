@@ -1,15 +1,5 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
-
-export interface IFogetPasswordPin extends Document {
-  email: string;
-  pin: string;
-  verified: boolean;
-  failedAttempts: number;
-  blockedUntil: Date | null;
-  expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Model, Schema } from "mongoose";
+import { IFogetPasswordPin } from "@/app/types";
 
 const fogetPasswordPinSchema = new Schema<IFogetPasswordPin>(
   {

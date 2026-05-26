@@ -38,7 +38,15 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest('[data-slot="select-content"]') ||
+        target.closest('[data-slot="select-item"]') ||
+        target.closest('[data-radix-popper-content-wrapper]')
+      ) {
+        return;
+      }
+      if (containerRef.current && !containerRef.current.contains(target)) {
         setIsOpen(false);
       }
     }
