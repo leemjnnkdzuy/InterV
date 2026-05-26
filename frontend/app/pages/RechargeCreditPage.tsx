@@ -8,7 +8,7 @@ interface RechargeCreditPageProps {
   isLoading: boolean;
 }
 
-export default function RechargeCreditPage({ setActiveTab, transactions, isLoading }: RechargeCreditPageProps) {
+export default function RechargeCreditPage({ transactions, isLoading }: RechargeCreditPageProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",

@@ -9,13 +9,21 @@ import { toast } from "sonner";
 import api from "@/app/lib/Client";
 import { Spinner } from "@/app/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthContext } from "@/app/contexts/AuthContext";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
+  const { isAuthenticated, loading } = useAuthContext();
+
+  React.useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, loading, router]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [phase, setPhase] = useState<"email" | "pin" | "newPassword">("email");
 
-  // Form states
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [newPassword, setNewPassword] = useState("");

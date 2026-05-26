@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { Plus, Trash2, Globe, Check, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Globe, Check, X } from "lucide-react";
 import { SocialLink } from "@/app/contexts/AuthContext";
 import {
   FaFacebook,

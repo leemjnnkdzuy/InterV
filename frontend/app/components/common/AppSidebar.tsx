@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { logo } from "@/app/assets";
-import { toast } from "sonner";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -39,55 +38,150 @@ import {
   User as UserIcon,
   AltArrowRight as ChevronRight,
   MenuDots,
+  ShieldKeyhole,
   Settings,
   WalletMoney,
   HomeAngle,
+  PlayCircle,
   History,
   CardRecive,
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
 
-interface CreditSidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+interface AppSidebarProps {
+  variant?: "home" | "settings" | "credit";
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
 }
 
-export default function CreditSidebar({ activeTab, setActiveTab }: CreditSidebarProps) {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+} as const;
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -8 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+} as const;
+
+export default function AppSidebar({ variant = "home", activeTab, setActiveTab }: AppSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuthContext();
   const { state } = useSidebar();
   const { t } = useLanguage();
   const isCollapsed = state === "collapsed";
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const menuItems = [
-    {
-      id: "home",
-      title: t("common.home"),
-      subtitle: t("profile.backToHome"),
-      icon: HomeAngle,
-      url: "/",
-    },
-    {
-      id: "balance",
-      title: t("sidebar.balance"),
-      subtitle: "Quản lý & Xem số dư",
-      icon: WalletMoney,
-    },
-    {
-      id: "used",
-      title: "Lịch sử sử dụng",
-      subtitle: "Lượt phỏng vấn & Phân tích",
-      icon: History,
-    },
-    {
-      id: "recharge",
-      title: "Lịch sử nạp",
-      subtitle: "Giao dịch nạp tiền vào ví",
-      icon: CardRecive,
-    },
-  ];
+  const menuItems = (() => {
+    switch (variant) {
+      case "settings":
+        return [
+          {
+            id: "home",
+            title: t("common.home"),
+            subtitle: t("profile.backToHome"),
+            icon: HomeAngle,
+            url: "/",
+          },
+          {
+            id: "account",
+            title: t("sidebar.account"),
+            subtitle: t("sidebar.accountSub"),
+            icon: UserIcon,
+          },
+          {
+            id: "security",
+            title: t("sidebar.security"),
+            subtitle: t("sidebar.securitySub"),
+            icon: ShieldKeyhole,
+          },
+          {
+            id: "appearance",
+            title: t("sidebar.appearance"),
+            subtitle: t("sidebar.appearanceSub"),
+            icon: Settings,
+          },
+        ];
+      case "credit":
+        return [
+          {
+            id: "home",
+            title: t("common.home"),
+            subtitle: t("profile.backToHome"),
+            icon: HomeAngle,
+            url: "/",
+          },
+          {
+            id: "balance",
+            title: t("sidebar.balance"),
+            subtitle: "Quản lý & Xem số dư",
+            icon: WalletMoney,
+          },
+          {
+            id: "used",
+            title: "Lịch sử sử dụng",
+            subtitle: "Lượt phỏng vấn & Phân tích",
+            icon: History,
+          },
+          {
+            id: "recharge",
+            title: "Lịch sử nạp",
+            subtitle: "Giao dịch nạp tiền vào ví",
+            icon: CardRecive,
+          },
+        ];
+      case "home":
+      default:
+        return [
+          {
+            id: "home",
+            title: t("common.home"),
+            subtitle: t("profile.backToHome"),
+            icon: HomeAngle,
+            url: "/",
+          },
+          {
+            id: "practice",
+            title: t("sidebar.practice"),
+            subtitle: t("sidebar.practiceSub"),
+            url: "/practice",
+            icon: PlayCircle,
+          },
+          {
+            id: "history",
+            title: t("sidebar.history"),
+            subtitle: t("sidebar.historySub"),
+            url: "/history",
+            icon: History,
+          },
+        ];
+    }
+  })();
+
+  const handleNavigate = (path: string, tab?: string) => {
+    if (path === "/credit" && variant === "credit" && setActiveTab && tab) {
+      setActiveTab(tab);
+    } else if (path === "/settings" && variant === "settings" && setActiveTab && tab) {
+      setActiveTab(tab);
+    } else {
+      router.push(path);
+    }
+  };
 
   return (
     <Sidebar className="bg-sidebar border-none border-e-0 transition-all duration-300" collapsible="icon">
@@ -142,75 +236,85 @@ export default function CreditSidebar({ activeTab, setActiveTab }: CreditSidebar
       {/* Sidebar Content */}
       <SidebarContent className="px-3 py-6 no-scrollbar">
         <SidebarMenu className="gap-2">
-          {menuItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
-                  isActive={isActive}
-                  tooltip={item.title}
-                  onClick={() => {
-                    if (item.url) {
-                      router.push(item.url);
-                    } else {
-                      setActiveTab(item.id);
-                    }
-                  }}
-                  className={cn(
-                    "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
-                    isCollapsed 
-                      ? "justify-center rounded-2xl group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5 mx-auto" 
-                      : "gap-4 rounded-2xl px-4 py-3 h-auto text-sm font-medium",
-                    isActive
-                      ? "text-background shadow-md shadow-primary/10"
-                      : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
-                  )}
-                >
-                  {/* Active Background Slide Animation */}
-                  {isActive && (
-                    <motion.div
-                      initial={{ x: "-100%" }}
-                      animate={{ x: 0 }}
-                      className="absolute inset-0 bg-primary z-0 rounded-2xl"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
+          <motion.div
+            key={variant}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-2 w-full"
+          >
+            {menuItems.map((item) => {
+              const isActive = variant === "home" ? pathname === item.url : activeTab === item.id;
+              return (
+                <SidebarMenuItem key={item.id || item.title}>
+                  <motion.div variants={itemVariants} className="w-full">
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      tooltip={item.title}
+                      onClick={() => {
+                        if (item.url) {
+                          router.push(item.url);
+                        } else if (setActiveTab && item.id) {
+                          setActiveTab(item.id);
+                        }
+                      }}
+                      className={cn(
+                        "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
+                        isCollapsed 
+                          ? "justify-center rounded-2xl group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5 mx-auto" 
+                          : "gap-4 rounded-2xl px-4 py-3 h-auto text-sm font-medium",
+                        isActive
+                          ? "text-background shadow-md shadow-primary/10"
+                          : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                      )}
+                    >
+                      {/* Active Background Slide Animation */}
+                      {isActive && (
+                        <motion.div
+                          initial={{ x: "-100%" }}
+                          animate={{ x: 0 }}
+                          className="absolute inset-0 bg-primary z-0 rounded-2xl"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
 
-                  {/* Menu Item Content */}
-                  <div className={cn("relative z-10 flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
-                    <item.icon className={cn(
-                      "shrink-0 transition-all duration-300 !h-8 !w-8",
-                      isActive
-                        ? "text-background"
-                        : "text-muted-foreground group-hover/btn:text-foreground"
-                    )} />
+                      {/* Menu Item Content */}
+                      <div className={cn("relative z-10 flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
+                        <item.icon className={cn(
+                          "shrink-0 transition-all duration-300 !h-8 !w-8",
+                          isActive
+                            ? "text-background"
+                            : "text-muted-foreground group-hover/btn:text-foreground"
+                        )} />
 
-                    <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                      <span className={cn(
-                        "truncate text-sm font-semibold tracking-tight leading-none",
-                        isActive ? "text-background" : "text-foreground"
-                      )}>
-                        {item.title}
-                      </span>
-                      <span className={cn(
-                        "truncate text-[10px] font-normal leading-normal mt-0.5",
-                        isActive ? "text-background/70" : "text-muted-foreground/80"
-                      )}>
-                        {item.subtitle}
-                      </span>
-                    </div>
+                        <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                          <span className={cn(
+                            "truncate text-sm font-semibold tracking-tight leading-none",
+                            isActive ? "text-background" : "text-foreground"
+                          )}>
+                            {item.title}
+                          </span>
+                          <span className={cn(
+                            "truncate text-[10px] font-normal leading-normal mt-0.5",
+                            isActive ? "text-background/70" : "text-muted-foreground/80"
+                          )}>
+                            {item.subtitle}
+                          </span>
+                        </div>
 
-                    {!isCollapsed && (
-                      <ChevronRight className={cn(
-                        "h-4 w-4 shrink-0 transition-transform duration-300 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5",
-                        isActive ? "text-background" : "text-muted-foreground"
-                      )} />
-                    )}
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+                        {!isCollapsed && (
+                          <ChevronRight className={cn(
+                            "h-4 w-4 shrink-0 transition-transform duration-300 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5",
+                            isActive ? "text-background" : "text-muted-foreground"
+                          )} />
+                        )}
+                      </div>
+                    </SidebarMenuButton>
+                  </motion.div>
+                </SidebarMenuItem>
+              );
+            })}
+          </motion.div>
         </SidebarMenu>
       </SidebarContent>
 
@@ -253,11 +357,11 @@ export default function CreditSidebar({ activeTab, setActiveTab }: CreditSidebar
                       <UserIcon className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.account")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab("balance")} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => handleNavigate("/credit", "balance")} className="cursor-pointer">
                       <WalletMoney className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.balance")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => handleNavigate("/settings", "account")} className="cursor-pointer">
                       <Settings className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.settings")}</span>
                     </DropdownMenuItem>
@@ -320,11 +424,11 @@ export default function CreditSidebar({ activeTab, setActiveTab }: CreditSidebar
                         <UserIcon className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.account")}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveTab("balance")} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => handleNavigate("/credit", "balance")} className="cursor-pointer">
                         <WalletMoney className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.balance")}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => handleNavigate("/settings", "account")} className="cursor-pointer">
                         <Settings className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.settings")}</span>
                       </DropdownMenuItem>

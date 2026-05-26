@@ -23,7 +23,6 @@ export default function HomePage() {
   const { user } = useAuthContext();
   const { t } = useLanguage();
 
-  // Get current greeting based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return t("home.greetingMorning");
@@ -84,7 +83,6 @@ export default function HomePage() {
     },
   ];
 
-  // Quick selections for practice
   const quickTracks = [
     {
       title: t("home.quickTech"),
@@ -106,7 +104,6 @@ export default function HomePage() {
     },
   ];
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {

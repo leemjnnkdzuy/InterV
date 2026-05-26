@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { User, Letter, Lock } from "@solar-icons/react";

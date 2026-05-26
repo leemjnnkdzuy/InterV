@@ -12,7 +12,13 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuthContext();
+  const { login, isAuthenticated, loading } = useAuthContext();
+
+  React.useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, loading, router]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");

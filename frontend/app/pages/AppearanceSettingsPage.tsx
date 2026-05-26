@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
 import { Card } from "@/app/components/ui/card";
-import { toast } from "sonner";
 import { Sun, Moon, Monitor, CheckCircle } from "@solar-icons/react";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useLanguage, Language } from "@/app/hooks/useLanguage";

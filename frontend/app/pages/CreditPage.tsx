@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { WalletMoney, History, Chart, CpuBolt, ShieldCheck } from "@solar-icons/react";
+import { WalletMoney, Chart, ShieldCheck } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import RechargeDrawer from "@/app/components/common/Drawer/RechargeDrawer";
 
@@ -56,17 +56,17 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
 
           <div className="flex gap-3 mt-6">
             <Button
-              className="bg-white text-primary hover:bg-white/90 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-white/5 cursor-pointer flex-1"
-              onClick={() => setIsRechargeOpen(true)}
-            >
-              Nạp tiền ngay
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 rounded-2xl px-5 py-2.5 text-xs font-semibold cursor-pointer flex-1"
+              variant="ghost"
+              className="border border-white/20 text-white hover:bg-white/10 hover:text-white rounded-2xl px-5 py-2.5 text-xs font-semibold cursor-pointer flex-1 transition-all"
               onClick={() => setActiveTab("used")}
             >
               Xem lịch sử sử dụng
+            </Button>
+            <Button
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-primary/10 cursor-pointer flex-1"
+              onClick={() => setIsRechargeOpen(true)}
+            >
+              Nạp tiền ngay
             </Button>
           </div>
         </div>

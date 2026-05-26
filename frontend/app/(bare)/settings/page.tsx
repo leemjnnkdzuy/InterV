@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { SidebarProvider, SidebarInset } from "@/app/components/ui/sidebar";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
-import SettingsSidebar from "@/app/components/common/SettingsSidebar";
+import AppSidebar from "@/app/components/common/AppSidebar";
 import AccountSettingsPage from "@/app/pages/AccountSettingsPage";
 import SecuritySettingsPage from "@/app/pages/SecuritySettingsPage";
 import AppearanceSettingsPage from "@/app/pages/AppearanceSettingsPage";
@@ -28,7 +28,7 @@ export default function SettingsPage() {
     <TooltipProvider>
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
-          <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <AppSidebar variant="settings" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarInset className="flex flex-col flex-1">
             {/* Main Workspace content */}
             <main className="flex-1 p-6 lg:p-12 overflow-y-auto bg-background/40 flex justify-center">
