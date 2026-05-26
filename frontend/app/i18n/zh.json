@@ -76,7 +76,13 @@
     "updateDobFailed": "更新出生日期失败",
     "avatarPending": "头像修改功能正在开发中。",
     "userNotFound": "用户未找到",
-    "backToHome": "返回首页"
+    "backToHome": "返回首页",
+    "socialLinks": "社交网络链接",
+    "addSocialLink": "添加社交网络链接",
+    "selectPlatform": "选择平台",
+    "enterLinkOrUsername": "输入链接或用户名",
+    "updateSocialSuccess": "更新社交网络链接成功！",
+    "updateSocialFailed": "更新社交网络链接失败"
   },
   "home": {
     "greetingMorning": "早上好",

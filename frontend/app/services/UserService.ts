@@ -1,4 +1,5 @@
 import api from "@/app/lib/Client";
+import { SocialLink } from "@/app/contexts/AuthContext";
 
 export interface UserProfile {
   id: string;
@@ -7,6 +8,7 @@ export interface UserProfile {
   role: string;
   avatar?: string;
   dob?: string;
+  socialLinks?: SocialLink[];
   createdAt: string;
 }
 
@@ -18,7 +20,11 @@ export const userService = {
     }
     throw new Error(response.data.message || "Không thể lấy thông tin người dùng");
   },
-  updateProfile: async (data: { dob?: Date | string; avatar?: string }): Promise<any> => {
+  updateProfile: async (data: {
+    dob?: Date | string;
+    avatar?: string;
+    socialLinks?: SocialLink[];
+  }): Promise<any> => {
     const response = await api.put("/users/update", data);
     return response.data;
   },

@@ -13,6 +13,11 @@ import api from "@/app/lib/Client";
 import { toast } from "sonner";
 import AppLoadingScreen from "@/app/components/common/AppLoadingScreen";
 
+export interface SocialLink {
+  platform: string;
+  usernameOrUrl: string;
+}
+
 export interface User {
   id: string;
   username: string;
@@ -20,6 +25,7 @@ export interface User {
   role: string;
   avatar?: string;
   dob?: string;
+  socialLinks?: SocialLink[];
   createdAt: string;
 }
 

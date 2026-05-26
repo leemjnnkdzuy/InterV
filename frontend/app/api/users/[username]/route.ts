@@ -35,6 +35,7 @@ export async function GET(
         role: user.role || "user",
         avatar: user.avatar,
         dob: user.dob,
+        socialLinks: user.socialLinks || [],
         createdAt: user.createdAt,
       },
     });

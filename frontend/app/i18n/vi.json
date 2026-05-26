@@ -76,7 +76,13 @@
     "updateDobFailed": "Cập nhật ngày sinh thất bại",
     "avatarPending": "Tính năng đổi ảnh đại diện đang được phát triển.",
     "userNotFound": "Không tìm thấy người dùng",
-    "backToHome": "Quay lại Trang chủ"
+    "backToHome": "Quay lại Trang chủ",
+    "socialLinks": "Liên kết mạng xã hội",
+    "addSocialLink": "Thêm liên kết mạng xã hội",
+    "selectPlatform": "Chọn nền tảng",
+    "enterLinkOrUsername": "Nhập liên kết hoặc username",
+    "updateSocialSuccess": "Cập nhật liên kết mạng xã hội thành công!",
+    "updateSocialFailed": "Cập nhật liên kết mạng xã hội thất bại"
   },
   "home": {
     "greetingMorning": "Chào buổi sáng",

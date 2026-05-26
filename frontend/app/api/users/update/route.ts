@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { dob, avatar } = await request.json();
+    const { dob, avatar, socialLinks } = await request.json();
 
     await connectDB();
     const user = await User.findById(payload.userId);
@@ -42,6 +42,15 @@ export async function PUT(request: NextRequest) {
       user.avatar = avatar;
     }
 
+    if (socialLinks !== undefined) {
+      if (Array.isArray(socialLinks)) {
+        user.socialLinks = socialLinks.map((link: any) => ({
+          platform: String(link.platform || ""),
+          usernameOrUrl: String(link.usernameOrUrl || ""),
+        }));
+      }
+    }
+
     await user.save();
 
     return NextResponse.json({
@@ -54,6 +63,7 @@ export async function PUT(request: NextRequest) {
         role: user.role || "user",
         avatar: user.avatar,
         dob: user.dob,
+        socialLinks: user.socialLinks || [],
         createdAt: user.createdAt,
       },
     });

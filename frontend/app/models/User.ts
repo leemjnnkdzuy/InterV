@@ -1,6 +1,11 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface ISocialLink {
+  platform: string;
+  usernameOrUrl: string;
+}
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -8,6 +13,7 @@ export interface IUser extends Document {
   role: "user" | "admin";
   avatar?: string;
   dob?: Date;
+  socialLinks?: ISocialLink[];
   isVerified: boolean;
   isActive: boolean;
   createdAt: Date;
@@ -51,6 +57,15 @@ const userSchema = new Schema<IUser>(
     },
     dob: {
       type: Date,
+    },
+    socialLinks: {
+      type: [
+        {
+          platform: { type: String, required: true },
+          usernameOrUrl: { type: String, required: true },
+        },
+      ],
+      default: [],
     },
     isVerified: {
       type: Boolean,

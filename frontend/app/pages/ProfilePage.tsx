@@ -19,10 +19,88 @@ import { userService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { AvatarCropDialog } from "@/app/components/common/Dialog";
+import { Input } from "@/app/components/ui/input";
+import { Spinner } from "@/app/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Plus, Trash2, Globe, Check, Pencil, X } from "lucide-react";
+import { SocialLink } from "@/app/contexts/AuthContext";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTiktok,
+  FaLinkedin,
+  FaGithub,
+  FaXTwitter,
+} from "react-icons/fa6";
+import { SiLeetcode } from "react-icons/si";
 
 interface ProfilePageProps {
   targetUsername?: string;
 }
+
+const SOCIAL_PLATFORMS = [
+  { id: "facebook", name: "Facebook", placeholder: "username..." },
+  { id: "instagram", name: "Instagram", placeholder: "username..." },
+  { id: "tiktok", name: "TikTok", placeholder: "username..." },
+  { id: "linkedin", name: "LinkedIn", placeholder: "username..." },
+  { id: "github", name: "GitHub", placeholder: "username..." },
+  { id: "leetcode", name: "LeetCode", placeholder: "username..." },
+  { id: "x", name: "X", placeholder: "username..." },
+];
+
+const getPlatformIcon = (platform: string) => {
+  const className = "w-4 h-4 shrink-0";
+  switch (platform.toLowerCase()) {
+    case "facebook":
+      return <FaFacebook className={`${className} text-[#1877F2]`} />;
+    case "instagram":
+      return <FaInstagram className={`${className} text-[#E4405F]`} />;
+    case "tiktok":
+      return <FaTiktok className={`${className} text-foreground`} />;
+    case "linkedin":
+      return <FaLinkedin className={`${className} text-[#0A66C2]`} />;
+    case "github":
+      return <FaGithub className={`${className} text-foreground`} />;
+    case "leetcode":
+      return <SiLeetcode className={`${className} text-[#FFA116]`} />;
+    case "x":
+      return <FaXTwitter className={`${className} text-foreground`} />;
+    default:
+      return <Globe className={`${className} text-muted-foreground`} />;
+  }
+};
+
+const formatPlatformUrl = (platform: string, usernameOrUrl: string) => {
+  if (!usernameOrUrl) return "";
+  if (usernameOrUrl.startsWith("http://") || usernameOrUrl.startsWith("https://")) {
+    return usernameOrUrl;
+  }
+  const clean = usernameOrUrl.trim();
+  switch (platform.toLowerCase()) {
+    case "github":
+      return `https://github.com/${clean}`;
+    case "facebook":
+      return `https://facebook.com/${clean}`;
+    case "instagram":
+      return `https://instagram.com/${clean}`;
+    case "linkedin":
+      return `https://linkedin.com/in/${clean}`;
+    case "tiktok":
+      return `https://tiktok.com/@${clean}`;
+    case "leetcode":
+      return `https://leetcode.com/u/${clean}`;
+    case "x":
+      return `https://x.com/${clean}`;
+    default:
+      return clean;
+  }
+};
 
 export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const router = useRouter();
@@ -38,6 +116,63 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
     if (!targetUsername) return true;
     return user?.username?.toLowerCase() === targetUsername.toLowerCase();
   }, [targetUsername, user]);
+
+  const displayedUser = isOwnProfile ? user : profileUser;
+
+  const [isEditingSocials, setIsEditingSocials] = React.useState(false);
+  const [editedSocials, setEditedSocials] = React.useState<SocialLink[]>([]);
+  const [isSavingSocials, setIsSavingSocials] = React.useState(false);
+
+  React.useEffect(() => {
+    if (displayedUser && displayedUser.socialLinks) {
+      setEditedSocials(displayedUser.socialLinks);
+    } else {
+      setEditedSocials([]);
+    }
+  }, [displayedUser]);
+
+  const startEditingSocials = () => {
+    const currentSocials = displayedUser?.socialLinks || [];
+    setEditedSocials([...currentSocials, { platform: "github", usernameOrUrl: "" }]);
+    setIsEditingSocials(true);
+  };
+
+  const handleAddSocial = () => {
+    setEditedSocials(prev => [...prev, { platform: "github", usernameOrUrl: "" }]);
+  };
+
+  const handleRemoveSocial = (index: number) => {
+    setEditedSocials(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSocialChange = (index: number, field: keyof SocialLink, value: string) => {
+    setEditedSocials(prev =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleSaveSocials = async () => {
+    try {
+      setIsSavingSocials(true);
+      const cleanSocials = editedSocials.filter(s => s.usernameOrUrl.trim() !== "");
+      
+      const response = await userService.updateProfile({ socialLinks: cleanSocials });
+      if (response.success) {
+        toast.success(t("profile.updateSocialSuccess"));
+        await refreshUser();
+        if (targetUsername) {
+          setProfileUser(response.user);
+        }
+        setIsEditingSocials(false);
+      } else {
+        toast.error(response.message || t("profile.updateSocialFailed"));
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t("common.error"));
+    } finally {
+      setIsSavingSocials(false);
+    }
+  };
 
   React.useEffect(() => {
     if (isOwnProfile) {
@@ -109,12 +244,10 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
     }
   };
 
-  const displayedUser = isOwnProfile ? user : profileUser;
-
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner className="h-8 w-8 text-primary" />
       </div>
     );
   }
@@ -222,6 +355,162 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
               </div>
               {isOwnProfile && (
                 <DatePicker value={displayedUser.dob} onConfirm={handleUpdateDob} />
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className="w-full h-[1px] bg-border/25 my-5" />
+
+            {/* Social Links Section */}
+            <div className="w-full flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[var(--chart-1)]" />
+                  <span>{t("profile.socialLinks")}</span>
+                </h3>
+              </div>
+
+              {isEditingSocials ? (
+                <div className="flex flex-col gap-3">
+                  {editedSocials.map((link: SocialLink, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 w-full animate-in fade-in-50 duration-200">
+                      <Select
+                        value={link.platform}
+                        onValueChange={(val) => handleSocialChange(idx, "platform", val)}
+                      >
+                        <SelectTrigger className="w-[110px] rounded-2xl border border-border/10 bg-muted/40 px-2.5 py-1.5 text-xs flex items-center justify-between cursor-pointer">
+                          <SelectValue placeholder={t("profile.selectPlatform")} />
+                        </SelectTrigger>
+                        <SelectContent position="popper" className="bg-card border border-border/10 p-1 rounded-2xl shadow-lg w-[140px] z-50">
+                          {SOCIAL_PLATFORMS.map((platform) => (
+                            <SelectItem key={platform.id} value={platform.id} className="cursor-pointer text-xs">
+                              <span className="flex items-center gap-1.5">
+                                {getPlatformIcon(platform.id)}
+                                <span>{platform.name}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Input
+                        value={link.usernameOrUrl}
+                        onChange={(e) => handleSocialChange(idx, "usernameOrUrl", e.target.value)}
+                        placeholder={
+                          SOCIAL_PLATFORMS.find((p) => p.id === link.platform)?.placeholder ||
+                          t("profile.enterLinkOrUsername")
+                        }
+                        className="flex-1 rounded-2xl border border-border/10 bg-muted/40 px-3 py-1.5 text-xs h-8"
+                      />
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveSocial(idx)}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer shrink-0 flex items-center justify-center"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+
+                  <div className="flex flex-col gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddSocial}
+                      className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-1.5 h-8"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>{t("profile.addSocialLink")}</span>
+                    </Button>
+                    
+                    <div className="flex items-center justify-end gap-1.5 mt-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditingSocials(false)}
+                        className="rounded-full text-xs h-8 px-3 cursor-pointer flex items-center"
+                        disabled={isSavingSocials}
+                      >
+                        <X className="w-3.5 h-3.5 mr-1" />
+                        <span>{t("common.cancel")}</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveSocials}
+                        className="rounded-full text-xs h-8 px-3 cursor-pointer bg-primary text-primary-foreground flex items-center gap-1"
+                        disabled={isSavingSocials}
+                      >
+                        {isSavingSocials ? (
+                          <Spinner className="mr-1 size-3 text-primary-foreground" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5 mr-1" />
+                        )}
+                        <span>{t("common.save")}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {displayedUser.socialLinks && displayedUser.socialLinks.length > 0 ? (
+                    <>
+                      <div className="flex flex-col gap-2">
+                        {displayedUser.socialLinks.map((link: SocialLink, idx: number) => {
+                          const platformInfo = SOCIAL_PLATFORMS.find((p) => p.id === link.platform);
+                          const displayPlatformName = platformInfo ? platformInfo.name : link.platform;
+                          
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center gap-3 text-sm text-muted-foreground"
+                            >
+                              <div className="w-8 h-8 rounded-xl bg-muted/20 border border-border/10 flex items-center justify-center shrink-0">
+                                {getPlatformIcon(link.platform)}
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider leading-none">
+                                  {displayPlatformName}
+                                </span>
+                                <span className="text-xs font-medium truncate mt-0.5 max-w-[200px]">
+                                  {link.usernameOrUrl}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {isOwnProfile && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={startEditingSocials}
+                          className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9 mt-2"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>{t("profile.addSocialLink")}</span>
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-xs text-muted-foreground/60 italic py-2">
+                      {isOwnProfile ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={startEditingSocials}
+                          className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>{t("profile.addSocialLink")}</span>
+                        </Button>
+                      ) : (
+                        <span>Chưa thêm liên kết</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

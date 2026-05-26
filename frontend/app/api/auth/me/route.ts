@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
         role: user.role || "user",
         avatar: user.avatar,
         dob: user.dob,
+        socialLinks: user.socialLinks || [],
         createdAt: user.createdAt,
       },
     });

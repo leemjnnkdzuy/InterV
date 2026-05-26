@@ -76,7 +76,13 @@
     "updateDobFailed": "Failed to update date of birth",
     "avatarPending": "Avatar change feature is under development.",
     "userNotFound": "User not found",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "socialLinks": "Social Links",
+    "addSocialLink": "Add social media link",
+    "selectPlatform": "Select platform",
+    "enterLinkOrUsername": "Enter link or username",
+    "updateSocialSuccess": "Updated social media links successfully!",
+    "updateSocialFailed": "Failed to update social media links"
   },
   "home": {
     "greetingMorning": "Good morning",
