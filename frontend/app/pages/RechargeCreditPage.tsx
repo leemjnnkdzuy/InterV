@@ -1,12 +1,7 @@
 "use client";
 
 import { Card } from "@/app/components/ui/card";
-
-interface RechargeCreditPageProps {
-  setActiveTab: (tab: string) => void;
-  transactions: any[];
-  isLoading: boolean;
-}
+import type { RechargeCreditPageProps } from "@/app/types";
 
 export default function RechargeCreditPage({ transactions, isLoading }: RechargeCreditPageProps) {
   const formatCurrency = (value: number) => {
@@ -26,7 +21,7 @@ export default function RechargeCreditPage({ transactions, isLoading }: Recharge
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };

@@ -74,10 +74,11 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as Error);
-        const axiosErr = refreshError as {
-          response?: { data?: SessionRevokedResponse };
-        };
-        if (axiosErr?.response?.data?.sessionRevoked) {
+        const axiosErr = refreshError as AxiosError;
+        if (
+          axiosErr?.response?.status === 401 ||
+          (axiosErr?.response?.data as SessionRevokedResponse)?.sessionRevoked
+        ) {
           if (typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("session-revoked"));
           }

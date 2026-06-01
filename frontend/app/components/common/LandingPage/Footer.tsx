@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import logoSrc from "@/app/assets/logo.svg";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRightUp } from "@solar-icons/react";
 
 export default function Footer() {
   return (
@@ -83,13 +83,13 @@ export default function Footer() {
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
                   Luyện tập với AI
-                  <ArrowUpRight className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
                   Đánh giá CV miễn phí
-                  <ArrowUpRight className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
@@ -112,7 +112,7 @@ export default function Footer() {
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
                   Giải pháp tuyển dụng
-                  <ArrowUpRight className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>

@@ -4,15 +4,7 @@ import User from "@/app/models/User";
 import Transaction from "@/app/models/Transaction";
 import { verifyAccessToken } from "@/app/lib/Auth";
 import payos from "@/app/lib/PayOS";
-
-const RECHARGE_PACKAGES = [
-  { amount: 10000, credit: 100, bonus: 0 },
-  { amount: 20000, credit: 200, bonus: 10 },
-  { amount: 50000, credit: 500, bonus: 40 },
-  { amount: 100000, credit: 1000, bonus: 100 },
-  { amount: 200000, credit: 2000, bonus: 250 },
-  { amount: 500000, credit: 5000, bonus: 750 },
-];
+import { RECHARGE_PACKAGES } from "@/app/contants";
 
 export async function POST(request: NextRequest) {
   try {

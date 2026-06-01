@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -147,6 +148,10 @@
   font-family: 'Merriweather Sans', sans-serif;
 }
 
+.font-question {
+  font-family: 'Merriweather', serif;
+}
+
 /* Hero heading shimmer animation */
 @keyframes shimmer-slide {
   0% { background-position: 200% center; }
@@ -200,4 +205,13 @@ html {
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(24, 24, 27, 0.15) transparent;
+}
+
+/* Animation: spin-slow-404 (not-found) */
+@keyframes spin-slow-404 {
+  from { transform: translate(50%, -50%) rotate(0deg); }
+  to { transform: translate(50%, -50%) rotate(360deg); }
+}
+.animate-spin-slow-404 {
+  animation: spin-slow-404 60s linear infinite;
 }

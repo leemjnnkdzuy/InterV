@@ -24,7 +24,7 @@ const benefits: Benefit[] = [
   },
   {
     title: "Phân tích tâm lý & kỹ năng sâu",
-    description: "Đánh giá chính xác từ vựng chuyên ngành, đo lường tốc độ nói, phát hiện từ đệm thừa và phân tích biểu cảm tự tin khuôn mặt.",
+    description: "Đánh giá chính xác từ vựng chuyên ngành, đo lường tốc độ nói, phát hiện từ đệm thừa và phân tích tông giọng, ngữ điệu tự tin.",
     icon: <Pulse weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-emerald-500/5",
     iconColor: "text-emerald-400",
@@ -32,7 +32,7 @@ const benefits: Benefit[] = [
   },
   {
     title: "Bảo mật thông tin tuyệt đối",
-    description: "Cam kết bảo mật 100% dữ liệu cuộc gọi video của ứng viên và thông tin tuyển dụng doanh nghiệp theo tiêu chuẩn bảo mật dữ liệu toàn cầu.",
+    description: "Cam kết bảo mật 100% dữ liệu cuộc gọi thoại của ứng viên và thông tin tuyển dụng doanh nghiệp theo tiêu chuẩn bảo mật dữ liệu toàn cầu.",
     icon: <LockKeyhole weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-violet-500/5",
     iconColor: "text-violet-400",

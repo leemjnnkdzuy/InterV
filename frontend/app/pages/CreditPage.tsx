@@ -6,13 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { WalletMoney, Chart, ShieldCheck } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import RechargeDrawer from "@/app/components/common/Drawer/RechargeDrawer";
-
-interface CreditPageProps {
-  setActiveTab: (tab: string) => void;
-  creditLogs: any[];
-  transactions: any[];
-  isLoading: boolean;
-}
+import type { CreditPageProps } from "@/app/types";
 
 export default function CreditPage({ setActiveTab, creditLogs, transactions, isLoading }: CreditPageProps) {
   const { user } = useAuthContext();

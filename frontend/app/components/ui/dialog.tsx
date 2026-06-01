@@ -1,11 +1,13 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/app/lib/Utils"
 import { Button } from "@/app/components/ui/button"
-import { XIcon } from "lucide-react"
+import { CloseCircle } from "@solar-icons/react"
+
+
 
 function Dialog({
   ...props
@@ -74,7 +76,7 @@ function DialogContent({
               className="absolute top-4 end-4 bg-secondary"
               size="icon-sm"
             >
-              <XIcon
+              <CloseCircle
               />
               <span className="sr-only">Close</span>
             </Button>

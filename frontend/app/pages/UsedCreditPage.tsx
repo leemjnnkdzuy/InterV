@@ -1,16 +1,10 @@
 "use client";
 
-import React from "react";
 import { Card } from "@/app/components/ui/card";
-import { History, CpuBolt } from "@solar-icons/react";
+import { CpuBolt } from "@solar-icons/react";
+import type { UsedCreditPageProps } from "@/app/types";
 
-interface UsedCreditPageProps {
-  setActiveTab: (tab: string) => void;
-  creditLogs: any[];
-  isLoading: boolean;
-}
-
-export default function UsedCreditPage({ setActiveTab, creditLogs, isLoading }: UsedCreditPageProps) {
+export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPageProps) {
   const usageLogs = creditLogs.filter((log) => log.credits < 0);
 
   const getActionName = (action: string) => {
@@ -38,7 +32,7 @@ export default function UsedCreditPage({ setActiveTab, creditLogs, isLoading }: 
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };

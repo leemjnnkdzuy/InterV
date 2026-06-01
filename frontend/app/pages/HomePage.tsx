@@ -6,17 +6,17 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import {
-  Brain,
-  MessageSquareCode,
-  Award,
-  Clock,
+  Lightbulb as Brain,
+  ChatSquareCode as MessageSquareCode,
+  MedalStar as Award,
+  ClockCircle as Clock,
   ArrowRight,
-  TrendingUp,
-  Video,
+  GraphUp as TrendingUp,
+  Videocamera as Video,
   Code,
-  Briefcase,
-  Sparkles,
-} from "lucide-react";
+  Suitcase as Briefcase,
+  Stars as Sparkles,
+} from "@solar-icons/react";
 import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function HomePage() {

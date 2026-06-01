@@ -2,7 +2,8 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { AltArrowDown } from "@solar-icons/react";
+
 
 interface FaqItem {
   question: string;
@@ -16,7 +17,7 @@ const faqData: FaqItem[] = [
   },
   {
     question: "Ứng viên có cần cài đặt phần mềm hay extension nào không?",
-    answer: "Không cần cài đặt bất kỳ phần mềm nào. Nền tảng của chúng tôi chạy trực tiếp trên môi trường web. Ứng viên chỉ cần mở trình duyệt (Chrome, Safari, Edge...) trên máy tính hoặc điện thoại, cấp quyền Camera và Micro là có thể thực hiện phỏng vấn ngay lập tức."
+    answer: "Không cần cài đặt bất kỳ phần mềm nào. Nền tảng của chúng tôi chạy trực tiếp trên môi trường web. Ứng viên chỉ cần mở trình duyệt (Chrome, Safari, Edge...) trên máy tính hoặc điện thoại, cấp quyền Micro là có thể thực hiện phỏng vấn ngay lập tức."
   },
   {
     question: "Doanh nghiệp có được trải nghiệm dùng thử miễn phí không?",
@@ -67,7 +68,7 @@ export default function Faq() {
                     transition={{ duration: 0.2 }}
                     className="text-zinc-500 shrink-0 ml-4"
                   >
-                    <ChevronDown className="w-5 h-5" />
+                    <AltArrowDown className="w-5 h-5" />
                   </motion.div>
                 </button>
 

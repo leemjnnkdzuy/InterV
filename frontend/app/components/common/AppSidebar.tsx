@@ -280,12 +280,15 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
 
                       {/* Menu Item Content */}
                       <div className={cn("relative z-10 flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
-                        <item.icon className={cn(
-                          "shrink-0 transition-all duration-300 !h-8 !w-8",
-                          isActive
-                            ? "text-background"
-                            : "text-muted-foreground group-hover/btn:text-foreground"
-                        )} />
+                        <item.icon 
+                          weight="BoldDuotone"
+                          className={cn(
+                            "shrink-0 transition-all duration-300 !h-8 !w-8",
+                            isActive
+                              ? "text-background"
+                              : "text-muted-foreground group-hover/btn:text-foreground"
+                          )} 
+                        />
 
                         <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
                           <span className={cn(
@@ -346,7 +349,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                               {user.username.charAt(0).toUpperCase()}
                             </span>
                           ) : (
-                            <UserIcon className="h-7 w-7" />
+                            <UserIcon weight="BoldDuotone" className="h-7 w-7" />
                           )}
                         </div>
                       </div>
@@ -354,22 +357,22 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" side="right" className="w-48 bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg">
                     <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
-                      <UserIcon className="w-4 h-4 mr-2" />
+                      <UserIcon weight="BoldDuotone" className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.account")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleNavigate("/credit", "balance")} className="cursor-pointer">
-                      <WalletMoney className="w-4 h-4 mr-2" />
+                      <WalletMoney weight="BoldDuotone" className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.balance")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleNavigate("/settings", "account")} className="cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
+                      <Settings weight="BoldDuotone" className="w-4 h-4 mr-2" />
                       <span>{t("sidebar.settings")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setShowLogoutConfirm(true)} 
                       className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
                     >
-                      <LogOut className="w-4 h-4 mr-2 text-destructive" />
+                      <LogOut weight="BoldDuotone" className="w-4 h-4 mr-2 text-destructive" />
                       <span>{t("sidebar.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -392,7 +395,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                           {user.username.charAt(0).toUpperCase()}
                         </span>
                       ) : (
-                        <UserIcon className="h-6 w-6" />
+                        <UserIcon weight="BoldDuotone" className="h-6 w-6" />
                       )}
                     </div>
                     {/* Active dot */}
@@ -421,22 +424,22 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg">
                       <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
-                        <UserIcon className="w-4 h-4 mr-2" />
+                        <UserIcon weight="BoldDuotone" className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.account")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleNavigate("/credit", "balance")} className="cursor-pointer">
-                        <WalletMoney className="w-4 h-4 mr-2" />
+                        <WalletMoney weight="BoldDuotone" className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.balance")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleNavigate("/settings", "account")} className="cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
+                        <Settings weight="BoldDuotone" className="w-4 h-4 mr-2" />
                         <span>{t("sidebar.settings")}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => setShowLogoutConfirm(true)} 
                         className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
                       >
-                        <LogOut className="w-4 h-4 mr-2 text-destructive" />
+                        <LogOut weight="BoldDuotone" className="w-4 h-4 mr-2 text-destructive" />
                         <span>{t("sidebar.logout")}</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -67,7 +67,7 @@ export default function WhoIsThisFor() {
                   Bạn muốn tối ưu quy trình sàng lọc ứng viên?
                 </h3>
                 <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-                  Tự động hóa vòng phỏng vấn sơ loại qua video/audio AI. Phân tích độ tương thích văn hóa, năng lực chuyên môn và xuất báo cáo điểm số tự động để lọc nhanh 90% hồ sơ.
+                  Tự động hóa vòng phỏng vấn sơ loại qua voice AI. Phân tích độ tương thích văn hóa, năng lực chuyên môn và xuất báo cáo điểm số tự động để lọc nhanh 90% hồ sơ.
                 </p>
               </div>
             </div>

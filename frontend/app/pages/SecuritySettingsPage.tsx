@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import axios from "axios";
 import { userService } from "@/app/services/UserService";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
@@ -10,26 +11,25 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Spinner } from "@/app/components/ui/spinner";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import type { ApiErrorResponse, AuthSessionData } from "@/app/types";
 
-interface SessionData {
-  id: string;
-  deviceInfo: string;
-  ipAddress: string;
-  createdAt: string;
-  lastActiveAt: string;
-  isActive: boolean;
-  isCurrent: boolean;
-}
+const getSecurityErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    return error.response?.data?.message || fallback;
+  }
+
+  return fallback;
+};
 
 export default function SecuritySettingsPage() {
   const { logout } = useAuthContext();
   const { language, t } = useLanguage();
-  const [sessions, setSessions] = useState<SessionData[]>([]);
+  const [sessions, setSessions] = useState<AuthSessionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [isRevokingAll, setIsRevokingAll] = useState(false);
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
       const res = await userService.getSessions();
@@ -38,16 +38,20 @@ export default function SecuritySettingsPage() {
       } else {
         toast.error(res.message || t("security.loadDevicesFailed"));
       }
-    } catch (err) {
+    } catch {
       toast.error(t("security.loadDevicesError"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
-    fetchSessions();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void fetchSessions();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchSessions]);
 
   const handleRevokeSession = async (sessionId: string) => {
     try {
@@ -61,8 +65,8 @@ export default function SecuritySettingsPage() {
       } else {
         toast.error(res.message || t("security.revokeFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("security.logoutError"));
+    } catch (err) {
+      toast.error(getSecurityErrorMessage(err, t("security.logoutError")));
     } finally {
       setRevokingId(null);
     }
@@ -81,8 +85,8 @@ export default function SecuritySettingsPage() {
       } else {
         toast.error(res.message || t("security.revokeAllFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("security.revokeAllFailed"));
+    } catch (err) {
+      toast.error(getSecurityErrorMessage(err, t("security.revokeAllFailed")));
     } finally {
       setIsRevokingAll(false);
     }

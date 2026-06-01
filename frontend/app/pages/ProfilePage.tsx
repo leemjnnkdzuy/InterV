@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -13,6 +15,11 @@ import {
   Camera,
   Calendar,
   User,
+  AddCircle,
+  TrashBinMinimalistic,
+  Earth,
+  CheckCircle,
+  CloseCircle,
 } from "@solar-icons/react";
 import { toast } from "sonner";
 import { userService } from "@/app/services";
@@ -28,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { Plus, Trash2, Globe, Check, X } from "lucide-react";
+
 import { SocialLink } from "@/app/contexts/AuthContext";
 import {
   FaFacebook,
@@ -39,20 +46,8 @@ import {
   FaXTwitter,
 } from "react-icons/fa6";
 import { SiLeetcode } from "react-icons/si";
-
-interface ProfilePageProps {
-  targetUsername?: string;
-}
-
-const SOCIAL_PLATFORMS = [
-  { id: "facebook", name: "Facebook", placeholder: "username..." },
-  { id: "instagram", name: "Instagram", placeholder: "username..." },
-  { id: "tiktok", name: "TikTok", placeholder: "username..." },
-  { id: "linkedin", name: "LinkedIn", placeholder: "username..." },
-  { id: "github", name: "GitHub", placeholder: "username..." },
-  { id: "leetcode", name: "LeetCode", placeholder: "username..." },
-  { id: "x", name: "X", placeholder: "username..." },
-];
+import { SOCIAL_PLATFORMS } from "@/app/contants";
+import type { ApiErrorResponse, ProfilePageProps, ProfileUser } from "@/app/types";
 
 const getPlatformIcon = (platform: string) => {
   const className = "w-4 h-4 shrink-0";
@@ -72,34 +67,20 @@ const getPlatformIcon = (platform: string) => {
     case "x":
       return <FaXTwitter className={`${className} text-foreground`} />;
     default:
-      return <Globe className={`${className} text-muted-foreground`} />;
+      return <Earth className={`${className} text-muted-foreground`} />;
   }
 };
 
-const formatPlatformUrl = (platform: string, usernameOrUrl: string) => {
-  if (!usernameOrUrl) return "";
-  if (usernameOrUrl.startsWith("http://") || usernameOrUrl.startsWith("https://")) {
-    return usernameOrUrl;
+const getProfileErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    return error.response?.data?.message || fallback;
   }
-  const clean = usernameOrUrl.trim();
-  switch (platform.toLowerCase()) {
-    case "github":
-      return `https://github.com/${clean}`;
-    case "facebook":
-      return `https://facebook.com/${clean}`;
-    case "instagram":
-      return `https://instagram.com/${clean}`;
-    case "linkedin":
-      return `https://linkedin.com/in/${clean}`;
-    case "tiktok":
-      return `https://tiktok.com/@${clean}`;
-    case "leetcode":
-      return `https://leetcode.com/u/${clean}`;
-    case "x":
-      return `https://x.com/${clean}`;
-    default:
-      return clean;
+
+  if (error instanceof Error) {
+    return error.message;
   }
+
+  return fallback;
 };
 
 export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
@@ -107,7 +88,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const { user, refreshUser } = useAuthContext();
   const { language, t } = useLanguage();
 
-  const [profileUser, setProfileUser] = React.useState<any>(null);
+  const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isAvatarCropOpen, setIsAvatarCropOpen] = React.useState(false);
@@ -122,14 +103,6 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const [isEditingSocials, setIsEditingSocials] = React.useState(false);
   const [editedSocials, setEditedSocials] = React.useState<SocialLink[]>([]);
   const [isSavingSocials, setIsSavingSocials] = React.useState(false);
-
-  React.useEffect(() => {
-    if (displayedUser && displayedUser.socialLinks) {
-      setEditedSocials(displayedUser.socialLinks);
-    } else {
-      setEditedSocials([]);
-    }
-  }, [displayedUser]);
 
   const startEditingSocials = () => {
     const currentSocials = displayedUser?.socialLinks || [];
@@ -167,38 +140,42 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
       } else {
         toast.error(response.message || t("profile.updateSocialFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("common.error"));
+    } catch (err) {
+      toast.error(getProfileErrorMessage(err, t("common.error")));
     } finally {
       setIsSavingSocials(false);
     }
   };
 
   React.useEffect(() => {
-    if (isOwnProfile) {
-      if (user) {
-        setLoading(false);
-        setError(null);
-      } else {
-        setLoading(true);
+    const timeoutId = window.setTimeout(() => {
+      if (isOwnProfile) {
+        if (user) {
+          setLoading(false);
+          setError(null);
+        } else {
+          setLoading(true);
+        }
+        return;
       }
-      return;
-    }
 
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const fetchedUser = await userService.getProfileByUsername(targetUsername!);
-        setProfileUser(fetchedUser);
-      } catch (err: any) {
-        setError(err.message || t("common.error"));
-      } finally {
-        setLoading(false);
-      }
-    };
+      const fetchProfile = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const fetchedUser = await userService.getProfileByUsername(targetUsername!);
+          setProfileUser(fetchedUser);
+        } catch (err) {
+          setError(getProfileErrorMessage(err, t("common.error")));
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchProfile();
+      void fetchProfile();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [targetUsername, isOwnProfile, user, t]);
 
   const handleUpdateDob = async (newDate: Date) => {
@@ -214,8 +191,8 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
       } else {
         toast.error(response.message || t("profile.updateDobFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("common.error"));
+    } catch (err) {
+      toast.error(getProfileErrorMessage(err, t("common.error")));
       throw err;
     }
   };
@@ -238,8 +215,8 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
       } else {
         toast.error(response.message || t("dialogs.avatarUpdateFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("common.error"));
+    } catch (err) {
+      toast.error(getProfileErrorMessage(err, t("common.error")));
       throw err;
     }
   };
@@ -303,9 +280,12 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
               <div className={`relative w-32 h-32 rounded-3xl p-1 bg-gradient-to-tr from-primary/40 via-violet-500/40 to-primary-foreground/40 shadow-xl transition-all duration-300 ${isOwnProfile ? "group-hover/avatar:scale-105" : ""}`}>
                 <div className="w-full h-full rounded-2xl bg-sidebar-accent text-sidebar-accent-foreground font-bold text-4xl flex items-center justify-center border border-border/20 overflow-hidden shadow-inner relative">
                   {displayedUser.avatar ? (
-                    <img
+                    <Image
                       src={displayedUser.avatar}
                       alt={displayedUser.username}
+                      fill
+                      unoptimized
+                      sizes="128px"
                       className={`h-full w-full object-cover transition-transform duration-500 ${isOwnProfile ? "group-hover/avatar:scale-110" : ""}`}
                     />
                   ) : (
@@ -365,7 +345,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
             <div className="w-full flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-[var(--chart-1)]" />
+                  <Earth className="w-4 h-4 text-[var(--chart-1)]" />
                   <span>{t("profile.socialLinks")}</span>
                 </h3>
               </div>
@@ -409,7 +389,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                         onClick={() => handleRemoveSocial(idx)}
                         className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer shrink-0 flex items-center justify-center"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <TrashBinMinimalistic className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   ))}
@@ -421,7 +401,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                       onClick={handleAddSocial}
                       className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-1.5 h-8"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <AddCircle className="w-3.5 h-3.5" />
                       <span>{t("profile.addSocialLink")}</span>
                     </Button>
                     
@@ -433,7 +413,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                         className="rounded-full text-xs h-8 px-3 cursor-pointer flex items-center"
                         disabled={isSavingSocials}
                       >
-                        <X className="w-3.5 h-3.5 mr-1" />
+                        <CloseCircle className="w-3.5 h-3.5 mr-1" />
                         <span>{t("common.cancel")}</span>
                       </Button>
                       <Button
@@ -445,7 +425,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                         {isSavingSocials ? (
                           <Spinner className="mr-1 size-3 text-primary-foreground" />
                         ) : (
-                          <Check className="w-3.5 h-3.5 mr-1" />
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" />
                         )}
                         <span>{t("common.save")}</span>
                       </Button>
@@ -488,7 +468,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                           onClick={startEditingSocials}
                           className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9 mt-2"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <AddCircle className="w-3.5 h-3.5" />
                           <span>{t("profile.addSocialLink")}</span>
                         </Button>
                       )}
@@ -502,7 +482,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                           onClick={startEditingSocials}
                           className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <AddCircle className="w-3.5 h-3.5" />
                           <span>{t("profile.addSocialLink")}</span>
                         </Button>
                       ) : (

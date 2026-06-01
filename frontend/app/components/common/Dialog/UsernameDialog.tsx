@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { userService } from "@/app/services/UserService";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Check, X } from "lucide-react";
+import { CheckCircle, CloseCircle } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
 import {
   Dialog,
@@ -14,8 +14,7 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import { CheckCircle } from "@solar-icons/react";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface UsernameDialogProps {
@@ -77,7 +76,7 @@ export default function UsernameDialog({
       } finally {
         setIsCheckingUsername(false);
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [newUsername, currentUser?.username]);
@@ -155,10 +154,10 @@ export default function UsernameDialog({
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                       {isCheckingUsername && <Spinner className="text-muted-foreground" />}
                       {!isCheckingUsername && usernameStatus === "available" && (
-                        <Check className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <CheckCircle className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
                       )}
                       {!isCheckingUsername && usernameStatus === "unavailable" && (
-                        <X className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <CloseCircle className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
                       )}
                     </div>
                   </div>

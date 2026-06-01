@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Home } from "lucide-react";
+import { Home } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -37,12 +37,11 @@ export default function LoginPage() {
     try {
       const res = await login(identifier, password, remember);
       if (res.success) {
-        toast.success("Đăng nhập thành công!");
         router.push("/");
       } else {
         toast.error(res.message || "Tên đăng nhập/Email hoặc mật khẩu không chính xác");
       }
-    } catch (error: any) {
+    } catch {
       toast.error("Đã xảy ra lỗi khi kết nối với máy chủ");
     } finally {
       setIsLoading(false);

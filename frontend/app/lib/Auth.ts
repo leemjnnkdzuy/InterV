@@ -42,8 +42,14 @@ export function generateRefreshToken(
 
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
-    return decoded as TokenPayload;
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
+    if (decoded && decoded.userId && !/^[0-9a-fA-F]{24}$/.test(decoded.userId)) {
+      return null;
+    }
+    if (decoded && decoded.sessionId && !/^[0-9a-fA-F]{24}$/.test(decoded.sessionId)) {
+      return null;
+    }
+    return decoded;
   } catch {
     return null;
   }
@@ -51,8 +57,14 @@ export function verifyAccessToken(token: string): TokenPayload | null {
 
 export function verifyRefreshToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
-    return decoded as TokenPayload;
+    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET) as TokenPayload;
+    if (decoded && decoded.userId && !/^[0-9a-fA-F]{24}$/.test(decoded.userId)) {
+      return null;
+    }
+    if (decoded && decoded.sessionId && !/^[0-9a-fA-F]{24}$/.test(decoded.sessionId)) {
+      return null;
+    }
+    return decoded;
   } catch {
     return null;
   }

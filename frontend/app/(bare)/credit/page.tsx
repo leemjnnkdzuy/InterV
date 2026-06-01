@@ -10,18 +10,19 @@ import RechargeCreditPage from "@/app/pages/RechargeCreditPage";
 import api from "@/app/lib/Client";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
+import type { CreditHistoryResponse, CreditLogItem, CreditTransactionItem } from "@/app/types";
 
 export default function CreditPageRoute() {
   const { refreshUser } = useAuthContext();
   const [activeTab, setActiveTab] = useState<string>("balance");
-  const [creditLogs, setCreditLogs] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [creditLogs, setCreditLogs] = useState<CreditLogItem[]>([]);
+  const [transactions, setTransactions] = useState<CreditTransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchHistory = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/users/credit-history");
+      const response = await api.get<CreditHistoryResponse>("/users/credit-history");
       if (response.data.success) {
         setCreditLogs(response.data.creditLogs || []);
         setTransactions(response.data.transactions || []);

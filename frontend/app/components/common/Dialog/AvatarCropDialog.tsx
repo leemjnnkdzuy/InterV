@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, ZoomIn, ZoomOut, RotateCcw, Check } from "lucide-react";
+import { UploadMinimalistic, MagnifierZoomIn, MagnifierZoomOut, Restart, CheckCircle } from "@solar-icons/react";
+
 import { Spinner } from "@/app/components/ui/spinner";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -401,7 +402,7 @@ export default function AvatarCropDialog({
                 />
 
                 <div className="flex flex-col items-center gap-3">
-                  <Upload
+                  <UploadMinimalistic
                     className={`w-10 h-10 ${
                       isDragging ? "text-primary animate-bounce" : "text-muted-foreground"
                     } transition-colors`}
@@ -459,7 +460,7 @@ export default function AvatarCropDialog({
                   className="p-2 rounded-xl bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   title={t("dialogs.avatarZoomOut")}
                 >
-                  <ZoomOut className="w-4 h-4" />
+                  <MagnifierZoomOut className="w-4 h-4" />
                 </button>
 
                 {/* Zoom Slider */}
@@ -486,7 +487,7 @@ export default function AvatarCropDialog({
                   className="p-2 rounded-xl bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   title={t("dialogs.avatarZoomIn")}
                 >
-                  <ZoomIn className="w-4 h-4" />
+                  <MagnifierZoomIn className="w-4 h-4" />
                 </button>
 
                 <button
@@ -494,7 +495,7 @@ export default function AvatarCropDialog({
                   className="p-2 rounded-xl bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   title={t("dialogs.avatarReset")}
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <Restart className="w-4 h-4" />
                 </button>
               </div>
 
@@ -540,7 +541,7 @@ export default function AvatarCropDialog({
                   </>
                 ) : (
                   <>
-                    <Check className="mr-1.5 size-3.5" />
+                    <CheckCircle className="mr-1.5 size-3.5" />
                     {t("dialogs.avatarSave")}
                   </>
                 )}

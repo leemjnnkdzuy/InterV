@@ -1,42 +1,91 @@
-import Link from 'next/link'
-import { Button } from '@/app/components/ui/button'
-import { ArrowLeft, SearchX } from 'lucide-react'
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft, HomeAngle } from "@solar-icons/react";
+import { Button } from "@/app/components/ui/button";
+import { logo, trong_dong } from "@/app/assets";
 
 export default function NotFound() {
-    return (
-        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-16 sm:px-6 lg:px-8">
-            {/* Decorative background elements */}
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 opacity-50 blur-[100px] dark:opacity-20">
-                <div className="h-[24rem] w-[24rem] rounded-full bg-primary/30" />
-            </div>
+	return (
+		<div className="min-h-screen bg-background text-foreground overflow-hidden relative flex items-center">
+			{/* Right Side - Rotating Trống Đồng Background (50% visible) */}
+			<div
+				className="absolute right-[12.5%] top-1/2 w-[120%] h-[120%] opacity-[0.15] pointer-events-none animate-spin-slow-404"
+				style={{ transformOrigin: "center" }}
+			>
+				<Image
+					src={trong_dong}
+					alt="Decoration"
+					fill
+					className="object-contain"
+					style={{
+						filter: "brightness(0.9) saturate(1.5) hue-rotate(180deg) contrast(1.1) drop-shadow(0 0 25px rgba(138, 228, 255, 0.6))",
+					}}
+					priority
+				/>
+			</div>
 
-            <div className="mx-auto max-w-lg text-center">
-                <h1 className="mb-4 bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-8xl font-extrabold tracking-tighter text-transparent sm:text-9xl">
-                    404
-                </h1>
+			{/* Left Side - Content */}
+			<div className="relative z-10 px-6 lg:px-20 xl:px-32 py-16 max-w-5xl">
+				{/* Logo */}
+				<div className="mb-8 flex items-center gap-4">
+					<div className="relative w-20 h-20 flex items-center justify-center">
+						<Image
+							src={logo}
+							alt="InterV Logo"
+							width={80}
+							height={80}
+							className="invert dark:invert-0 object-contain"
+							priority
+						/>
+					</div>
+					<span className="font-logo font-bold text-5xl tracking-tight text-foreground">
+						InterV<span className="text-[var(--chart-1)]">.</span>
+					</span>
+				</div>
 
-                <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                    Trang không tồn tại
-                </h2>
+				{/* Title */}
+				<h1 className="text-7xl lg:text-5xl font-black mb-4 leading-none text-foreground">
+					Không tìm thấy trang !!
+				</h1>
 
-                <p className="mb-10 text-lg text-muted-foreground">
-                    Xin lỗi, chúng tôi không thể tìm thấy trang bạn đang tìm kiếm. Có thể trang đã bị xóa, đổi tên hoặc tạm thời không truy cập được.
-                </p>
+				{/* Subtitle */}
+				<p className="text-muted-foreground text-xl lg:text-2xl mb-10 leading-relaxed max-w-xl">
+					Trang bạn đang tìm kiếm chúng tôi không tìm thấy.
+					Bạn có thể đã nhập sai địa chỉ hoặc trang đã bị xóa. Đừng lo, hãy quay lại trang chủ và tiếp tục luyện tập phỏng vấn cùng AI nhé!
+				</p>
 
-                <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                    <Button asChild size="lg" className="rounded-full font-medium shadow-lg transition-transform hover:scale-105 active:scale-95">
-                        <Link href="/">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Về trang chủ
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="rounded-full font-medium transition-transform hover:scale-105 active:scale-95">
-                        <Link href="/">
-                            Liên hệ hỗ trợ
-                        </Link>
-                    </Button>
-                </div>
-            </div>
-        </div>
-    )
+				{/* Action Buttons */}
+				<div className="flex flex-col sm:flex-row gap-4 max-w-md">
+					<Button
+						asChild
+						className="flex-1 bg-foreground text-background hover:bg-foreground/90 rounded-2xl px-8 font-semibold h-12 text-base shadow-lg transition-all duration-300 cursor-pointer"
+					>
+						<Link
+							href="/"
+							className="flex items-center justify-center gap-2 w-full"
+						>
+							<HomeAngle className="h-5 w-5" />
+							Về Trang Chủ
+						</Link>
+					</Button>
+
+					<Button
+						asChild
+						variant="outline"
+						className="flex-1 border-border bg-transparent hover:bg-accent/10 text-foreground rounded-2xl px-8 font-semibold h-12 text-base cursor-pointer"
+					>
+						<button
+							onClick={() => window.history.back()}
+							className="flex items-center justify-center gap-2 w-full cursor-pointer"
+						>
+							<ArrowLeft className="h-5 w-5" />
+							Quay Lại
+						</button>
+					</Button>
+				</div>
+			</div>
+		</div>
+	);
 }

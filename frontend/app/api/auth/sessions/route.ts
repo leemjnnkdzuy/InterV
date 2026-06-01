@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const currentSessionId = payload.sessionId;
 
-    const sessionList = sessions.map((s: any) => ({
+    const sessionList = sessions.map((s) => ({
       id: s._id.toString(),
       deviceInfo: s.deviceInfo,
       ipAddress: s.ipAddress,
@@ -78,7 +78,6 @@ export async function DELETE(request: NextRequest) {
     await connectDB();
 
     if (revokeAll) {
-      // Log out all sessions of the user
       await Session.updateMany(
         { userId: payload.userId, isActive: true },
         { $set: { isActive: false } }
@@ -102,7 +101,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Prevent revoking current session directly (user should use standard logout instead)
+    if (!/^[0-9a-fA-F]{24}$/.test(sessionId)) {
+      return NextResponse.json(
+        { success: false, message: "Mã phiên không hợp lệ" },
+        { status: 400 }
+      );
+    }
+
     if (sessionId === payload.sessionId) {
       return NextResponse.json(
         {

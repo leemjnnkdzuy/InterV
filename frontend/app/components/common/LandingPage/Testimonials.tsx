@@ -3,7 +3,18 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Quote, Sparkles } from "lucide-react";
+
+const QuoteIcon = (props: React.ComponentProps<"svg">) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+  </svg>
+)
+
 
 interface Testimonial {
   quote: string;
@@ -38,7 +49,7 @@ const testimonials: Testimonial[] = [
     type: "candidate"
   },
   {
-    quote: "Trước đây HR mất 2 tuần để gọi sơ vấn 100 hồ sơ. Bây giờ với trợ lý phỏng vấn video AI 24/7, chúng tôi chỉ mất đúng 1 buổi chiều để nhận được danh sách xếp hạng ứng viên chi tiết kèm file ghi âm.",
+    quote: "Trước đây HR mất 2 tuần để gọi sơ vấn 100 hồ sơ. Bây giờ với trợ lý phỏng vấn voice AI 24/7, chúng tôi chỉ mất đúng 1 buổi chiều để nhận được danh sách xếp hạng ứng viên chi tiết kèm file ghi âm.",
     author: "Hoàng Đức Anh",
     role: "Talent Acquisition Manager",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80",
@@ -72,7 +83,7 @@ export default function Testimonials() {
               whileHover={{ y: -4 }}
             >
               {/* Quote Mark */}
-              <Quote className="absolute top-6 right-6 w-8 h-8 text-zinc-800/40 z-0 pointer-events-none" />
+              <QuoteIcon className="absolute top-6 right-6 w-8 h-8 text-zinc-800/40 z-0 pointer-events-none" />
 
               {/* Quote Text */}
               <p className="text-zinc-300 text-sm sm:text-base leading-relaxed z-10 italic font-medium">

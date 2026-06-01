@@ -3,13 +3,15 @@
 import React, { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Home, ArrowLeft } from "lucide-react";
+import { Home, ArrowLeft } from "@solar-icons/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import axios from "axios";
 import api from "@/app/lib/Client";
 import { Spinner } from "@/app/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
+import type { ApiErrorResponse } from "@/app/types";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
@@ -38,6 +40,14 @@ export default function FogetPasswordPage() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
+  const getApiErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError<ApiErrorResponse>(error)) {
+      return error.response?.data?.message || fallback;
+    }
+
+    return fallback;
+  };
+
   const handleSendPin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -60,8 +70,8 @@ export default function FogetPasswordPage() {
       } else {
         toast.error(response.data.message || "Không thể gửi mã PIN");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi kết nối. Vui lòng thử lại.");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Lỗi kết nối. Vui lòng thử lại."));
     } finally {
       setIsLoading(false);
     }
@@ -89,8 +99,8 @@ export default function FogetPasswordPage() {
       } else {
         toast.error(response.data.message || "Mã PIN không đúng");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Xác thực mã PIN thất bại");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Xác thực mã PIN thất bại"));
     } finally {
       setIsLoading(false);
     }
@@ -123,8 +133,8 @@ export default function FogetPasswordPage() {
       } else {
         toast.error(response.data.message || "Đổi mật khẩu thất bại");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Đặt lại mật khẩu thất bại");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Đặt lại mật khẩu thất bại"));
     } finally {
       setIsLoading(false);
     }
@@ -145,8 +155,8 @@ export default function FogetPasswordPage() {
       } else {
         toast.error(response.data.message || "Không thể gửi lại mã PIN");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi gửi lại mã PIN");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Lỗi gửi lại mã PIN"));
     } finally {
       setIsLoading(false);
     }

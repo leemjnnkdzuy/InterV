@@ -9,6 +9,8 @@ import defualtAvatar8 from "./base64/defualtAvatar8.json";
 import defualtAvatar9 from "./base64/defualtAvatar9.json";
 import defualtAvatar10 from "./base64/defualtAvatar10.json";
 
+import trong_dong from "./trong_dong.svg";
+
 export const defaultAvatars = [
   defualtAvatar1,
   defualtAvatar2,
@@ -23,4 +25,4 @@ export const defaultAvatars = [
 ];
 
 import logo from "./logo.svg";
-export { logo };
+export { logo, trong_dong };

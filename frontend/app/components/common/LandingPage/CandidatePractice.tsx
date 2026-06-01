@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { MonitorCamera, ChatSquareCode, Library } from "@solar-icons/react";
-import { Mic } from "lucide-react";
+import { ChatSquareCode, Library, Microphone } from "@solar-icons/react";
 import { Progress } from "@/app/components/ui/progress";
 
 export default function CandidatePractice() {
@@ -23,7 +22,7 @@ export default function CandidatePractice() {
                 Luyện phỏng vấn thông minh cùng AI
               </h2>
               <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-                Xóa tan nỗi sợ, tự tin làm chủ biểu cảm và nội dung. Trải nghiệm giả lập phỏng vấn chuyên nghiệp như đang đối thoại trực tiếp với nhà tuyển dụng thực tế.
+                Xóa tan nỗi sợ, tự tin làm chủ tông giọng và nội dung. Trải nghiệm giả lập phỏng vấn chuyên nghiệp như đang đối thoại trực tiếp với nhà tuyển dụng thực tế.
               </p>
             </div>
 
@@ -33,7 +32,7 @@ export default function CandidatePractice() {
               {/* Feature 1 */}
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-[var(--chart-1)]">
-                  <MonitorCamera weight="BoldDuotone" className="w-7 h-7" />
+                  <Microphone weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Phỏng vấn giả định như thật</h4>
@@ -51,7 +50,7 @@ export default function CandidatePractice() {
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Phản hồi thông minh tức thì</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    Phân tích giọng điệu, tốc độ nói, ngôn từ và biểu cảm khuôn mặt. Nhận kết quả đánh giá chi tiết ngay khi hoàn tất.
+                    Phân tích giọng điệu, tốc độ nói, ngôn từ và nội dung trả lời. Nhận kết quả đánh giá chi tiết ngay khi hoàn tất.
                   </p>
                 </div>
               </div>
@@ -81,23 +80,27 @@ export default function CandidatePractice() {
               {/* Card Container */}
               <div className="relative w-full rounded-3xl overflow-hidden border border-white/[0.06] bg-zinc-950/40 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row lg:flex-col xl:flex-row hover:border-white/10 transition-all duration-300 sm:h-[360px] lg:h-[440px] xl:h-[400px]">
                 
-                {/* Left Side: Video Stream Simulation */}
-                <div className="relative w-full sm:w-1/2 lg:w-full xl:w-1/2 h-56 sm:h-full lg:h-56 xl:h-full overflow-hidden">
-                  <Image
-                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&h=600&q=80"
-                    alt="Candidate Video Interview"
-                    fill
-                    className="object-cover brightness-[0.8]"
-                    unoptimized
-                  />
-                  {/* Live badge */}
-                  <div className="absolute top-4 left-4 flex items-center gap-1 bg-rose-500/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-[9px] font-semibold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    Live
+                {/* Left Side: Voice Stream Simulation */}
+                <div className="relative w-full sm:w-1/2 lg:w-full xl:w-1/2 h-56 sm:h-full lg:h-56 xl:h-full overflow-hidden bg-zinc-900 flex flex-col items-center justify-center p-6 border-b sm:border-b-0 lg:border-b xl:border-b-0 border-white/[0.06]">
+                  {/* Voice Wave rings */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+                    <div className="w-48 h-48 rounded-full border border-[var(--chart-1)]/20 animate-ping absolute" />
+                    <div className="w-32 h-32 rounded-full border border-[var(--chart-1)]/30 animate-pulse absolute" />
+                  </div>
+                  
+                  {/* Candidate Avatar in Center */}
+                  <div className="relative z-10 w-24 h-24 rounded-full overflow-hidden border-2 border-[var(--chart-1)] shadow-[0_0_30px_rgba(187,244,81,0.2)]">
+                    <Image
+                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&h=200&q=80"
+                      alt="Candidate Voice Profile"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
                   </div>
 
-                  <div className="absolute bottom-4 left-4 flex items-center justify-center w-7 h-7 rounded-full bg-[var(--chart-1)] text-zinc-950 shadow-md">
-                    <Mic className="w-3.5 h-3.5" />
+                  <div className="absolute bottom-4 left-4 flex items-center justify-center w-8 h-8 rounded-full bg-[var(--chart-1)] text-zinc-950 shadow-lg">
+                    <Microphone className="w-4 h-4" />
                   </div>
                 </div>
 
@@ -146,7 +149,7 @@ export default function CandidatePractice() {
                   <div className="mt-4 bg-zinc-950/40 rounded-xl p-3 border border-white/5">
                     <span className="text-[10px] font-bold text-[var(--chart-1)] uppercase tracking-wider">Gợi ý từ AI</span>
                     <p className="text-[11px] text-zinc-300 leading-relaxed font-medium mt-1">
-                      Duy trì giao tiếp mắt tốt hơn khi giải thích các kinh nghiệm kỹ thuật.
+                      Hãy điều chỉnh tốc độ nói chậm lại một chút ở những đoạn giải thích kỹ thuật phức tạp để tăng độ rõ ràng.
                     </p>
                   </div>
                 </div>

@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Check, ArrowLeft, Clock } from "lucide-react";
-import { UsersGroupRounded, Chart, ShieldCheck } from "@solar-icons/react";
+import { UsersGroupRounded, Chart, ShieldCheck, AltArrowRight, ArrowLeft, CheckCircle, ClockCircle } from "@solar-icons/react";
 import { Progress } from "@/app/components/ui/progress";
 
 interface Candidate {
@@ -155,7 +154,7 @@ export default function AiScreening() {
                               <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Độ khớp</span>
                               <span className={`text-xs font-extrabold ${isActive ? "text-emerald-400" : "text-zinc-200"}`}>{candidate.match}%</span>
                             </div>
-                            <ChevronRight className={`w-4 h-4 text-zinc-500 transition-transform ${isActive ? "translate-x-0.5 text-emerald-400" : "group-hover/item:translate-x-0.5"}`} />
+                            <AltArrowRight className={`w-4 h-4 text-zinc-500 transition-transform ${isActive ? "translate-x-0.5 text-emerald-400" : "group-hover/item:translate-x-0.5"}`} />
                           </div>
                         </button>
                       );
@@ -270,11 +269,11 @@ export default function AiScreening() {
                             >
                               <div className="flex-shrink-0 mt-0.5">
                                 {highlight.type === "positive" ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-400 bg-emerald-500/10 rounded-full p-0.5" />
+                                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 bg-emerald-500/10 rounded-full p-0.5" />
                                 ) : highlight.type === "negative" ? (
                                   <span className="w-3.5 h-3.5 text-rose-400 bg-rose-500/10 rounded-full flex items-center justify-center text-[8px] font-bold">!</span>
                                 ) : (
-                                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                                  <ClockCircle className="w-3.5 h-3.5 text-zinc-400" />
                                 )}
                               </div>
                               <span>{highlight.text}</span>
@@ -314,7 +313,7 @@ export default function AiScreening() {
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Sàng lọc tự động 24/7</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    AI thay mặt HR thực hiện phỏng vấn sơ loại thông tin trực tiếp với hàng trăm ứng viên đồng thời qua video/audio trực tuyến, không giới hạn khung giờ.
+                    AI thay mặt HR thực hiện phỏng vấn sơ loại thông tin trực tiếp với hàng trăm ứng viên đồng thời qua cuộc gọi voice trực tuyến, không giới hạn khung giờ.
                   </p>
                 </div>
               </div>
@@ -340,7 +339,7 @@ export default function AiScreening() {
                 <div className="flex flex-col gap-1.5">
                   <h4 className="font-bold text-white text-base md:text-lg">Chống gian lận thông minh</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    Thuật toán AI phát hiện chuyển động mắt bất thường, nhận dạng khuôn mặt ứng viên và cảnh báo nếu có hành vi tìm kiếm tài liệu từ màn hình khác.
+                    Hệ thống AI phân tích độ trễ phản hồi, ngữ điệu đọc bài viết sẵn và phát hiện âm thanh nền lạ để đảm bảo tính trung thực của câu trả lời.
                   </p>
                 </div>
               </div>

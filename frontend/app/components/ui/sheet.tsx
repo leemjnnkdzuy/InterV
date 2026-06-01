@@ -1,11 +1,12 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/app/lib/Utils"
 import { Button } from "@/app/components/ui/button"
-import { XIcon } from "lucide-react"
+import { CloseCircle } from "@solar-icons/react"
+
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -75,7 +76,7 @@ function SheetContent({
               className="absolute top-4 end-4 bg-secondary"
               size="icon-sm"
             >
-              <XIcon
+              <CloseCircle
               />
               <span className="sr-only">Close</span>
             </Button>

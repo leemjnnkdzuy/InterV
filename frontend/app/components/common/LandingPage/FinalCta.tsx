@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/app/components/ui/button";
-import { ChevronRight, Phone } from "lucide-react";
+import { Phone, AltArrowRight } from "@solar-icons/react";
 
 export default function FinalCta() {
   return (
@@ -31,12 +31,12 @@ export default function FinalCta() {
             {/* Candidate CTA */}
             <Button className="w-full sm:w-auto rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold px-8 py-5 h-auto text-sm transition-all flex items-center justify-center gap-2 group border-none shadow-[0_4px_20px_rgba(187,244,81,0.15)]">
               Luyện phỏng vấn miễn phí
-              <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:translate-x-1 transition-transform" />
+              <AltArrowRight className="w-4 h-4 text-zinc-700 group-hover:translate-x-1 transition-transform" />
             </Button>
 
             {/* Employer CTA */}
             <Button className="w-full sm:w-auto rounded-full bg-transparent hover:bg-white/5 border border-white/20 hover:border-white/40 text-white font-bold px-8 py-5 h-auto text-sm transition-all flex items-center justify-center gap-2">
-              <Phone className="w-4 h-4" />
+              <Phone weight="BoldDuotone" className="w-6 h-6" />
               Đăng ký tư vấn doanh nghiệp
             </Button>
           </div>

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       const updatedTransaction = await Transaction.findOneAndUpdate(
         { _id: transaction._id, status: "PENDING" },
         { $set: { status: "PAID" } },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       if (updatedTransaction) {

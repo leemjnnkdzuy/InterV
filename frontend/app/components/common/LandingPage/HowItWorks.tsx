@@ -27,7 +27,7 @@ const steps: Step[] = [
   {
     num: "002",
     title: "PHỎNG VẤN TRỰC TIẾP",
-    description: "Khởi động Camera và Micro, bắt đầu buổi phỏng vấn trực quan qua video/audio trực tiếp với trợ lý ảo AI ngay trên trình duyệt.",
+    description: "Kiểm tra Micro, bắt đầu buổi phỏng vấn trực tuyến qua voice trực tiếp với trợ lý ảo AI ngay trên trình duyệt.",
     icon: <ChatSquareCode weight="BoldDuotone" className="w-7 h-7 text-amber-400" />,
     colorClass: "amber",
     bgGradient: "from-amber-500/5 to-yellow-500/5 border-amber-500/10",
@@ -72,20 +72,29 @@ export default function HowItWorks() {
               {/* Main Visual Image Card */}
               <div className="absolute inset-0 rounded-[32px] overflow-hidden bg-zinc-950 shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex items-center justify-center z-10">
                 
-                {/* User Mock Video */}
+                {/* User Mock Audio/Voice Call */}
                 <div className="relative w-full h-full">
                   <img 
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&h=800&q=80" 
-                    alt="AI Interview Scanning"
+                    alt="AI Voice Interview"
                     className="w-full h-full object-cover brightness-[0.75]"
                   />
                   
-                  {/* Face Scanning HUD Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    {/* Top-left hud text */}
-                    <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-rose-500/90 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-bold text-white uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      REC
+                  {/* Voice Waveform Overlay */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent z-20">
+                    <div className="flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-sm px-2.5 py-1 rounded w-fit text-[10px] font-bold text-white uppercase tracking-wider mb-3">
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                      VOICE ACTIVE
+                    </div>
+                    {/* Fake Waveform lines */}
+                    <div className="flex items-end gap-1 h-8">
+                      <div className="w-1 h-4 bg-emerald-400 rounded-full animate-pulse" />
+                      <div className="w-1 h-7 bg-emerald-400 rounded-full animate-pulse delay-75" />
+                      <div className="w-1 h-5 bg-emerald-400 rounded-full animate-pulse delay-150" />
+                      <div className="w-1 h-8 bg-emerald-400 rounded-full animate-pulse delay-300" />
+                      <div className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse delay-200" />
+                      <div className="w-1 h-6 bg-emerald-400 rounded-full animate-pulse delay-100" />
+                      <div className="w-1 h-4 bg-emerald-400 rounded-full animate-pulse" />
                     </div>
                   </div>
                 </div>

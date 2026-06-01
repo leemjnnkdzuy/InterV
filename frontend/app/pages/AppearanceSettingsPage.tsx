@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/app/components/ui/card";
-import { Sun, Moon, Monitor, CheckCircle } from "@solar-icons/react";
+import { Sun, Moon, Monitor, CheckCircle, AltArrowDown } from "@solar-icons/react";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useLanguage, Language } from "@/app/hooks/useLanguage";
 import {
@@ -10,7 +10,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/app/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
 import { VN, US, CN } from "country-flag-icons/react/3x2";
 
 export default function AppearanceSettingsPage() {
@@ -23,12 +22,6 @@ export default function AppearanceSettingsPage() {
 
   const applyLanguage = (newLang: Language) => {
     setLanguage(newLang);
-    const langName =
-      newLang === "vi"
-        ? t("appearance.langVi")
-        : newLang === "en"
-        ? t("appearance.langEn")
-        : t("appearance.langZh");
   };
 
   const getLanguageDetails = (lang: Language) => {
@@ -129,7 +122,7 @@ export default function AppearanceSettingsPage() {
                 {currentLangDetails.flag}
                 <span>{currentLangDetails.label}</span>
               </span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+              <AltArrowDown className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-card border border-border/10 p-1.5 rounded-3xl shadow-lg w-[var(--radix-dropdown-menu-trigger-width)]">
               <DropdownMenuItem onClick={() => applyLanguage("vi")} className="cursor-pointer">

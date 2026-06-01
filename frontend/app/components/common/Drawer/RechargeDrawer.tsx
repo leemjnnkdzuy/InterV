@@ -13,9 +13,10 @@ import {
   DrawerClose,
 } from "@/app/components/ui/drawer";
 import { toast } from "sonner";
-import { WalletMoney, AltArrowLeft } from "@solar-icons/react";
-import { Loader2, ExternalLink } from "lucide-react";
+import { WalletMoney, AltArrowLeft, ArrowRightUp } from "@solar-icons/react";
+import { Spinner } from "@/app/components/ui/spinner";
 import api from "@/app/lib/Client";
+import { RECHARGE_PACKAGES } from "@/app/contants";
 
 interface RechargePackage {
   amount: number;
@@ -23,15 +24,6 @@ interface RechargePackage {
   bonus: number;
   popular?: boolean;
 }
-
-const RECHARGE_PACKAGES: RechargePackage[] = [
-  { amount: 10000, credit: 100, bonus: 0 },
-  { amount: 20000, credit: 200, bonus: 10 },
-  { amount: 50000, credit: 500, bonus: 40 },
-  { amount: 100000, credit: 1000, bonus: 100 },
-  { amount: 200000, credit: 2000, bonus: 250 },
-  { amount: 500000, credit: 5000, bonus: 750 },
-];
 
 interface RechargeDrawerProps {
   isOpen: boolean;
@@ -143,7 +135,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-w-none w-full p-0 before:inset-x-0 before:bottom-0 before:top-0 before:rounded-t-[32px] before:rounded-b-none border-t border-border/10 bg-background/95 backdrop-blur-xl">
+      <DrawerContent className="max-w-none w-full p-0 rounded-t-[32px] border-t border-border/10 bg-background/95 backdrop-blur-xl before:hidden overflow-hidden shadow-2xl">
         
         {/* Step 1: Chọn gói nạp */}
         {step === 1 && (
@@ -235,7 +227,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
             <div className="my-6 min-h-[160px] flex flex-col items-center justify-center border border-dashed border-border/20 rounded-3xl bg-card/10 p-6 text-center">
               {isLoadingLink ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <Spinner className="w-8 h-8 text-primary" />
                   <p className="text-sm font-medium text-muted-foreground">Đang khởi tạo liên kết thanh toán...</p>
                 </div>
               ) : (
@@ -255,7 +247,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                     className="w-full rounded-2xl py-6 font-bold bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white transition-all cursor-pointer shadow-md shadow-primary/10 flex items-center justify-center gap-2"
                   >
                     Mở cổng thanh toán PayOS
-                    <ExternalLink className="w-4 h-4" />
+                    <ArrowRightUp className="w-4 h-4" />
                   </Button>
 
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -283,7 +275,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                 onClick={handleManualVerify}
                 className="flex-1 rounded-2xl py-5 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-md shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isVerifying && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {isVerifying && <Spinner className="w-3.5 h-3.5" />}
                 Tôi đã thanh toán
               </Button>
             </DrawerFooter>
