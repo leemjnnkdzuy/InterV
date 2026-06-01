@@ -65,6 +65,10 @@ void main() {
     vec3 c3End   = vec3(0.0, 1.0, 0.8); 
     color += drawSiriBundle(x, y, env, 2.5, 0.5, amp * 0.85, c3Start, c3End);
 
+    vec3 c4Start = vec3(1.0, 0.75, 0.1);
+    vec3 c4End   = vec3(0.0, 0.9, 0.5); 
+    color += drawSiriBundle(x, y, env, 3.0, 0.45, amp * -0.7, c4Start, c4End);
+
     vec3 finalColor;
     float finalAlpha;
 
