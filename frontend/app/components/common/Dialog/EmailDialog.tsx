@@ -12,16 +12,11 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
-import { AnimatePresence, motion, Variants } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Spinner } from "@/app/components/ui/spinner";
 import { useLanguage } from "@/app/hooks/useLanguage";
-
-interface EmailDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentUser: { email: string } | null;
-  refreshUser: () => Promise<void>;
-}
+import { EmailDialogProps } from "@/app/types";
+import { slideVariants } from "@/app/contants";
 
 export default function EmailDialog({
   isOpen,
@@ -36,7 +31,6 @@ export default function EmailDialog({
   const [newEmailPin, setNewEmailPin] = useState("");
   const [isEmailSending, setIsEmailSending] = useState(false);
 
-  // Trigger sending current PIN on dialog open
   useEffect(() => {
     if (isOpen) {
       setCurrentPin("");
@@ -135,22 +129,7 @@ export default function EmailDialog({
     }
   };
 
-  const slideVariants: Variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 150 : -150,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.3, ease: "easeInOut" },
-    },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 150 : -150,
-      opacity: 0,
-      transition: { duration: 0.2, ease: "easeInOut" },
-    }),
-  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

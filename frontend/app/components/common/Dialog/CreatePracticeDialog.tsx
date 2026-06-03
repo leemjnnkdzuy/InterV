@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/app/components/ui/button";
@@ -28,7 +28,7 @@ export default function CreatePracticeDialog({
   onSuccess,
 }: CreatePracticeDialogProps) {
   const [title, setTitle] = useState("");
-  const [industry, setIndustry] = useState("CÃ´ng nghá»‡ thÃ´ng tin");
+  const [industry, setIndustry] = useState("Công nghệ thông tin");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function CreatePracticeDialog({
       if (!isOpen) return;
 
       setTitle("");
-      setIndustry("CÃ´ng nghá»‡ thÃ´ng tin");
+      setIndustry("Công nghệ thông tin");
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
@@ -44,7 +44,7 @@ export default function CreatePracticeDialog({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      toast.error("Vui lÃ²ng nháº­p tÃªn buá»•i luyá»‡n táº­p");
+      toast.error("Vui lòng nhập tên buổi luyện tập");
       return;
     }
 
@@ -56,15 +56,15 @@ export default function CreatePracticeDialog({
       })) as PracticeMutationResponse;
 
       if (data.success) {
-        toast.success("ÄÃ£ táº¡o buá»•i luyá»‡n táº­p phá»ng váº¥n thÃ nh cÃ´ng!");
+        toast.success("Đã tạo buổi luyện tập phỏng vấn thành công!");
         onSuccess(data.session);
         onOpenChange(false);
       } else {
-        toast.error(data.message || "Táº¡o buá»•i luyá»‡n táº­p tháº¥t báº¡i");
+        toast.error(data.message || "Tạo buổi luyện tập thất bại");
       }
     } catch (err) {
       console.error(err);
-      toast.error("L?i k?t n?i máy ch?");
+      toast.error("Lỗi kết nối máy chủ");
     } finally {
       setIsSubmitting(false);
     }
@@ -75,21 +75,21 @@ export default function CreatePracticeDialog({
       <DialogContent className="sm:max-w-[500px]" showCloseButton={true}>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-foreground">
-            Táº¡o buá»•i luyá»‡n táº­p phá»ng váº¥n
+            Tạo buổi luyện tập phỏng vấn
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">
-            Nháº­p tÃªn buá»•i phá»ng váº¥n vÃ  ngÃ nh nghá» Ä‘á»ƒ AI chuáº©n bá»‹ bá»™ khung phá»ng váº¥n tá»‘t nháº¥t.
+            Nhập tên buổi phỏng vấn và ngành nghề để AI chuẩn bị bộ khung phỏng vấn tốt nhất.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2 text-left">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground">
-              TÃªn buá»•i luyá»‡n táº­p <span className="text-red-500">*</span>
+              Tên buổi luyện tập <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
-              placeholder="VÃ­ dá»¥: Phá»ng váº¥n vá»‹ trÃ­ Senior React Developer táº¡i Google"
+              placeholder="Ví dụ: Phỏng vấn vị trí Senior React Developer tại Google"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="rounded-2xl text-left"
@@ -98,11 +98,11 @@ export default function CreatePracticeDialog({
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground">
-              NgÃ nh nghá» / LÄ©nh vá»±c
+              Ngành nghề / Lĩnh vực
             </label>
             <Select value={industry} onValueChange={setIndustry}>
               <SelectTrigger className="rounded-2xl w-full border border-input bg-background px-3 py-2 text-sm">
-                <SelectValue placeholder="Chá»n ngÃ nh nghá»" />
+                <SelectValue placeholder="Chọn ngành nghề" />
               </SelectTrigger>
               <SelectContent className="bg-card border border-border/10 rounded-2xl shadow-lg">
                 {INDUSTRIES.map((ind) => (
@@ -120,14 +120,14 @@ export default function CreatePracticeDialog({
               onClick={() => onOpenChange(false)}
               className="flex-1 rounded-2xl cursor-pointer"
             >
-              Há»§y
+              Hủy
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="flex-1 rounded-2xl cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isSubmitting ? "Äang chuáº©n bá»‹..." : "Báº¯t Ä‘áº§u khá»Ÿi táº¡o"}
+              {isSubmitting ? "Đang chuẩn bị..." : "Bắt đầu khởi tạo"}
             </Button>
           </div>
         </div>

@@ -596,3 +596,22 @@ export const AI_PERSONALITIES_BY_INDUSTRY: Record<string, AiPersonality[]> = {
 export const MOBILE_BREAKPOINT = 768;
 
 export const USER_STORAGE_KEY = "interv-user-storage";
+
+import type { Variants } from "framer-motion";
+
+export const slideVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 150 : -150,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { duration: 0.3, ease: "easeInOut" },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 150 : -150,
+    opacity: 0,
+    transition: { duration: 0.2, ease: "easeInOut" },
+  }),
+};

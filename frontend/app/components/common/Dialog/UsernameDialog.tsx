@@ -14,15 +14,10 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
-import { AnimatePresence, motion, type Variants } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/app/hooks/useLanguage";
-
-interface UsernameDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentUser: { username: string } | null;
-  refreshUser: () => Promise<void>;
-}
+import { UsernameDialogProps } from "@/app/types";
+import { slideVariants } from "@/app/contants";
 
 export default function UsernameDialog({
   isOpen,
@@ -38,7 +33,6 @@ export default function UsernameDialog({
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "available" | "unavailable">("idle");
 
-  // Reset state when opening/closing
   useEffect(() => {
     if (isOpen) {
       setNewUsername("");
@@ -48,7 +42,6 @@ export default function UsernameDialog({
     }
   }, [isOpen]);
 
-  // Debounced username check
   useEffect(() => {
     if (!newUsername.trim()) {
       setUsernameStatus("idle");
@@ -105,22 +98,7 @@ export default function UsernameDialog({
     }
   };
 
-  const slideVariants: Variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 150 : -150,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.3, ease: "easeInOut" },
-    },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 150 : -150,
-      opacity: 0,
-      transition: { duration: 0.2, ease: "easeInOut" },
-    }),
-  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

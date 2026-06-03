@@ -26,7 +26,6 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // Reset form when dialog opens/closes
   useEffect(() => {
     if (isOpen) {
       setOldPassword("");

@@ -51,3 +51,17 @@ export interface UsernameChangeResponse extends UserServiceResponse {
 
 export type PasswordChangeResponse = UserServiceResponse;
 export type EmailChangeResponse = UserServiceResponse;
+
+export interface UsernameDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentUser: { username: string } | null;
+  refreshUser: () => Promise<void>;
+}
+
+export interface EmailDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentUser: { email: string } | null;
+  refreshUser: () => Promise<void>;
+}

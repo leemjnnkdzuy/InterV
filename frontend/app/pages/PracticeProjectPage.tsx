@@ -4,16 +4,14 @@ import React, { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AddCircle,
   TrashBinMinimalistic,
   PenNewSquare,
   Play,
-  CheckCircle,
-  CloseCircle,
   Widget,
   List,
   FolderOpen
 } from "@solar-icons/react";
+import { Plus, Check, X } from "lucide-react";
 import { Card, CardTitle } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { toast } from "sonner";
@@ -200,7 +198,7 @@ export default function PracticeProjectPage() {
           onClick={() => setIsCreateOpen(true)}
           className="rounded-2xl py-5 px-5 font-extrabold shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/95 text-sm gap-2 shrink-0 cursor-pointer"
         >
-          <AddCircle className="w-5 h-5" />
+          <Plus className="w-5 h-5" />
           Tạo buổi luyện tập
         </Button>
 
@@ -283,7 +281,7 @@ export default function PracticeProjectPage() {
             onClick={() => setIsCreateOpen(true)}
             className="rounded-2xl py-5 px-6 font-bold shadow-md shadow-primary/15 bg-primary text-background hover:bg-primary/95 text-xs gap-2 cursor-pointer"
           >
-            <AddCircle className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
             Tạo buổi luyện tập đầu tiên
           </Button>
         </motion.div>
@@ -350,14 +348,14 @@ export default function PracticeProjectPage() {
                                 disabled={isSavingRename}
                                 className="p-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/10 cursor-pointer disabled:opacity-50 shrink-0"
                               >
-                                <CheckCircle className="w-4 h-4" />
+                                <Check className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setEditingSessionId(null)}
                                 disabled={isSavingRename}
                                 className="p-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/10 cursor-pointer disabled:opacity-50 shrink-0"
                               >
-                                <CloseCircle className="w-4 h-4" />
+                                <X className="w-4 h-4" />
                               </button>
                             </div>
                           ) : (
@@ -469,14 +467,14 @@ export default function PracticeProjectPage() {
                               disabled={isSavingRename}
                               className="p-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/10 cursor-pointer disabled:opacity-50 shrink-0"
                             >
-                              <CheckCircle className="w-4 h-4" />
+                              <Check className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setEditingSessionId(null)}
                               disabled={isSavingRename}
                               className="p-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/10 cursor-pointer disabled:opacity-50 shrink-0"
                             >
-                              <CloseCircle className="w-4 h-4" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ) : (
