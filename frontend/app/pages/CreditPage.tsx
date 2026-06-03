@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card } from "@/app/components/ui/card";
+import { Card as CardUI } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { WalletMoney, Chart, ShieldCheck } from "@solar-icons/react";
+import { WalletMoney, Chart, ShieldCheck, Card } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import RechargeDrawer from "@/app/components/common/Drawer/RechargeDrawer";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import type { CreditPageProps } from "@/app/types";
 
 export default function CreditPage({ setActiveTab, creditLogs, transactions, isLoading }: CreditPageProps) {
@@ -39,13 +40,18 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
           <div className="flex justify-between items-start">
             <div>
               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Số dư khả dụng</p>
-              <p className="text-4xl font-extrabold mt-2 tracking-tight">
-                {isLoading ? "..." : (user?.credits !== undefined ? user.credits.toLocaleString("vi-VN") : "0")} Credits
-              </p>
+              <div className="flex items-center gap-1.5 mt-2">
+                {isLoading ? (
+                  <Skeleton className="h-9 w-24 bg-white/20" />
+                ) : (
+                  <span className="text-4xl font-extrabold tracking-tight">
+                    {user?.credits !== undefined ? user.credits.toLocaleString("vi-VN") : "0"}
+                  </span>
+                )}
+                <span className="text-4xl font-extrabold tracking-tight">Credits</span>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md text-white">
-              <WalletMoney className="w-8 h-8" />
-            </div>
+            <Card weight="BoldDuotone" className="w-10 h-10 text-white shrink-0" />
           </div>
 
           <div className="flex gap-3 mt-6">
@@ -67,49 +73,59 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
 
         {/* Info stats */}
         <div className="flex flex-col gap-4">
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-md rounded-3xl p-5 flex items-center justify-between">
+          <CardUI className="border border-border/20 bg-card/20 backdrop-blur-md rounded-3xl p-5 flex items-center justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-2xl bg-green-500/10 text-green-400">
-                <WalletMoney className="w-5 h-5" />
-              </div>
+              <WalletMoney weight="BoldDuotone" className="w-6 h-6 text-green-400 shrink-0" />
               <div>
                 <p className="text-xs text-muted-foreground">Tổng nạp</p>
-                <p className="text-base font-bold text-foreground mt-0.5">
-                  {isLoading ? "..." : `${totalRechargedVND.toLocaleString("vi-VN")} đ`}
-                </p>
+                <div className="mt-0.5">
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-20 bg-zinc-800" />
+                  ) : (
+                    <p className="text-base font-bold text-foreground">
+                      {`${totalRechargedVND.toLocaleString("vi-VN")} đ`}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-          </Card>
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-md rounded-3xl p-5 flex items-center justify-between">
+          </CardUI>
+          <CardUI className="border border-border/20 bg-card/20 backdrop-blur-md rounded-3xl p-5 flex items-center justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-2xl bg-orange-500/10 text-orange-400">
-                <Chart className="w-5 h-5" />
-              </div>
+              <Chart weight="BoldDuotone" className="w-6 h-6 text-orange-400 shrink-0" />
               <div>
                 <p className="text-xs text-muted-foreground">Đã sử dụng</p>
-                <p className="text-base font-bold text-foreground mt-0.5">
-                  {isLoading ? "..." : `${totalUsedCredits.toLocaleString("vi-VN")} Credits`}
-                </p>
+                <div className="mt-0.5">
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-20 bg-zinc-800" />
+                  ) : (
+                    <p className="text-base font-bold text-foreground">
+                      {`${totalUsedCredits.toLocaleString("vi-VN")} Credits`}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-          </Card>
+          </CardUI>
         </div>
       </div>
 
+
       {/* Notice/FAQs */}
-      <Card className="border border-border/20 bg-card/10 backdrop-blur-sm rounded-3xl p-5 flex items-start gap-4">
-        <div className="p-2.5 rounded-2xl bg-primary/10 text-primary shrink-0">
-          <ShieldCheck className="w-5 h-5" />
-        </div>
-        <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">
-          <p className="font-bold text-foreground text-sm">Một số lưu ý quan trọng:</p>
+      <CardUI className="border border-border/20 bg-card/10 backdrop-blur-sm rounded-3xl p-5 flex items-start gap-4">
+        <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">        
+          <div className="flex items-center gap-2">
+            <ShieldCheck weight="BoldDuotone" className="w-5 h-5 text-primary shrink-0" />
+            <p className="font-bold text-foreground text-sm">Một số lưu ý quan trọng:</p>
+          </div>
           <ul className="list-disc pl-4 space-y-1 mt-1">
             <li>Số tiền đã nạp không thể quy đổi ngược lại thành tiền mặt trong mọi trường hợp.</li>
             <li>Mỗi lượt phỏng vấn bị gián đoạn do lỗi kết nối từ phía máy chủ sẽ được hoàn trả 100% chi phí.</li>
             <li>Hỗ trợ khách hàng 24/7 qua mục liên hệ hoặc email hỗ trợ: support@interv.vn.</li>
           </ul>
         </div>
-      </Card>
+      </CardUI>
+
 
       <RechargeDrawer isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
     </div>

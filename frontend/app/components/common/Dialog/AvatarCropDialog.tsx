@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { UploadMinimalistic, MagnifierZoomIn, MagnifierZoomOut, Restart, CheckCircle } from "@solar-icons/react";
+import { UploadMinimalistic, MagnifierZoomIn, MagnifierZoomOut, Restart } from "@solar-icons/react";
+import { Check } from "lucide-react";
 
 import { Spinner } from "@/app/components/ui/spinner";
 import { Button } from "@/app/components/ui/button";
@@ -62,7 +63,6 @@ export default function AvatarCropDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset state when opening/closing
   useEffect(() => {
     if (!isOpen) {
       setImageSrc(null);
@@ -541,7 +541,7 @@ export default function AvatarCropDialog({
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="mr-1.5 size-3.5" />
+                    <Check className="mr-1.5 size-3.5" />
                     {t("dialogs.avatarSave")}
                   </>
                 )}

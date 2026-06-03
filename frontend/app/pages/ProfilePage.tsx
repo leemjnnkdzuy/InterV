@@ -14,12 +14,10 @@ import {
   Camera,
   Calendar,
   User,
-  AddCircle,
   TrashBinMinimalistic,
   Earth,
-  CheckCircle,
-  CloseCircle,
 } from "@solar-icons/react";
+import { Plus, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { userService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
@@ -69,7 +67,6 @@ const getPlatformIcon = (platform: string) => {
       return <Earth className={`${className} text-muted-foreground`} />;
   }
 };
-
 
 export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const router = useRouter();
@@ -389,7 +386,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                       onClick={handleAddSocial}
                       className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-1.5 h-8"
                     >
-                      <AddCircle className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" />
                       <span>{t("profile.addSocialLink")}</span>
                     </Button>
                     
@@ -401,7 +398,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                         className="rounded-full text-xs h-8 px-3 cursor-pointer flex items-center"
                         disabled={isSavingSocials}
                       >
-                        <CloseCircle className="w-3.5 h-3.5 mr-1" />
+                        <X className="w-3.5 h-3.5 mr-1" />
                         <span>{t("common.cancel")}</span>
                       </Button>
                       <Button
@@ -413,7 +410,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                         {isSavingSocials ? (
                           <Spinner className="mr-1 size-3 text-primary-foreground" />
                         ) : (
-                          <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                          <Check className="w-3.5 h-3.5 mr-1" />
                         )}
                         <span>{t("common.save")}</span>
                       </Button>
@@ -456,7 +453,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                           onClick={startEditingSocials}
                           className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9 mt-2"
                         >
-                          <AddCircle className="w-3.5 h-3.5" />
+                          <Plus className="w-3.5 h-3.5" />
                           <span>{t("profile.addSocialLink")}</span>
                         </Button>
                       )}
@@ -470,7 +467,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                           onClick={startEditingSocials}
                           className="rounded-full text-xs flex items-center gap-1.5 border-dashed border-border hover:bg-muted/50 cursor-pointer w-full justify-center py-2 h-9"
                         >
-                          <AddCircle className="w-3.5 h-3.5" />
+                          <Plus className="w-3.5 h-3.5" />
                           <span>{t("profile.addSocialLink")}</span>
                         </Button>
                       ) : (

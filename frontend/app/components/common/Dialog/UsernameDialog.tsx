@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { userService } from "@/app/services/UserService";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { CheckCircle, CloseCircle } from "@solar-icons/react";
+import { Check, X } from "lucide-react";
 import { Spinner } from "@/app/components/ui/spinner";
 import {
   Dialog,
@@ -154,10 +154,10 @@ export default function UsernameDialog({
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                       {isCheckingUsername && <Spinner className="text-muted-foreground" />}
                       {!isCheckingUsername && usernameStatus === "available" && (
-                        <CheckCircle className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <Check className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
                       )}
                       {!isCheckingUsername && usernameStatus === "unavailable" && (
-                        <CloseCircle className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <X className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
                       )}
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export default function UsernameDialog({
                 exit="exit"
                 className="flex flex-col items-center justify-center space-y-4 w-full text-center py-4"
               >
-                <CheckCircle className="w-16 h-16 text-primary" />
+                <Check className="w-16 h-16 text-primary" />
                 <div>
                   <h3 className="font-bold text-lg">{t("dialogs.usernameSuccessTitle")}</h3>
                   <p className="text-sm text-muted-foreground mt-1">

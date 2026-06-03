@@ -5,9 +5,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/app/lib/Utils"
 import { Button } from "@/app/components/ui/button"
-import { CloseCircle } from "@solar-icons/react"
-
-
+import { X } from "lucide-react"
 
 function Dialog({
   ...props
@@ -76,8 +74,7 @@ function DialogContent({
               className="absolute top-4 end-4 bg-secondary"
               size="icon-sm"
             >
-              <CloseCircle
-              />
+              <X />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>

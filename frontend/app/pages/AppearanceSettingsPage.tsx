@@ -1,7 +1,8 @@
 "use client";
 
 import { Card } from "@/app/components/ui/card";
-import { Sun, Moon, Monitor, CheckCircle, AltArrowDown } from "@solar-icons/react";
+import { Sun, Moon, Monitor, AltArrowDown } from "@solar-icons/react";
+import { Check } from "lucide-react";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import type { Language } from "@/app/types";
@@ -67,12 +68,10 @@ export default function AppearanceSettingsPage() {
               theme === "dark" ? "border-primary/40 shadow-md ring-1 ring-primary/20" : "border-border/20 hover:bg-muted/10"
             }`}
           >
-            <div className="p-3 rounded-2xl bg-zinc-800 text-yellow-400">
-              <Moon className="w-6 h-6" />
-            </div>
+            <Moon weight="BoldDuotone" className="w-10 h-10 text-yellow-400 shrink-0" />
             <span className="text-sm font-medium">{t("appearance.themeDark")}</span>
             {theme === "dark" && (
-              <CheckCircle className="w-5 h-5 text-primary absolute top-3 right-3" />
+              <Check className="w-5 h-5 text-primary absolute top-3 right-3" />
             )}
           </Card>
 
@@ -83,12 +82,10 @@ export default function AppearanceSettingsPage() {
               theme === "light" ? "border-primary/40 shadow-md ring-1 ring-primary/20" : "border-border/20 hover:bg-muted/10"
             }`}
           >
-            <div className="p-3 rounded-2xl bg-orange-100 text-orange-500">
-              <Sun className="w-6 h-6" />
-            </div>
+            <Sun weight="BoldDuotone" className="w-10 h-10 text-orange-500 shrink-0" />
             <span className="text-sm font-medium">{t("appearance.themeLight")}</span>
             {theme === "light" && (
-              <CheckCircle className="w-5 h-5 text-primary absolute top-3 right-3" />
+              <Check className="w-5 h-5 text-primary absolute top-3 right-3" />
             )}
           </Card>
 
@@ -99,12 +96,10 @@ export default function AppearanceSettingsPage() {
               theme === "system" ? "border-primary/40 shadow-md ring-1 ring-primary/20" : "border-border/20 hover:bg-muted/10"
             }`}
           >
-            <div className="p-3 rounded-2xl bg-zinc-200 dark:bg-zinc-800 text-foreground">
-              <Monitor className="w-6 h-6" />
-            </div>
+            <Monitor weight="BoldDuotone" className="w-10 h-10 text-foreground shrink-0" />
             <span className="text-sm font-medium">{t("appearance.themeSystem")}</span>
             {theme === "system" && (
-              <CheckCircle className="w-5 h-5 text-primary absolute top-3 right-3" />
+              <Check className="w-5 h-5 text-primary absolute top-3 right-3" />
             )}
           </Card>
         </div>
