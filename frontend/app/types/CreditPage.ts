@@ -48,3 +48,28 @@ export interface RechargeCreditPageProps {
   transactions: CreditTransactionItem[];
   isLoading: boolean;
 }
+
+export interface RechargePackage {
+  amount: number;
+  credit: number;
+  bonus: number;
+  popular?: boolean;
+}
+
+export interface RechargeDrawerProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export interface CreatePaymentResponse {
+  success: boolean;
+  paymentUrl: string;
+  orderCode: number;
+  message?: string;
+}
+
+export interface VerifyPaymentResponse {
+  success: boolean;
+  status: string;
+  message?: string;
+}

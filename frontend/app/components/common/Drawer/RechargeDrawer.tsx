@@ -15,33 +15,21 @@ import {
 import { toast } from "sonner";
 import { WalletMoney, AltArrowLeft, ArrowRightUp } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
-import api from "@/app/lib/Client";
 import { RECHARGE_PACKAGES } from "@/app/contants";
-
-interface RechargePackage {
-  amount: number;
-  credit: number;
-  bonus: number;
-  popular?: boolean;
-}
-
-interface RechargeDrawerProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+import { formatCurrency } from "@/app/lib/Utils";
+import { paymentService } from "@/app/services";
+import type { RechargePackage, RechargeDrawerProps } from "@/app/types";
 
 export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerProps) {
   const { user, refreshUser } = useAuthContext();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPackage, setSelectedPackage] = useState<RechargePackage | null>(null);
   
-  // PayOS states
   const [paymentUrl, setPaymentUrl] = useState<string>("");
   const [orderCode, setOrderCode] = useState<number | null>(null);
   const [isLoadingLink, setIsLoadingLink] = useState<boolean>(false);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
-  // Reset state when opening/closing
   useEffect(() => {
     if (isOpen) {
       setStep(1);
@@ -53,7 +41,6 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     }
   }, [isOpen]);
 
-  // Polling payment status in background
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -61,8 +48,8 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
       const pollStatus = async () => {
         try {
           const isMock = paymentUrl.includes("mock=true");
-          const response = await api.post("/payment/verify", { orderCode, mock: isMock });
-          if (response.data.success && response.data.status === "PAID") {
+          const data = await paymentService.verifyPayment(orderCode, isMock);
+          if (data.success && data.status === "PAID") {
             toast.success("Nạp tiền thành công! Số dư tài khoản đã được cập nhật.");
             await refreshUser();
             onOpenChange(false);
@@ -72,7 +59,6 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
         }
       };
 
-      // Poll every 4 seconds
       intervalId = setInterval(pollStatus, 4000);
     }
 
@@ -88,12 +74,12 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     try {
       setIsLoadingLink(true);
       setStep(2);
-      const response = await api.post("/payment/create", { amount: selectedPackage.amount });
-      if (response.data.success) {
-        setPaymentUrl(response.data.paymentUrl);
-        setOrderCode(response.data.orderCode);
+      const data = await paymentService.createPayment(selectedPackage.amount);
+      if (data.success) {
+        setPaymentUrl(data.paymentUrl);
+        setOrderCode(data.orderCode);
       } else {
-        toast.error(response.data.message || "Không thể tạo liên kết thanh toán");
+        toast.error(data.message || "Không thể tạo liên kết thanh toán");
         setStep(1);
       }
     } catch (error: any) {
@@ -109,15 +95,15 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     try {
       setIsVerifying(true);
       const isMock = paymentUrl.includes("mock=true");
-      const response = await api.post("/payment/verify", { orderCode, mock: isMock });
-      if (response.data.success && response.data.status === "PAID") {
+      const data = await paymentService.verifyPayment(orderCode, isMock);
+      if (data.success && data.status === "PAID") {
         toast.success("Xác nhận nạp tiền thành công!");
         await refreshUser();
         onOpenChange(false);
-      } else if (response.data.status === "PENDING") {
+      } else if (data.status === "PENDING") {
         toast.info("Hệ thống chưa nhận được thanh toán. Vui lòng hoàn tất giao dịch.");
       } else {
-        toast.error(response.data.message || "Giao dịch không thành công");
+        toast.error(data.message || "Giao dịch không thành công");
       }
     } catch (error: any) {
       toast.error("Không thể xác minh giao dịch. Vui lòng thử lại.");
@@ -126,12 +112,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
+
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>

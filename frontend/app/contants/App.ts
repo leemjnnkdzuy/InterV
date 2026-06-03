@@ -22,7 +22,7 @@ export const PREDEFINED_QUESTIONS = [
   "Thật thú vị. Để kết thúc buổi phỏng vấn hôm nay, bạn có thể chia sẻ về một lần bạn xảy ra bất đồng ý kiến với đồng nghiệp hoặc cấp trên trong công việc không? Bạn đã giải quyết nó như thế nào?",
 ];
 
-export const RECHARGE_PACKAGES = [
+export const RECHARGE_PACKAGES: RechargePackage[] = [
   { amount: 10000, credit: 100, bonus: 0 },
   { amount: 20000, credit: 200, bonus: 10 },
   { amount: 50000, credit: 500, bonus: 40 },
@@ -41,7 +41,7 @@ export const SOCIAL_PLATFORMS = [
   { id: "x", name: "X", placeholder: "username..." },
 ];
 
-import { DifficultyLevel, AiPersonality } from "../types";
+import { DifficultyLevel, AiPersonality, RechargePackage } from "../types";
 
 export const DEFAULT_DIFFICULTY_LEVELS: DifficultyLevel[] = [
   { id: "Junior", name: "Junior", description: "Kỹ năng nền tảng" },
