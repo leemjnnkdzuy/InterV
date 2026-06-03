@@ -1,13 +1,5 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-
-interface FailedRequest {
-  resolve: (value: unknown) => void;
-  reject: (reason?: any) => void;
-}
-
-interface SessionRevokedResponse {
-  sessionRevoked?: boolean;
-}
+import { FailedRequest, SessionRevokedResponse } from "@/app/types";
 
 let isRefreshing = false;
 let failedQueue: FailedRequest[] = [];

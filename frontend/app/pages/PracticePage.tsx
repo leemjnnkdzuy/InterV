@@ -7,7 +7,7 @@ import { practiceService } from "@/app/services";
 
 import SetupPhase from "@/app/components/common/PracticePage/SetupPhase";
 import SetupPhaseSkeleton from "@/app/components/seletons/SetupPhaseSkeleton";
-import { getAiPersonality, getDifficultyLevels } from "@/app/contants";
+import { getAiPersonality, getDifficultyLevels } from "@/app/lib/Utils";
 import InterviewPhase from "@/app/components/common/PracticePage/InterviewPhase";
 import type { PracticePageProps, PracticeSessionResponse } from "@/app/types";
 

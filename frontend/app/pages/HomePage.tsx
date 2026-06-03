@@ -30,7 +30,6 @@ export default function HomePage() {
     return t("home.greetingEvening");
   };
 
-  // Mock stats
   const stats = [
     {
       title: t("home.statsInterviews"),

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { practiceService } from "@/app/services";
 import { Textarea } from "@/app/components/ui/textarea";
-import { getAiPersonality } from "@/app/contants";
 import { Spinner } from "@/app/components/ui/spinner";
 import logoSrc from "@/app/assets/logo.svg";
 import ThreeWaveform from "./ThreeWaveform";
@@ -59,8 +58,6 @@ const ExitIcon = (props: React.ComponentProps<"svg">) => (
     <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
-
-// Waveform component is now imported from ./ThreeWaveform
 
 export default function InterviewPhase({
   practiceId,

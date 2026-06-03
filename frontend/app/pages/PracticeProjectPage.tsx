@@ -40,7 +40,6 @@ export default function PracticeProjectPage() {
   const [selectedSessionForResult, setSelectedSessionForResult] = useState<PracticeProjectSession | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Delete confirm state
   const [sessionToDelete, setSessionToDelete] = useState<PracticeProjectSession | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 

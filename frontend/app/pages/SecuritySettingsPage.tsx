@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import axios from "axios";
 import { userService } from "@/app/services/UserService";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
@@ -9,17 +8,9 @@ import { toast } from "sonner";
 import { Monitor, Smartphone, ShieldKeyhole, TrashBinMinimalistic } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Spinner } from "@/app/components/ui/spinner";
-import { cn } from "@/app/lib/Utils";
+import { cn, getErrorMessage } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import type { ApiErrorResponse, AuthSessionData } from "@/app/types";
-
-const getSecurityErrorMessage = (error: unknown, fallback: string) => {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.message || fallback;
-  }
-
-  return fallback;
-};
 
 export default function SecuritySettingsPage() {
   const { logout } = useAuthContext();
@@ -66,7 +57,7 @@ export default function SecuritySettingsPage() {
         toast.error(res.message || t("security.revokeFailed"));
       }
     } catch (err) {
-      toast.error(getSecurityErrorMessage(err, t("security.logoutError")));
+      toast.error(getErrorMessage(err, t("security.logoutError")));
     } finally {
       setRevokingId(null);
     }
@@ -86,7 +77,7 @@ export default function SecuritySettingsPage() {
         toast.error(res.message || t("security.revokeAllFailed"));
       }
     } catch (err) {
-      toast.error(getSecurityErrorMessage(err, t("security.revokeAllFailed")));
+      toast.error(getErrorMessage(err, t("security.revokeAllFailed")));
     } finally {
       setIsRevokingAll(false);
     }

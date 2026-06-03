@@ -6,9 +6,7 @@ import CreditLog from "@/app/models/CreditLog";
 import Transaction from "@/app/models/Transaction";
 import { generatePIN, sendVerificationEmail } from "@/app/lib/Email";
 import { defaultAvatars } from "@/app/assets";
-
-const MAX_PIN_ATTEMPTS = 5;
-const PIN_LOCK_MS = 10 * 60 * 1000;
+import { MAX_PIN_ATTEMPTS, PIN_LOCK_MS } from "@/app/contants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
       const normalizedEmail = email.toLowerCase().trim();
       const normalizedUsername = username.toLowerCase().trim();
 
-      // Check existing user
       const existingUser = await User.findOne({
         $or: [{ email: normalizedEmail }, { username: normalizedUsername }],
       });
@@ -136,7 +133,6 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Select a random default avatar
         const randomIndex = Math.floor(Math.random() * defaultAvatars.length);
         const selectedAvatar = defaultAvatars[randomIndex];
         const avatarDataURI = `data:${selectedAvatar.image.mime};base64,${selectedAvatar.image.data}`;

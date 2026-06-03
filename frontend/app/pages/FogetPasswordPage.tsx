@@ -6,12 +6,11 @@ import { Input } from "@/app/components/ui/input";
 import { Home, ArrowLeft } from "@solar-icons/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import axios from "axios";
-import api from "@/app/lib/Client";
+import { authService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
-import type { ApiErrorResponse } from "@/app/types";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
@@ -40,14 +39,6 @@ export default function FogetPasswordPage() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const getApiErrorMessage = (error: unknown, fallback: string) => {
-    if (axios.isAxiosError<ApiErrorResponse>(error)) {
-      return error.response?.data?.message || fallback;
-    }
-
-    return fallback;
-  };
-
   const handleSendPin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,20 +49,17 @@ export default function FogetPasswordPage() {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/reset-password", {
-        action: "send-pin",
-        email,
-      });
+      const data = await authService.sendResetPin(email);
 
-      if (response.data.success) {
+      if (data.success) {
         toast.success("Mã khôi phục đã được gửi đến email của bạn");
         setPhase("pin");
         setCountdown(30);
       } else {
-        toast.error(response.data.message || "Không thể gửi mã PIN");
+        toast.error(data.message || "Không thể gửi mã PIN");
       }
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Lỗi kết nối. Vui lòng thử lại."));
+      toast.error(getErrorMessage(err, "Lỗi kết nối. Vui lòng thử lại."));
     } finally {
       setIsLoading(false);
     }
@@ -87,20 +75,16 @@ export default function FogetPasswordPage() {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/reset-password", {
-        action: "verify-pin",
-        email,
-        pin,
-      });
+      const data = await authService.verifyResetPin(email, pin);
 
-      if (response.data.success) {
+      if (data.success) {
         toast.success("Xác thực mã PIN thành công. Hãy đặt mật khẩu mới.");
         setPhase("newPassword");
       } else {
-        toast.error(response.data.message || "Mã PIN không đúng");
+        toast.error(data.message || "Mã PIN không đúng");
       }
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Xác thực mã PIN thất bại"));
+      toast.error(getErrorMessage(err, "Xác thực mã PIN thất bại"));
     } finally {
       setIsLoading(false);
     }
@@ -121,20 +105,16 @@ export default function FogetPasswordPage() {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/reset-password", {
-        action: "reset-password",
-        email,
-        newPassword,
-      });
+      const data = await authService.resetPassword(email, newPassword);
 
-      if (response.data.success) {
+      if (data.success) {
         toast.success("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
         router.push("/login");
       } else {
-        toast.error(response.data.message || "Đổi mật khẩu thất bại");
+        toast.error(data.message || "Đổi mật khẩu thất bại");
       }
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Đặt lại mật khẩu thất bại"));
+      toast.error(getErrorMessage(err, "Đặt lại mật khẩu thất bại"));
     } finally {
       setIsLoading(false);
     }
@@ -145,18 +125,15 @@ export default function FogetPasswordPage() {
     setIsLoading(true);
     setPin("");
     try {
-      const response = await api.post("/auth/reset-password", {
-        action: "send-pin",
-        email,
-      });
-      if (response.data.success) {
+      const data = await authService.sendResetPin(email);
+      if (data.success) {
         toast.success("Đã gửi lại mã PIN mới đến email");
         setCountdown(30);
       } else {
-        toast.error(response.data.message || "Không thể gửi lại mã PIN");
+        toast.error(data.message || "Không thể gửi lại mã PIN");
       }
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Lỗi gửi lại mã PIN"));
+      toast.error(getErrorMessage(err, "Lỗi gửi lại mã PIN"));
     } finally {
       setIsLoading(false);
     }

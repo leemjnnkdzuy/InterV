@@ -1,5 +1,4 @@
 import api from "@/app/lib/Client";
-import { SocialLink } from "@/app/contexts/AuthContext";
 import type {
   EmailChangeResponse,
   PasswordChangeResponse,
@@ -9,6 +8,7 @@ import type {
   UserProfileUpdateResponse,
   UserSessionsResponse,
   UserServiceResponse,
+  SocialLink,
 } from "@/app/types";
 
 export const userService = {

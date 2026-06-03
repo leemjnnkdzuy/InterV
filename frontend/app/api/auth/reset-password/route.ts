@@ -3,9 +3,7 @@ import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import FogetPasswordPin from "@/app/models/FogetPasswordPin";
 import { generatePIN, sendPasswordResetEmail } from "@/app/lib/Email";
-
-const MAX_PIN_ATTEMPTS = 5;
-const PIN_LOCK_MS = 10 * 60 * 1000;
+import { MAX_PIN_ATTEMPTS, PIN_LOCK_MS } from "@/app/contants";
 
 export async function POST(request: NextRequest) {
   try {

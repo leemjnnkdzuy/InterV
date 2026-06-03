@@ -1,41 +1,13 @@
 "use client";
 
+import { formatDate, getActionName } from "@/app/lib/Utils";
+
 import { Card } from "@/app/components/ui/card";
 import { CpuBolt } from "@solar-icons/react";
 import type { UsedCreditPageProps } from "@/app/types";
 
 export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPageProps) {
   const usageLogs = creditLogs.filter((log) => log.credits < 0);
-
-  const getActionName = (action: string) => {
-    switch (action) {
-      case "REGISTER_BONUS":
-        return "Quà tặng đăng ký";
-      case "RECHARGE":
-        return "Nạp Credits";
-      case "AI_INTERVIEW":
-        return "Phỏng vấn AI";
-      case "ADMIN_ADJUST":
-        return "Điều chỉnh bởi Admin";
-      default:
-        return action;
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
 
   return (
     <div className="space-y-8 w-full text-left">

@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/app/hooks/useTheme";
 import { LanguageProvider } from "@/app/hooks/useLanguage";
 import { Toaster } from "@/app/components/ui/sonner";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
-import { themeInitializerScript } from "@/app/scripts/theme";
+import { themeInitializerScript } from "@/app/scripts/Theme";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 

@@ -1,12 +1,5 @@
 import { useEffect } from "react";
-
-export interface MetadataProps {
-	title?: string;
-	description?: string;
-	keywords?: string;
-	ogTitle?: string;
-	ogDescription?: string;
-}
+import type { MetadataProps } from "@/app/types";
 
 export function useMetadata({
 	title,

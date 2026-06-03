@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -36,7 +35,6 @@ import {
   SelectValue,
 } from "@/app/components/ui/select";
 
-import { SocialLink } from "@/app/contexts/AuthContext";
 import {
   FaFacebook,
   FaInstagram,
@@ -47,7 +45,8 @@ import {
 } from "react-icons/fa6";
 import { SiLeetcode } from "react-icons/si";
 import { SOCIAL_PLATFORMS } from "@/app/contants";
-import type { ApiErrorResponse, ProfilePageProps, ProfileUser } from "@/app/types";
+import { getErrorMessage } from "@/app/lib/Utils";
+import type { ProfilePageProps, ProfileUser, SocialLink } from "@/app/types";
 
 const getPlatformIcon = (platform: string) => {
   const className = "w-4 h-4 shrink-0";
@@ -71,17 +70,6 @@ const getPlatformIcon = (platform: string) => {
   }
 };
 
-const getProfileErrorMessage = (error: unknown, fallback: string) => {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.message || fallback;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return fallback;
-};
 
 export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const router = useRouter();
@@ -141,7 +129,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         toast.error(response.message || t("profile.updateSocialFailed"));
       }
     } catch (err) {
-      toast.error(getProfileErrorMessage(err, t("common.error")));
+      toast.error(getErrorMessage(err, t("common.error")));
     } finally {
       setIsSavingSocials(false);
     }
@@ -166,7 +154,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
           const fetchedUser = await userService.getProfileByUsername(targetUsername!);
           setProfileUser(fetchedUser);
         } catch (err) {
-          setError(getProfileErrorMessage(err, t("common.error")));
+          setError(getErrorMessage(err, t("common.error")));
         } finally {
           setLoading(false);
         }
@@ -192,7 +180,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         toast.error(response.message || t("profile.updateDobFailed"));
       }
     } catch (err) {
-      toast.error(getProfileErrorMessage(err, t("common.error")));
+      toast.error(getErrorMessage(err, t("common.error")));
       throw err;
     }
   };
@@ -216,7 +204,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         toast.error(response.message || t("dialogs.avatarUpdateFailed"));
       }
     } catch (err) {
-      toast.error(getProfileErrorMessage(err, t("common.error")));
+      toast.error(getErrorMessage(err, t("common.error")));
       throw err;
     }
   };

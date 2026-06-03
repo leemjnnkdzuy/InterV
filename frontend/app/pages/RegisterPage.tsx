@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Button } from "@/app/components/ui/button";
@@ -6,20 +6,11 @@ import { Input } from "@/app/components/ui/input";
 import { Home, ArrowLeft } from "@solar-icons/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import axios from "axios";
-import api from "@/app/lib/Client";
+import { authService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
-import type { ApiErrorResponse } from "@/app/types";
-
-const getRegisterErrorMessage = (error: unknown, fallback: string) => {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.message || fallback;
-  }
-
-  return fallback;
-};
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -54,49 +45,44 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (!username || !email || !password || !confirmPassword) {
-      toast.error("Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin");
+      toast.error("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     if (!usernameRegex.test(username)) {
-      toast.error("Username chá»‰ Ä‘Æ°á»£c chá»©a chá»¯ cÃ¡i, sá»‘ vÃ  dáº¥u gáº¡ch dÆ°á»›i (_)");
+      toast.error("Username chỉ được chứa chữ cái, số và dấu gạch dưới (_)");
       return;
     }
 
     if (username.length < 3 || username.length > 30) {
-      toast.error("Username pháº£i tá»« 3 Ä‘áº¿n 30 kÃ½ tá»±");
+      toast.error("Username phải từ 3 đến 30 ký tự");
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±");
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Máº­t kháº©u nháº­p láº¡i khÃ´ng khá»›p");
+      toast.error("Mật khẩu nhập lại không khớp");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/register", {
-        action: "send-pin",
-        email,
-        username,
-        password,
-      });
+      const data = await authService.sendRegisterPin(username, email, password);
 
-      if (response.data.success) {
-        toast.success(response.data.message || "MÃ£ PIN xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n email");
+      if (data.success) {
+        toast.success(data.message || "Mã PIN xác thực đã được gửi đến email");
         setPhase("pin");
         setCountdown(30);
       } else {
-        toast.error(response.data.message || "ÄÄƒng kÃ½ khÃ´ng thÃ nh cÃ´ng");
+        toast.error(data.message || "Đăng ký không thành công");
       }
     } catch (err) {
-      toast.error(getRegisterErrorMessage(err, "Lá»—i káº¿t ná»‘i. Vui lÃ²ng thá»­ láº¡i."));
+      toast.error(getErrorMessage(err, "Lỗi kết nối. Vui lòng thử lại."));
     } finally {
       setIsLoading(false);
     }
@@ -106,26 +92,22 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (pin.length !== 6) {
-      toast.error("Vui lÃ²ng nháº­p Ä‘á»§ 6 chá»¯ sá»‘");
+      toast.error("Vui lòng nhập đủ 6 chữ số");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/register", {
-        action: "verify-pin",
-        email,
-        pin,
-      });
+      const data = await authService.verifyRegisterPin(email, pin);
 
-      if (response.data.success) {
-        toast.success("ÄÄƒng kÃ½ thÃ nh cÃ´ng! HÃ£y Ä‘Äƒng nháº­p.");
+      if (data.success) {
+        toast.success("Đăng ký thành công! Hãy đăng nhập.");
         router.push("/login");
       } else {
-        toast.error(response.data.message || "MÃ£ PIN khÃ´ng Ä‘Ãºng");
+        toast.error(data.message || "Mã PIN không đúng");
       }
     } catch (err) {
-      toast.error(getRegisterErrorMessage(err, "XÃ¡c thá»±c tháº¥t báº¡i"));
+      toast.error(getErrorMessage(err, "Xác thực thất bại"));
     } finally {
       setIsLoading(false);
     }
@@ -136,20 +118,15 @@ export default function RegisterPage() {
     setIsLoading(true);
     setPin("");
     try {
-      const response = await api.post("/auth/register", {
-        action: "send-pin",
-        email,
-        username,
-        password,
-      });
-      if (response.data.success) {
-        toast.success("ÄÃ£ gá»­i láº¡i mÃ£ PIN má»›i Ä‘áº¿n email cá»§a báº¡n");
+      const data = await authService.sendRegisterPin(username, email, password);
+      if (data.success) {
+        toast.success("Đã gửi lại mã PIN mới đến email của bạn");
         setCountdown(30);
       } else {
-        toast.error(response.data.message || "Gá»­i láº¡i mÃ£ PIN tháº¥t báº¡i");
+        toast.error(data.message || "Gửi lại mã PIN thất bại");
       }
     } catch (err) {
-      toast.error(getRegisterErrorMessage(err, "Lá»—i gá»­i láº¡i mÃ£ PIN"));
+      toast.error(getErrorMessage(err, "Lỗi gửi lại mã PIN"));
     } finally {
       setIsLoading(false);
     }
@@ -183,8 +160,8 @@ export default function RegisterPage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              <h1 className="text-3xl font-extrabold text-center">Táº¡o tÃ i khoáº£n</h1>
-              <p className="text-sm text-zinc-400 text-center mt-2">Báº¯t Ä‘áº§u vá»›i InterV</p>
+              <h1 className="text-3xl font-extrabold text-center">Tạo tài khoản</h1>
+              <p className="text-sm text-zinc-400 text-center mt-2">Bắt đầu với InterV</p>
               <form onSubmit={handleSendPin} className="flex flex-col gap-4 mt-6">
                 <label className="text-xs text-zinc-400">Username</label>
                 <Input
@@ -205,20 +182,20 @@ export default function RegisterPage() {
                   disabled={isLoading}
                 />
 
-                <label className="text-xs text-zinc-400">Máº­t kháº©u</label>
+                <label className="text-xs text-zinc-400">Mật khẩu</label>
                 <Input
                   type="password"
-                  placeholder="Máº­t kháº©u"
+                  placeholder="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
                 />
 
-                <label className="text-xs text-zinc-400">Nháº­p láº¡i máº­t kháº©u</label>
+                <label className="text-xs text-zinc-400">Nhập lại mật khẩu</label>
                 <Input
                   type="password"
-                  placeholder="Nháº­p láº¡i máº­t kháº©u"
+                  placeholder="Nhập lại mật khẩu"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -233,21 +210,21 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <>
                       <Spinner className="mr-2" />
-                      Äang gá»­i mÃ£ PIN...
+                      Đang gửi mã PIN...
                     </>
                   ) : (
-                    "Táº¡o tÃ i khoáº£n"
+                    "Tạo tài khoản"
                   )}
                 </Button>
               </form>
 
               <p className="text-sm text-zinc-400 text-center mt-6">
-                ÄÃ£ cÃ³ tÃ i khoáº£n?{" "}
+                Đã có tài khoản?{" "}
                 <button
                   onClick={() => router.push("/login")}
                   className="text-white font-bold cursor-pointer hover:underline"
                 >
-                  ÄÄƒng nháº­p
+                  Đăng nhập
                 </button>
               </p>
             </motion.div>
@@ -259,13 +236,13 @@ export default function RegisterPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              <h1 className="text-3xl font-extrabold text-center">XÃ¡c thá»±c OTP</h1>
+              <h1 className="text-3xl font-extrabold text-center">Xác thực OTP</h1>
               <p className="text-sm text-zinc-400 text-center mt-2">
-                ChÃºng tÃ´i Ä‘Ã£ gá»­i mÃ£ PIN 6 sá»‘ Ä‘áº¿n email: <br />
+                Chúng tôi đã gửi mã PIN 6 số đến email: <br />
                 <strong className="text-white">{email}</strong>
               </p>
               <form onSubmit={handleVerifyPin} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400 text-center">Nháº­p mÃ£ PIN xÃ¡c nháº­n</label>
+                <label className="text-xs text-zinc-400 text-center">Nhập mã PIN xác nhận</label>
                 <Input
                   type="text"
                   placeholder="------"
@@ -285,16 +262,16 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <>
                       <Spinner className="mr-2" />
-                      Äang xÃ¡c thá»±c...
+                      Đang xác thực...
                     </>
                   ) : (
-                    "XÃ¡c nháº­n kÃ­ch hoáº¡t"
+                    "Xác nhận kích hoạt"
                   )}
                 </Button>
               </form>
 
               <div className="flex items-center justify-center gap-2 mt-6">
-                <p className="text-sm text-zinc-400">Báº¡n khÃ´ng nháº­n Ä‘Æ°á»£c mÃ£ PIN?</p>
+                <p className="text-sm text-zinc-400">Bạn không nhận được mã PIN?</p>
                 <button
                   type="button"
                   onClick={handleResendPin}
@@ -303,7 +280,7 @@ export default function RegisterPage() {
                   }`}
                   disabled={isLoading || countdown > 0}
                 >
-                  {countdown > 0 ? `Gá»­i láº¡i sau (${countdown}s)` : "Gá»­i láº¡i mÃ£ PIN"}
+                  {countdown > 0 ? `Gửi lại sau (${countdown}s)` : "Gửi lại mã PIN"}
                 </button>
               </div>
 
@@ -313,7 +290,7 @@ export default function RegisterPage() {
                   onClick={() => setPhase("input")}
                   className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4" /> Quay láº¡i
+                  <ArrowLeft className="w-4 h-4" /> Quay lại
                 </button>
               </div>
             </motion.div>

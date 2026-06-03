@@ -3,7 +3,8 @@
 import { Card } from "@/app/components/ui/card";
 import { Sun, Moon, Monitor, CheckCircle, AltArrowDown } from "@solar-icons/react";
 import { useTheme } from "@/app/hooks/useTheme";
-import { useLanguage, Language } from "@/app/hooks/useLanguage";
+import { useLanguage } from "@/app/hooks/useLanguage";
+import type { Language } from "@/app/types";
 import {
   DropdownMenu,
   DropdownMenuTrigger,

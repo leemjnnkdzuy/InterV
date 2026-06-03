@@ -10,9 +10,8 @@ import {
   ACCESS_TOKEN_MAX_AGE,
   REFRESH_TOKEN_SHORT_MAX_AGE,
   REFRESH_TOKEN_LONG_MAX_AGE,
+  MAX_SESSIONS,
 } from "@/app/lib/Auth";
-
-const MAX_SESSIONS = 2;
 
 export async function POST(request: NextRequest) {
   try {

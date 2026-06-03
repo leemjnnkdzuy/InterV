@@ -1,30 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage, subscribeWithSelector } from "zustand/middleware";
 import api from "@/app/lib/Client";
-
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  avatar?: string;
-  createdAt: string;
-}
-
-export interface UserState {
-  user: User | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-}
-
-export interface UserActions {
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
-  clearUser: () => void;
-  fetchUserMe: () => Promise<void>;
-}
-
-export type UserStore = UserState & UserActions;
+import { UserStore } from "@/app/types";
+import { USER_STORAGE_KEY } from "@/app/contants";
 
 export const useUserStore = create<UserStore>()(
   subscribeWithSelector(
@@ -55,7 +33,7 @@ export const useUserStore = create<UserStore>()(
         },
       }),
       {
-        name: "interv-user-storage",
+        name: USER_STORAGE_KEY,
         storage: createJSONStorage(() => localStorage),
       }
     )

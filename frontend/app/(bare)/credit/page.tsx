@@ -38,7 +38,6 @@ export default function CreditPageRoute() {
     fetchHistory();
   }, [fetchHistory]);
 
-  // Intercept PayOS redirect params
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -68,7 +67,6 @@ export default function CreditPageRoute() {
           } catch (error) {
             toast.error("Lỗi xác minh thanh toán.", { id: "verify-payment" });
           } finally {
-            // Clear URL params
             window.history.replaceState({}, document.title, window.location.pathname);
           }
         };

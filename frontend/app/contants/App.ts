@@ -43,14 +43,14 @@ export const SOCIAL_PLATFORMS = [
 
 import { DifficultyLevel, AiPersonality } from "../types";
 
-const DEFAULT_DIFFICULTY_LEVELS: DifficultyLevel[] = [
+export const DEFAULT_DIFFICULTY_LEVELS: DifficultyLevel[] = [
   { id: "Junior", name: "Junior", description: "Kỹ năng nền tảng" },
   { id: "Middle", name: "Middle", description: "Giải quyết độc lập" },
   { id: "Senior", name: "Senior", description: "Kỹ năng nâng cao & Quản lý" },
   { id: "Lead", name: "Lead", description: "Định hướng & Lãnh đạo" },
 ];
 
-const DEFAULT_AI_PERSONALITIES: AiPersonality[] = [
+export const DEFAULT_AI_PERSONALITIES: AiPersonality[] = [
   {
     id: "elena",
     name: "Elena (Friendly)",
@@ -593,15 +593,6 @@ export const AI_PERSONALITIES_BY_INDUSTRY: Record<string, AiPersonality[]> = {
   ],
 };
 
-export function getDifficultyLevels(industry: string): DifficultyLevel[] {
-  return DIFFICULTY_LEVELS_BY_INDUSTRY[industry] || DEFAULT_DIFFICULTY_LEVELS;
-}
+export const MOBILE_BREAKPOINT = 768;
 
-export function getAiPersonalities(industry: string): AiPersonality[] {
-  return AI_PERSONALITIES_BY_INDUSTRY[industry] || DEFAULT_AI_PERSONALITIES;
-}
-
-export function getAiPersonality(id: string, industry: string): AiPersonality {
-  const list = getAiPersonalities(industry);
-  return list.find((a) => a.id === id) || list[0] || DEFAULT_AI_PERSONALITIES[0];
-}
+export const USER_STORAGE_KEY = "interv-user-storage";

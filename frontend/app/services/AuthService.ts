@@ -21,16 +21,46 @@ export const authService = {
     const response = await api.post("/auth/refresh");
     return response.data;
   },
-  register: async (username: string, email: string, password: string) => {
+  sendRegisterPin: async (username: string, email: string, password: string) => {
     const response = await api.post("/auth/register", {
+      action: "send-pin",
       username,
       email,
       password,
     });
     return response.data;
   },
-  resetPassword: async (email: string) => {
-    const response = await api.post("/auth/reset-password", { email });
+  verifyRegisterPin: async (email: string, pin: string) => {
+    const response = await api.post("/auth/register", {
+      action: "verify-pin",
+      email,
+      pin,
+    });
+    return response.data;
+  },
+
+  sendResetPin: async (email: string) => {
+    const response = await api.post("/auth/reset-password", {
+      action: "send-pin",
+      email,
+    });
+    return response.data;
+  },
+  verifyResetPin: async (email: string, pin: string) => {
+    const response = await api.post("/auth/reset-password", {
+      action: "verify-pin",
+      email,
+      pin,
+    });
+    return response.data;
+  },
+  resetPassword: async (email: string, newPassword: string) => {
+    const response = await api.post("/auth/reset-password", {
+      action: "reset-password",
+      email,
+      newPassword,
+    });
     return response.data;
   },
 };
+

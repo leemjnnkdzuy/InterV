@@ -1,4 +1,4 @@
-import type { SocialLink } from "@/app/contexts/AuthContext";
+import type { SocialLink } from "./Auth";
 
 export interface ProfilePageProps {
   targetUsername?: string;

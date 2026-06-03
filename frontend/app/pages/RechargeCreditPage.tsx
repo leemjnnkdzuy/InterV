@@ -1,31 +1,10 @@
 "use client";
 
+import { formatCurrency, formatDate } from "@/app/lib/Utils";
 import { Card } from "@/app/components/ui/card";
 import type { RechargeCreditPageProps } from "@/app/types";
 
 export default function RechargeCreditPage({ transactions, isLoading }: RechargeCreditPageProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PAID":

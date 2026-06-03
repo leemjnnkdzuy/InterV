@@ -48,12 +48,7 @@ import {
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
-
-interface AppSidebarProps {
-  variant?: "home" | "settings" | "credit";
-  activeTab?: string;
-  setActiveTab?: (tab: string) => void;
-}
+import type { AppSidebarProps } from "@/app/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
