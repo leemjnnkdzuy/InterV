@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Types } from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
 import PracticeSession from "@/app/models/PracticeSession";
 import { verifyAccessToken } from "@/app/lib/Auth";
+import type { IPracticeSession } from "@/app/types";
+
+interface LeanPracticeSession {
+  _id: Types.ObjectId;
+  title: string;
+  jobDescription?: string;
+  topic?: string;
+  industry?: string;
+  tags?: string[];
+  attemptCount?: number;
+  highestScore?: number;
+  latestResult?: IPracticeSession["latestResult"];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,25 +41,25 @@ export async function GET(request: NextRequest) {
 
     const sessions = await PracticeSession.find({ userId: payload.userId })
       .sort({ updatedAt: -1 })
-      .lean();
+      .lean<LeanPracticeSession[]>();
 
     return NextResponse.json({
       success: true,
-      sessions: sessions.map((s: any) => ({
-        id: s._id.toString(),
-        title: s.title,
-        jobDescription: s.jobDescription,
-        topic: s.topic,
-        industry: s.industry,
-        tags: s.tags || [],
-        attemptCount: s.attemptCount || 0,
-        highestScore: s.highestScore || 0,
-        latestResult: s.latestResult,
-        createdAt: s.createdAt,
-        updatedAt: s.updatedAt,
+      sessions: sessions.map((session) => ({
+        id: session._id.toString(),
+        title: session.title,
+        jobDescription: session.jobDescription,
+        topic: session.topic,
+        industry: session.industry,
+        tags: session.tags || [],
+        attemptCount: session.attemptCount || 0,
+        highestScore: session.highestScore || 0,
+        latestResult: session.latestResult,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
       })),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("GET /api/practice error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },
@@ -83,7 +99,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // AI summary simulation - parse tags and content based on inputs
-    const tags = [];
+    const tags: string[] = [];
     if (industry) {
       tags.push(industry);
     }
@@ -138,7 +154,7 @@ export async function POST(request: NextRequest) {
         updatedAt: newSession.updatedAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/practice error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },

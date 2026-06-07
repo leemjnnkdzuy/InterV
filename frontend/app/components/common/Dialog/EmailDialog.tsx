@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { userService } from "@/app/services/UserService";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -17,6 +17,7 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { EmailDialogProps } from "@/app/types";
 import { slideVariants } from "@/app/contants";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export default function EmailDialog({
   isOpen,
@@ -31,17 +32,7 @@ export default function EmailDialog({
   const [newEmailPin, setNewEmailPin] = useState("");
   const [isEmailSending, setIsEmailSending] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentPin("");
-      setNewEmail("");
-      setNewEmailPin("");
-      setEmailPhase(1);
-      sendCurrentOtp();
-    }
-  }, [isOpen]);
-
-  const sendCurrentOtp = async () => {
+  const sendCurrentOtp = useCallback(async () => {
     try {
       setIsEmailSending(true);
       const res = await userService.changeEmail({ action: "send-current-pin" });
@@ -49,13 +40,27 @@ export default function EmailDialog({
         toast.error(res.message || t("dialogs.otpSendFailed"));
         onOpenChange(false);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.emailResendError"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.emailResendError")));
       onOpenChange(false);
     } finally {
       setIsEmailSending(false);
     }
-  };
+  }, [onOpenChange, t]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setCurrentPin("");
+      setNewEmail("");
+      setNewEmailPin("");
+      setEmailPhase(1);
+      void sendCurrentOtp();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen, sendCurrentOtp]);
 
   const handleVerifyCurrentPin = async () => {
     if (currentPin.length !== 6) {
@@ -74,8 +79,8 @@ export default function EmailDialog({
       } else {
         toast.error(res.message || t("dialogs.otpVerifyFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.otpVerifyFailed"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.otpVerifyFailed")));
     } finally {
       setIsEmailSending(false);
     }
@@ -97,8 +102,8 @@ export default function EmailDialog({
       } else {
         toast.error(res.message || t("dialogs.emailUnavailable"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.otpSendFailed"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.otpSendFailed")));
     } finally {
       setIsEmailSending(false);
     }
@@ -122,8 +127,8 @@ export default function EmailDialog({
       } else {
         toast.error(res.message || t("dialogs.otpVerifyFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.otpVerifyFailed"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.otpVerifyFailed")));
     } finally {
       setIsEmailSending(false);
     }

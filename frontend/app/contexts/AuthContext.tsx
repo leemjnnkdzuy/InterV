@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/app/lib/Client";
+import { getErrorMessage } from "@/app/lib/Utils";
 import { toast } from "sonner";
 import AppLoadingScreen from "@/app/components/common/AppLoadingScreen";
 import type { User, AuthContextType } from "@/app/types";
@@ -43,8 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         localStorage.removeItem("interv_auth_status");
       }
-    } catch (err: any) {
-      if (err.response?.data?.sessionRevoked) {
+    } catch (err: unknown) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof err.response === "object" &&
+        err.response !== null &&
+        "data" in err.response &&
+        typeof err.response.data === "object" &&
+        err.response.data !== null &&
+        "sessionRevoked" in err.response.data &&
+        err.response.data.sessionRevoked
+      ) {
         return;
       }
       setUser(null);
@@ -73,10 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             message: response.data.message || "Đăng nhập thất bại",
           };
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         return {
           success: false,
-          message: error.response?.data?.message || "Đăng nhập thất bại",
+          message: getErrorMessage(error, "Đăng nhập thất bại"),
         };
       }
     },
@@ -100,7 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser]);
 
   useEffect(() => {
-    fetchUser();
+    const timeoutId = window.setTimeout(() => {
+      void fetchUser();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchUser]);
 
   useEffect(() => {

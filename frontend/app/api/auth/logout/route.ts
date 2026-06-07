@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set("refresh_token", "", { ...cookieOptions, maxAge: 0 });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Logout error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

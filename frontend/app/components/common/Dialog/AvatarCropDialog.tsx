@@ -64,13 +64,17 @@ export default function AvatarCropDialog({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
       setImageSrc(null);
       setScale(1);
       setPosition({ x: 0, y: 0 });
       setError(null);
       setIsSaving(false);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
   const constrainPosition = useCallback(

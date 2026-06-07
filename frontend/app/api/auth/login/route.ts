@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Types } from "mongoose";
 
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
@@ -12,6 +13,10 @@ import {
   REFRESH_TOKEN_LONG_MAX_AGE,
   MAX_SESSIONS,
 } from "@/app/lib/Auth";
+
+interface SessionSummary {
+  _id: Types.ObjectId;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,16 +77,16 @@ export async function POST(request: NextRequest) {
       isActive: true,
     })
       .sort({ createdAt: 1 })
-      .lean();
+      .lean<SessionSummary[]>();
 
     if (activeSessions.length >= MAX_SESSIONS) {
       const sessionsToRevoke = activeSessions.slice(0, activeSessions.length - MAX_SESSIONS + 1);
-      const revokeIds = sessionsToRevoke.map((s: any) => s._id);
+      const revokeIds = sessionsToRevoke.map((session) => session._id);
       await Session.updateMany({ _id: { $in: revokeIds } }, { $set: { isActive: false } });
     }
 
     const deviceInfo = request.headers.get("user-agent") || "Unknown device";
-    const ipAddress = request.headers.get("x-forwarded-for") || (request as any).ip || "";
+    const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "";
 
     const session = await Session.create({
       userId: user._id,
@@ -125,7 +130,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Login API error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

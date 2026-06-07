@@ -16,12 +16,12 @@ import { toast } from "sonner";
 import { WalletMoney, AltArrowLeft, ArrowRightUp } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
 import { RECHARGE_PACKAGES } from "@/app/contants";
-import { formatCurrency } from "@/app/lib/Utils";
+import { formatCurrency, getErrorMessage } from "@/app/lib/Utils";
 import { paymentService } from "@/app/services";
 import type { RechargePackage, RechargeDrawerProps } from "@/app/types";
 
 export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerProps) {
-  const { user, refreshUser } = useAuthContext();
+  const { refreshUser } = useAuthContext();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPackage, setSelectedPackage] = useState<RechargePackage | null>(null);
   
@@ -31,14 +31,18 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
       setStep(1);
       setSelectedPackage(null);
       setPaymentUrl("");
       setOrderCode(null);
       setIsLoadingLink(false);
       setIsVerifying(false);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
   useEffect(() => {
@@ -82,8 +86,8 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
         toast.error(data.message || "Không thể tạo liên kết thanh toán");
         setStep(1);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Lỗi tạo liên kết thanh toán. Vui lòng thử lại.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Lỗi tạo liên kết thanh toán. Vui lòng thử lại."));
       setStep(1);
     } finally {
       setIsLoadingLink(false);
@@ -105,7 +109,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
       } else {
         toast.error(data.message || "Giao dịch không thành công");
       }
-    } catch (error: any) {
+    } catch {
       toast.error("Không thể xác minh giao dịch. Vui lòng thử lại.");
     } finally {
       setIsVerifying(false);

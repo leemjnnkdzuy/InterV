@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       { success: false, message: "Hành động không hợp lệ" },
       { status: 400 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Change email error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

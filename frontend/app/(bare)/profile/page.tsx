@@ -6,6 +6,8 @@ import { verifyAccessToken } from "@/app/lib/Auth";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   let title = "Thông tin cá nhân | InterV";
   try {

@@ -87,7 +87,7 @@ export default function Testimonials() {
 
               {/* Quote Text */}
               <p className="text-zinc-300 text-sm sm:text-base leading-relaxed z-10 italic font-medium">
-                "{item.quote}"
+                &quot;{item.quote}&quot;
               </p>
 
               {/* Author Section */}

@@ -13,6 +13,14 @@ export function generatePIN(): string {
   return crypto.randomInt(0, 1000000).toString().padStart(6, "0");
 }
 
+function getUnknownErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
 export function getVerificationEmailTemplate(pin: string, userName: string): string {
   return `
 <!DOCTYPE html>
@@ -166,9 +174,9 @@ export async function sendVerificationEmail(
       html: getVerificationEmailTemplate(pin, userName),
     });
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending verification email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: getUnknownErrorMessage(error) };
   }
 }
 
@@ -184,9 +192,9 @@ export async function sendPasswordResetEmail(
       html: getPasswordResetEmailTemplate(pin, email),
     });
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending password reset email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: getUnknownErrorMessage(error) };
   }
 }
 
@@ -275,8 +283,8 @@ export async function sendChangeEmailPin(
       html: getChangeEmailTemplate(pin, purpose),
     });
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending change email OTP:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: getUnknownErrorMessage(error) };
   }
 }

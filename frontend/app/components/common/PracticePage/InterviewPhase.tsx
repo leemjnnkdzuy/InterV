@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -61,13 +61,8 @@ const ExitIcon = (props: React.ComponentProps<"svg">) => (
 
 export default function InterviewPhase({
   practiceId,
-  title,
-  industry,
-  difficulty,
-  selectedAi,
   questionsList,
   jobDescription,
-  topic,
 }: InterviewPhaseProps) {
   const router = useRouter();
 
@@ -76,7 +71,7 @@ export default function InterviewPhase({
   const [isManualInputOpen, setIsManualInputOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
-  const [chatLogs, setChatLogs] = useState<ChatLog[]>([]);
+  const [, setChatLogs] = useState<ChatLog[]>([]);
   const [qaHistory, setQaHistory] = useState<Array<{ question: string; answer: string }>>([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
@@ -86,58 +81,31 @@ export default function InterviewPhase({
   const [soundLevel, setSoundLevel] = useState(5);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const micWaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasStartedRef = useRef(false);
 
   // Final evaluation processing
   const [isFinishing, setIsFinishing] = useState(false);
-  const [finishMessage, setFinishMessage] = useState("");
+  const [, setFinishMessage] = useState("");
   const [finishLog, setFinishLog] = useState<string[]>([]);
 
   // Typing effect state for AI message
   const [typingText, setTypingText] = useState("");
 
-  // Simulate active voice level wave activity for both AI speech and User recording
-  useEffect(() => {
-    if (isRecording || isAiSpeaking) {
-      micWaveIntervalRef.current = setInterval(() => {
-        setSoundLevel(Math.floor(Math.random() * 55) + 20); // 20 - 75
-      }, 100);
-    } else {
-      setSoundLevel(5);
-      if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-    }
-    return () => {
-      if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-    };
-  }, [isRecording, isAiSpeaking]);
-
-  // Start interview conversation on mount
-  useEffect(() => {
-    if (questionsList.length > 0 && chatLogs.length === 0) {
-      setIsAiSpeaking(true);
-      setIsAiThinking(true);
-      const timer = setTimeout(() => {
-        setIsAiThinking(false);
-        simulateAiSpeech(questionsList[0]);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [questionsList]);
-
   // Simulating AI speech typing out word-by-word
-  const simulateAiSpeech = (text: string) => {
+  const simulateAiSpeech = useCallback((text: string) => {
     setIsAiSpeaking(true);
     setTypingText("");
     const words = text.split(" ");
     let currentWordIdx = 0;
     let accumulatedText = "";
 
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       if (currentWordIdx < words.length) {
         accumulatedText += (currentWordIdx === 0 ? "" : " ") + words[currentWordIdx];
         setTypingText(accumulatedText);
         currentWordIdx++;
       } else {
-        clearInterval(timer);
+        window.clearInterval(timer);
         setIsAiSpeaking(false);
         // Append completed message to logs
         setChatLogs((prev) => [
@@ -152,7 +120,52 @@ export default function InterviewPhase({
         setTypingText("");
       }
     }, 90); // 90ms per word
-  };
+  }, []);
+
+  // Simulate active voice level wave activity for both AI speech and User recording
+  useEffect(() => {
+    if (isRecording || isAiSpeaking) {
+      micWaveIntervalRef.current = setInterval(() => {
+        setSoundLevel(Math.floor(Math.random() * 55) + 20); // 20 - 75
+      }, 100);
+      return () => {
+        if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
+      };
+    }
+
+    if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
+    const resetTimer = window.setTimeout(() => {
+      setSoundLevel(5);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(resetTimer);
+      if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
+    };
+  }, [isRecording, isAiSpeaking]);
+
+  // Start interview conversation on mount
+  useEffect(() => {
+    if (questionsList.length > 0 && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      let speechTimer: number | undefined;
+      const startTimer = window.setTimeout(() => {
+      setIsAiSpeaking(true);
+      setIsAiThinking(true);
+        speechTimer = window.setTimeout(() => {
+        setIsAiThinking(false);
+        simulateAiSpeech(questionsList[0]);
+      }, 1500);
+      }, 0);
+
+      return () => {
+        window.clearTimeout(startTimer);
+        if (speechTimer !== undefined) {
+          window.clearTimeout(speechTimer);
+        }
+      };
+    }
+  }, [questionsList, simulateAiSpeech]);
 
   // Voice recording dictation simulator
   const handleToggleRecording = () => {
@@ -271,7 +284,7 @@ export default function InterviewPhase({
       const confidenceScore = Math.floor(Math.random() * 15) + 80;
 
       const questionsFeedback = qaHistory.map((qa, idx) => {
-        let qScore = Math.floor(Math.random() * 15) + 80;
+        const qScore = Math.floor(Math.random() * 15) + 80;
         let qFeedback = "";
 
         if (idx === 0) {
@@ -324,7 +337,7 @@ export default function InterviewPhase({
         toast.error("Lỗi lưu kết quả");
         setIsFinishing(false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Lỗi kết nối máy chủ");
       setIsFinishing(false);
@@ -485,7 +498,7 @@ export default function InterviewPhase({
                   {isRecording ? "Đang thu âm..." : "Bản ghi câu trả lời của bạn:"}
                 </p>
                 <p className="text-sm md:text-base font-medium text-indigo-600 dark:text-indigo-300 italic leading-relaxed select-text">
-                  "{userAnswer}"
+                  &quot;{userAnswer}&quot;
                 </p>
               </div>
             )}

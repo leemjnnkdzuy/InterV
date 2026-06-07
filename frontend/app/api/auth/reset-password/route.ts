@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: false, message: "Hành động không hợp lệ" }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Reset password error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

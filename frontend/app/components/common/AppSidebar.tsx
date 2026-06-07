@@ -334,10 +334,13 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                       <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 shadow-inner transition-all duration-300 h-12 w-12 p-0.5 group-hover/user:from-primary/50 group-hover/user:to-primary/50">
                         <div className="w-full h-full rounded-[10px] bg-sidebar-accent text-sidebar-accent-foreground font-semibold flex items-center justify-center border border-border/20 overflow-hidden shadow-inner relative">
                           {user.avatar ? (
-                            <img
+                            <Image
                               src={user.avatar}
                               alt={user.username}
-                              className="h-full w-full object-cover transition-opacity duration-300"
+                              fill
+                              sizes="48px"
+                              className="object-cover transition-opacity duration-300"
+                              unoptimized
                             />
                           ) : user.username ? (
                             <span>
@@ -380,10 +383,13 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                   <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 shadow-inner transition-all duration-300 h-10 w-10 p-0.5">
                     <div className="w-full h-full rounded-[10px] bg-sidebar-accent text-sidebar-accent-foreground font-semibold flex items-center justify-center border border-border/20 overflow-hidden shadow-inner relative">
                       {user.avatar ? (
-                        <img
+                        <Image
                           src={user.avatar}
                           alt={user.username}
-                          className="h-full w-full object-cover transition-opacity duration-300"
+                          fill
+                          sizes="40px"
+                          className="object-cover transition-opacity duration-300"
+                          unoptimized
                         />
                       ) : user.username ? (
                         <span>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { UploadMinimalistic, ChatSquareCode, Diploma } from "@solar-icons/react";
 
@@ -74,10 +75,13 @@ export default function HowItWorks() {
                 
                 {/* User Mock Audio/Voice Call */}
                 <div className="relative w-full h-full">
-                  <img 
+                  <Image
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&h=800&q=80" 
                     alt="AI Voice Interview"
-                    className="w-full h-full object-cover brightness-[0.75]"
+                    fill
+                    sizes="(min-width: 640px) 310px, 280px"
+                    className="object-cover brightness-[0.75]"
+                    unoptimized
                   />
                   
                   {/* Voice Waveform Overlay */}

@@ -6,8 +6,7 @@ type Props = {
   params: Promise<{ _id: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { _id } = await params;
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Buổi phỏng vấn giả lập | InterV",
     description: "Thực hiện phỏng vấn đối thoại trực tiếp với AI chuyên gia phỏng vấn của InterV.",

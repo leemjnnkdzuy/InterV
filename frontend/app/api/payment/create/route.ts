@@ -5,6 +5,7 @@ import Transaction from "@/app/models/Transaction";
 import { verifyAccessToken } from "@/app/lib/Auth";
 import payos from "@/app/lib/PayOS";
 import { RECHARGE_PACKAGES } from "@/app/contants";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,8 +83,11 @@ export async function POST(request: NextRequest) {
 
         paymentUrl = paymentLinkData.checkoutUrl;
         paymentLinkId = paymentLinkData.paymentLinkId;
-      } catch (payosError: any) {
-        console.warn("PayOS API error, falling back to mock payment:", payosError.message || payosError);
+      } catch (payosError: unknown) {
+        console.warn(
+          "PayOS API error, falling back to mock payment:",
+          getErrorMessage(payosError, "Unknown PayOS error")
+        );
         isMock = true;
       }
     }
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
       paymentUrl,
       orderCode,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/payment/create error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi tạo link thanh toán. Vui lòng thử lại sau." },

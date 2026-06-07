@@ -46,7 +46,7 @@ export default function ConfirmDeleteDialog({
             <DialogDescription className="text-muted-foreground text-xs text-center max-w-sm leading-relaxed">
               {itemName ? (
                 <>
-                  Bạn có chắc chắn muốn xóa <span className="font-extrabold text-foreground">"{itemName}"</span> không? {description}
+                  Bạn có chắc chắn muốn xóa <span className="font-extrabold text-foreground">&quot;{itemName}&quot;</span> không? {description}
                 </>
               ) : (
                 description

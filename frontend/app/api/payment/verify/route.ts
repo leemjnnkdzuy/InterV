@@ -5,6 +5,7 @@ import Transaction from "@/app/models/Transaction";
 import CreditLog from "@/app/models/CreditLog";
 import { verifyAccessToken } from "@/app/lib/Auth";
 import payos from "@/app/lib/PayOS";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,8 +62,11 @@ export async function POST(request: NextRequest) {
       try {
         const paymentInfo = await payos.paymentRequests.get(orderCode);
         paymentStatus = paymentInfo.status; // "PENDING", "PAID", "CANCELLED", etc.
-      } catch (payosError: any) {
-        console.error(`Error querying status for orderCode ${orderCode}:`, payosError.message || payosError);
+      } catch (payosError: unknown) {
+        console.error(
+          `Error querying status for orderCode ${orderCode}:`,
+          getErrorMessage(payosError, "Unknown PayOS error")
+        );
         // Fallback to check if mock transaction
         if (transaction.paymentLinkId.startsWith("MOCK_")) {
           paymentStatus = "PAID";
@@ -116,7 +120,7 @@ export async function POST(request: NextRequest) {
       message: "Giao dịch đang chờ thanh toán",
       status: "PENDING",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/payment/verify error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi kiểm tra giao dịch. Vui lòng thử lại sau." },

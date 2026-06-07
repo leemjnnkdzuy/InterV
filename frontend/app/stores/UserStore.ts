@@ -25,7 +25,7 @@ export const useUserStore = create<UserStore>()(
             } else {
               set({ user: null, isAuthenticated: false });
             }
-          } catch (error) {
+          } catch {
             set({ user: null, isAuthenticated: false });
           } finally {
             set({ loading: false });

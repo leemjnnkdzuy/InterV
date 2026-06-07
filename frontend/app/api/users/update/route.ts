@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import { verifyAccessToken } from "@/app/lib/Auth";
+import type { ISocialLink } from "@/app/types";
+
+function toSocialLink(value: unknown): ISocialLink {
+  if (typeof value !== "object" || value === null) {
+    return { platform: "", usernameOrUrl: "" };
+  }
+
+  const platform = "platform" in value ? value.platform : "";
+  const usernameOrUrl = "usernameOrUrl" in value ? value.usernameOrUrl : "";
+
+  return {
+    platform: String(platform || ""),
+    usernameOrUrl: String(usernameOrUrl || ""),
+  };
+}
 
 export async function PUT(request: NextRequest) {
   try {
@@ -44,10 +59,7 @@ export async function PUT(request: NextRequest) {
 
     if (socialLinks !== undefined) {
       if (Array.isArray(socialLinks)) {
-        user.socialLinks = socialLinks.map((link: any) => ({
-          platform: String(link.platform || ""),
-          usernameOrUrl: String(link.usernameOrUrl || ""),
-        }));
+        user.socialLinks = socialLinks.map(toSocialLink);
       }
     }
 
@@ -67,7 +79,7 @@ export async function PUT(request: NextRequest) {
         createdAt: user.createdAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("PUT /api/users/update error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

@@ -13,6 +13,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 interface PasswordDialogProps {
   isOpen: boolean;
@@ -27,11 +28,15 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
   const handleUpdatePassword = async () => {
@@ -59,8 +64,8 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
       } else {
         toast.error(res.message || t("dialogs.updatePasswordFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.updatePasswordError"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.updatePasswordError")));
     } finally {
       setIsUpdatingPassword(false);
     }

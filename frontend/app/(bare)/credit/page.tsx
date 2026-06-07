@@ -35,7 +35,11 @@ export default function CreditPageRoute() {
   }, []);
 
   useEffect(() => {
-    fetchHistory();
+    const timeoutId = window.setTimeout(() => {
+      void fetchHistory();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchHistory]);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export default function CreditPageRoute() {
                 id: "verify-payment",
               });
             }
-          } catch (error) {
+          } catch {
             toast.error("Lỗi xác minh thanh toán.", { id: "verify-payment" });
           } finally {
             window.history.replaceState({}, document.title, window.location.pathname);

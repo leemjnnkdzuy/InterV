@@ -4,24 +4,51 @@ import User from "@/app/models/User";
 import Transaction from "@/app/models/Transaction";
 import CreditLog from "@/app/models/CreditLog";
 import payos from "@/app/lib/PayOS";
+import { getErrorMessage } from "@/app/lib/Utils";
+
+interface PayOSWebhookData {
+  orderCode: number;
+  status: string;
+}
+
+function isPayOSWebhookData(value: unknown): value is PayOSWebhookData {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "orderCode" in value &&
+    typeof value.orderCode === "number" &&
+    "status" in value &&
+    typeof value.status === "string"
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // Verify webhook signature using PayOS SDK
-    let verifiedData: any;
+    let verifiedData: PayOSWebhookData;
     try {
-      verifiedData = await payos.webhooks.verify(body);
-    } catch (sigError: any) {
-      console.error("PayOS Webhook Signature Verification Failed:", sigError.message || sigError);
+      const payload = await payos.webhooks.verify(body);
+      if (!isPayOSWebhookData(payload)) {
+        return NextResponse.json(
+          { success: false, message: "Invalid webhook payload" },
+          { status: 400 }
+        );
+      }
+      verifiedData = payload;
+    } catch (sigError: unknown) {
+      console.error(
+        "PayOS Webhook Signature Verification Failed:",
+        getErrorMessage(sigError, "Unknown PayOS signature error")
+      );
       return NextResponse.json(
         { success: false, message: "Signature verification failed" },
         { status: 400 }
       );
     }
 
-    const { orderCode, amount, status } = verifiedData;
+    const { orderCode, status } = verifiedData;
 
     // We only process if status is success/paid
     if (status === "PAID" || status === "completed") {
@@ -57,7 +84,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Webhook processed successfully",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/payment/webhook error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },

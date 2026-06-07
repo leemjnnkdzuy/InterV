@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import { Document } from "mongoose";
 import { ISocialLink } from "./SocialLink";
 
 export interface IUser extends Document {

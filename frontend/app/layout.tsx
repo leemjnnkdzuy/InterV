@@ -1,25 +1,35 @@
 import type {Metadata} from "next";
-import {Geist, Geist_Mono, Inter} from "next/font/google";
+import {
+	Geist_Mono,
+	Inter,
+	Merriweather,
+	Merriweather_Sans,
+} from "next/font/google";
 import "./globals.css";
 import {cn} from "@/app/lib/Utils";
-import { AuthProvider } from "@/app/contexts/AuthContext";
-import { ThemeProvider } from "@/app/hooks/useTheme";
-import { LanguageProvider } from "@/app/hooks/useLanguage";
-import { Toaster } from "@/app/components/ui/sonner";
-import { TooltipProvider } from "@/app/components/ui/tooltip";
-import { themeInitializerScript } from "@/app/scripts/Theme";
+import {AuthProvider} from "@/app/contexts/AuthContext";
+import {ThemeProvider} from "@/app/hooks/useTheme";
+import {LanguageProvider} from "@/app/hooks/useLanguage";
+import {Toaster} from "@/app/components/ui/sonner";
+import {TooltipProvider} from "@/app/components/ui/tooltip";
+import {themeInitializerScript} from "@/app/scripts/Theme";
 
-const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
+const inter = Inter({subsets: ["latin", "vietnamese"], variable: "--font-sans"});
 
-
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
 	variable: "--font-geist-mono",
 	subsets: ["latin"],
+});
+
+const merriweatherSans = Merriweather_Sans({
+	variable: "--font-logo",
+	subsets: ["latin", "vietnamese"],
+});
+
+const merriweather = Merriweather({
+	variable: "--font-question",
+	subsets: ["latin", "vietnamese"],
 });
 
 export const metadata: Metadata = {
@@ -52,10 +62,11 @@ export default function RootLayout({
 			className={cn(
 				"h-full",
 				"antialiased",
-				geistSans.variable,
 				geistMono.variable,
-				"font-sans",
 				inter.variable,
+				merriweatherSans.variable,
+				merriweather.variable,
+				"font-sans",
 			)}
 		>
 			<head>

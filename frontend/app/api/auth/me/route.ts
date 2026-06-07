@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("GET /api/auth/me error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

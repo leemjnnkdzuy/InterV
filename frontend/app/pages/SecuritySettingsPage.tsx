@@ -10,7 +10,7 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Spinner } from "@/app/components/ui/spinner";
 import { cn, getErrorMessage } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
-import type { ApiErrorResponse, AuthSessionData } from "@/app/types";
+import type { AuthSessionData } from "@/app/types";
 
 export default function SecuritySettingsPage() {
   const { logout } = useAuthContext();

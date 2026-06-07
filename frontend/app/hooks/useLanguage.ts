@@ -5,17 +5,43 @@ import langTranslations from "@/app/i18n";
 import type { Language, LanguageContextType } from "@/app/types";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+type TranslationNode = string | { [key: string]: TranslationNode };
+type TranslationMap = Record<Language, TranslationNode>;
+
+const translations = langTranslations as TranslationMap;
+
+function isLanguage(value: string | null): value is Language {
+  return value === "vi" || value === "en" || value === "zh";
+}
+
+function getTranslationValue(source: TranslationNode | undefined, keys: string[]): string | undefined {
+  let current = source;
+
+  for (const key of keys) {
+    if (typeof current !== "object" || current === null || !(key in current)) {
+      return undefined;
+    }
+
+    current = current[key];
+  }
+
+  return typeof current === "string" ? current : undefined;
+}
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("vi");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("lang") as Language | null;
-    if (savedLang && (savedLang === "vi" || savedLang === "en" || savedLang === "zh")) {
-      setLanguageState(savedLang);
-    }
-    setMounted(true);
+    const timeoutId = window.setTimeout(() => {
+      const savedLang = localStorage.getItem("lang");
+      if (isLanguage(savedLang)) {
+        setLanguageState(savedLang);
+      }
+      setMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const setLanguage = (newLang: Language) => {
@@ -34,29 +60,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const t = (key: string): string => {
     const keys = key.split(".");
-    
-    let current: any = (langTranslations as any)[language];
-    for (const k of keys) {
-      if (current && typeof current === "object" && k in current) {
-        current = current[k];
-      } else {
-        let fallback: any = (langTranslations as any)["vi"];
-        for (const fk of keys) {
-          if (fallback && typeof fallback === "object" && fk in fallback) {
-            fallback = fallback[fk];
-          } else {
-            fallback = null;
-            break;
-          }
-        }
-        if (fallback && typeof fallback === "string") {
-          return fallback;
-        }
-        return key;
-      }
+    const current = getTranslationValue(translations[language], keys);
+
+    if (current) {
+      return current;
     }
 
-    return typeof current === "string" ? current : key;
+    return getTranslationValue(translations.vi, keys) ?? key;
   };
 
   return React.createElement(

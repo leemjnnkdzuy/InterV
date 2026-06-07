@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { CpuBolt, Pulse, LockKeyhole } from "@solar-icons/react";
 
 interface Benefit {

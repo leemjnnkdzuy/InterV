@@ -62,7 +62,7 @@ export async function GET(
         updatedAt: session.updatedAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("GET /api/practice/[id] error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },
@@ -178,7 +178,7 @@ export async function PUT(
         updatedAt: session.updatedAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("PUT /api/practice/[id] error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },
@@ -234,7 +234,7 @@ export async function DELETE(
       success: true,
       message: "Xóa buổi luyện tập thành công",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("DELETE /api/practice/[id] error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },

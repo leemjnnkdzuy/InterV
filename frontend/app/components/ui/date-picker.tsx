@@ -18,23 +18,16 @@ interface DatePickerProps {
   onConfirm: (date: Date) => Promise<void>;
 }
 
+function getDateValue(value: DatePickerProps["value"]): Date | null {
+  return value ? new Date(value) : null;
+}
+
 export function DatePicker({ value, onConfirm }: DatePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(() => getDateValue(value));
+  const [currentMonth, setCurrentMonth] = React.useState(() => getDateValue(value) ?? new Date());
   const [isSaving, setIsSaving] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (value) {
-      const d = new Date(value);
-      setSelectedDate(d);
-      setCurrentMonth(d);
-    } else {
-      setSelectedDate(null);
-      setCurrentMonth(new Date());
-    }
-  }, [value, isOpen]);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -101,6 +94,16 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
     }
   };
 
+  const handleToggleOpen = () => {
+    if (!isOpen) {
+      const nextDate = getDateValue(value);
+      setSelectedDate(nextDate);
+      setCurrentMonth(nextDate ?? new Date());
+    }
+
+    setIsOpen((current) => !current);
+  };
+
   // Calendar calculations
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -130,7 +133,7 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
     <div className="relative inline-block text-left" ref={containerRef}>
       {/* Pen Trigger Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggleOpen}
         className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-muted/40 transition-colors cursor-pointer"
         title="Chỉnh sửa ngày sinh"
       >
@@ -266,4 +269,3 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
     </div>
   );
 }
-

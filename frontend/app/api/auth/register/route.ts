@@ -8,6 +8,15 @@ import { generatePIN, sendVerificationEmail } from "@/app/lib/Email";
 import { defaultAvatars } from "@/app/assets";
 import { MAX_PIN_ATTEMPTS, PIN_LOCK_MS } from "@/app/contants";
 
+function isDuplicateKeyError(error: unknown): error is { code: 11000 } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 11000
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -170,9 +179,9 @@ export async function POST(request: NextRequest) {
           success: true,
           message: "Đăng ký tài khoản thành công!",
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("User creation error:", err);
-        if (err.code === 11000) {
+        if (isDuplicateKeyError(err)) {
           return NextResponse.json(
             { success: false, message: "Email hoặc tên đăng nhập đã được sử dụng" },
             { status: 400 }
@@ -186,7 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: false, message: "Hành động không hợp lệ" }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Registration API error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

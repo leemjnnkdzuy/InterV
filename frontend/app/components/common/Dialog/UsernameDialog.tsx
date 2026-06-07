@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { UsernameDialogProps } from "@/app/types";
 import { slideVariants } from "@/app/contants";
+import { getErrorMessage } from "@/app/lib/Utils";
 
 export default function UsernameDialog({
   isOpen,
@@ -34,29 +35,39 @@ export default function UsernameDialog({
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "available" | "unavailable">("idle");
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
       setNewUsername("");
       setUsernamePassword("");
       setUsernameStatus("idle");
       setUsernamePhase(1);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
   useEffect(() => {
-    if (!newUsername.trim()) {
+    const normalizedUsername = newUsername.trim().toLowerCase();
+    const currentUsername = currentUser?.username.toLowerCase();
+    const delay = !normalizedUsername || normalizedUsername === currentUsername ? 0 : 500;
+
+    const delayDebounceFn = window.setTimeout(async () => {
+      if (!normalizedUsername) {
+        setUsernameStatus("idle");
+        setIsCheckingUsername(false);
+        return;
+      }
+
+      if (normalizedUsername === currentUsername) {
+        setUsernameStatus("unavailable");
+        setIsCheckingUsername(false);
+        return;
+      }
+
       setUsernameStatus("idle");
-      return;
-    }
+      setIsCheckingUsername(true);
 
-    if (newUsername.trim().toLowerCase() === currentUser?.username) {
-      setUsernameStatus("unavailable");
-      return;
-    }
-
-    setUsernameStatus("idle");
-    setIsCheckingUsername(true);
-
-    const delayDebounceFn = setTimeout(async () => {
       try {
         const res = await userService.checkUsername(newUsername);
         if (res.success) {
@@ -64,14 +75,14 @@ export default function UsernameDialog({
         } else {
           setUsernameStatus("unavailable");
         }
-      } catch (err) {
+      } catch {
         setUsernameStatus("unavailable");
       } finally {
         setIsCheckingUsername(false);
       }
-    }, 500);
+    }, delay);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => window.clearTimeout(delayDebounceFn);
   }, [newUsername, currentUser?.username]);
 
   const handleUpdateUsername = async () => {
@@ -91,8 +102,8 @@ export default function UsernameDialog({
       } else {
         toast.error(res.message || t("dialogs.updateUsernameFailed"));
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t("dialogs.updateUsernameError"));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, t("dialogs.updateUsernameError")));
     } finally {
       setIsUpdatingUsername(false);
     }

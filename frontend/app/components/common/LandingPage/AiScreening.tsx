@@ -232,7 +232,7 @@ export default function AiScreening() {
                           Đánh giá tổng quan từ AI
                         </div>
                         <p className="text-[11px] md:text-xs text-zinc-300 leading-relaxed font-medium">
-                          "{selectedCandidate.summary}"
+                          &quot;{selectedCandidate.summary}&quot;
                         </p>
                       </div>
 
