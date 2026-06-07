@@ -10,16 +10,8 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { TrashBinMinimalistic } from "@solar-icons/react";
+import { ConfirmDeleteDialogProps } from "@/app/types";
 
-interface ConfirmDeleteDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  title?: string;
-  itemName?: string;
-  description?: string;
-  isSubmitting?: boolean;
-}
 
 export default function ConfirmDeleteDialog({
   isOpen,

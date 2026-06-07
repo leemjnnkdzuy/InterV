@@ -4,10 +4,8 @@ import React from "react";
 import { SidebarProvider, SidebarInset } from "@/app/components/ui/sidebar";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import AppSidebar from "@/app/components/common/AppSidebar";
+import { SidebarLayoutProps } from "@/app/types";
 
-interface SidebarLayoutProps {
-  children: React.ReactNode;
-}
 
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
   return (

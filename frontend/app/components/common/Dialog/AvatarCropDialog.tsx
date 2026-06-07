@@ -14,23 +14,10 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import { AvatarCropDialogProps } from "@/app/types";
+import { AVATAR_CROP_CONFIG } from "@/app/contants";
+import { constrainCropPosition, calculateCropCoords, calculatePreviewCoords } from "@/app/lib/Utils";
 
-const AVATAR_CROP_CONFIG = {
-  MAX_OUTPUT_SIZE: 512,
-  MAX_FILE_SIZE: 5 * 1024 * 1024,
-  QUALITY: 0.85,
-  CROP_SIZE: 280,
-  ZOOM_MIN: 1.0,
-  ZOOM_MAX: 3.0,
-  ZOOM_STEP_SMALL: 0.1,
-  ZOOM_STEP_BIG: 0.2,
-};
-
-interface AvatarCropDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (base64: string) => Promise<void> | void;
-}
 
 export default function AvatarCropDialog({
   isOpen,
@@ -80,21 +67,13 @@ export default function AvatarCropDialog({
   const constrainPosition = useCallback(
     (currentScale: number, currentPos: { x: number; y: number }) => {
       if (!imageRef.current) return currentPos;
-      const img = imageRef.current;
-      const minDim = Math.min(img.naturalWidth, img.naturalHeight);
-      const displayScale = CROP_SIZE / minDim;
-      const displayW = img.naturalWidth * displayScale * currentScale;
-      const displayH = img.naturalHeight * displayScale * currentScale;
-
-      const maxX = Math.max(0, (displayW - CROP_SIZE) / 2);
-      const minX = -maxX;
-      const maxY = Math.max(0, (displayH - CROP_SIZE) / 2);
-      const minY = -maxY;
-
-      return {
-        x: Math.max(minX, Math.min(maxX, currentPos.x)),
-        y: Math.max(minY, Math.min(maxY, currentPos.y)),
-      };
+      return constrainCropPosition(
+        imageRef.current.naturalWidth,
+        imageRef.current.naturalHeight,
+        CROP_SIZE,
+        currentScale,
+        currentPos
+      );
     },
     [CROP_SIZE]
   );
@@ -273,22 +252,13 @@ export default function AvatarCropDialog({
       if (!ctx) throw new Error("Could not get canvas context");
 
       const img = imageRef.current;
-
-      const minDim = Math.min(img.naturalWidth, img.naturalHeight);
-      const displayScale = CROP_SIZE / minDim;
-      const displayW = img.naturalWidth * displayScale * scale;
-      const displayH = img.naturalHeight * displayScale * scale;
-
-      const cropCenterX = CROP_SIZE / 2;
-      const cropCenterY = CROP_SIZE / 2;
-
-      const imgDisplayX = cropCenterX - displayW / 2 + position.x;
-      const imgDisplayY = cropCenterY - displayH / 2 + position.y;
-
-      const srcX = ((0 - imgDisplayX) / displayW) * img.naturalWidth;
-      const srcY = ((0 - imgDisplayY) / displayH) * img.naturalHeight;
-      const srcW = (CROP_SIZE / displayW) * img.naturalWidth;
-      const srcH = (CROP_SIZE / displayH) * img.naturalHeight;
+      const { srcX, srcY, srcW, srcH } = calculateCropCoords(
+        img.naturalWidth,
+        img.naturalHeight,
+        CROP_SIZE,
+        scale,
+        position
+      );
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
@@ -330,13 +300,13 @@ export default function AvatarCropDialog({
 
     ctx.clearRect(0, 0, CROP_SIZE, CROP_SIZE);
 
-    const minDim = Math.min(img.naturalWidth, img.naturalHeight);
-    const displayScale = CROP_SIZE / minDim;
-    const displayW = img.naturalWidth * displayScale * scale;
-    const displayH = img.naturalHeight * displayScale * scale;
-
-    const drawX = (CROP_SIZE - displayW) / 2 + position.x;
-    const drawY = (CROP_SIZE - displayH) / 2 + position.y;
+    const { drawX, drawY, displayW, displayH } = calculatePreviewCoords(
+      img.naturalWidth,
+      img.naturalHeight,
+      CROP_SIZE,
+      scale,
+      position
+    );
 
     ctx.save();
     ctx.beginPath();
@@ -348,7 +318,7 @@ export default function AvatarCropDialog({
     ctx.drawImage(img, drawX, drawY, displayW, displayH);
     ctx.restore();
 
-    ctx.strokeStyle = "rgba(99, 102, 241, 0.6)"; // violet-500/60 color to match app palette
+    ctx.strokeStyle = "rgba(99, 102, 241, 0.6)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(

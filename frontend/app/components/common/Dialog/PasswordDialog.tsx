@@ -14,11 +14,7 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { getErrorMessage } from "@/app/lib/Utils";
-
-interface PasswordDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+import { PasswordDialogProps } from "@/app/types";
 
 export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogProps) {
   const { t } = useLanguage();

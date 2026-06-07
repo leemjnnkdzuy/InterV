@@ -21,6 +21,13 @@ export * from "./Metadata";
 export * from "./Theme";
 export * from "./Client";
 export * from "./UserStore";
+export * from "./AvatarCrop";
+export * from "./ConfirmDelete";
+export * from "./Password";
+export * from "./SidebarLayout";
+
+
+
 
 
 
