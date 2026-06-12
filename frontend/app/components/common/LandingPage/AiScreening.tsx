@@ -4,22 +4,23 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UsersGroupRounded, Chart, ShieldCheck, AltArrowRight, ArrowLeft, CheckCircle, ClockCircle } from "@solar-icons/react";
 import { Progress } from "@/app/components/ui/progress";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface Candidate {
   id: string;
   name: string;
-  role: string;
+  roleKey: string;
   match: number;
   culture: string;
   status: "Passed" | "Review" | "Failed";
   avatar: string;
-  summary: string;
+  summaryKey: string;
   details: {
-    label: string;
+    labelKey: string;
     value: number;
   }[];
   highlights: {
-    text: string;
+    textKey: string;
     type: "positive" | "negative" | "neutral";
   }[];
 }
@@ -28,73 +29,79 @@ const mockCandidates: Candidate[] = [
   {
     id: "1",
     name: "Nguyễn Văn An",
-    role: "Product Designer",
+    roleKey: "landing.aiScreening.candidate1Role",
     match: 92,
     culture: "9.0/10",
     status: "Passed",
     avatar: "A",
-    summary: "Nắm vững nguyên lý thiết kế, có tư duy sản phẩm tốt, kỹ năng giao tiếp tự tin và thuyết phục. Phù hợp xuất sắc với văn hóa phát triển năng động của công ty.",
+    summaryKey: "landing.aiScreening.candidate1Summary",
     details: [
-      { label: "Chuyên môn UI/UX", value: 95 },
-      { label: "Tư duy Product", value: 90 },
-      { label: "Kỹ năng giao tiếp", value: 92 },
-      { label: "Giải quyết vấn đề", value: 88 }
+      { labelKey: "landing.aiScreening.candidate1Detail1", value: 95 },
+      { labelKey: "landing.aiScreening.candidate1Detail2", value: 90 },
+      { labelKey: "landing.aiScreening.candidate1Detail3", value: 92 },
+      { labelKey: "landing.aiScreening.candidate1Detail4", value: 88 }
     ],
     highlights: [
-      { text: "Có hơn 3 năm kinh nghiệm thực tế về xây dựng Design System quy mô lớn.", type: "positive" },
-      { text: "Trình bày rõ ràng về quy trình lấy người dùng làm trung tâm (User-Centered Design).", type: "positive" },
-      { text: "Nói hơi nhanh khi bắt đầu phỏng vấn nhưng đã tự điều chỉnh tốt sau đó.", type: "neutral" }
+      { textKey: "landing.aiScreening.candidate1Highlight1", type: "positive" },
+      { textKey: "landing.aiScreening.candidate1Highlight2", type: "positive" },
+      { textKey: "landing.aiScreening.candidate1Highlight3", type: "neutral" }
     ]
   },
   {
     id: "2",
     name: "Trần Thị Minh",
-    role: "UX Researcher",
+    roleKey: "landing.aiScreening.candidate2Role",
     match: 87,
     culture: "8.5/10",
     status: "Review",
     avatar: "M",
-    summary: "Kinh nghiệm nghiên cứu định tính phong phú. Khả năng phỏng vấn sâu ứng viên và lập bản đồ hành trình người dùng tốt, tuy nhiên tư duy phân tích định lượng cần bổ trợ thêm.",
+    summaryKey: "landing.aiScreening.candidate2Summary",
     details: [
-      { label: "Nghiên cứu định tính", value: 92 },
-      { label: "Nghiên cứu định lượng", value: 70 },
-      { label: "Kỹ năng phân tích", value: 85 },
-      { label: "Thuyết trình kết quả", value: 88 }
+      { labelKey: "landing.aiScreening.candidate2Detail1", value: 92 },
+      { labelKey: "landing.aiScreening.candidate2Detail2", value: 70 },
+      { labelKey: "landing.aiScreening.candidate2Detail3", value: 85 },
+      { labelKey: "landing.aiScreening.candidate2Detail4", value: 88 }
     ],
     highlights: [
-      { text: "Đã thực hiện hơn 40 cuộc khảo sát diện rộng và vẽ 5 Persona chuẩn xác.", type: "positive" },
-      { text: "Tương tác tự nhiên, phản hồi linh hoạt với câu hỏi tình huống từ AI.", type: "positive" },
-      { text: "Thiếu kinh nghiệm sử dụng các công cụ phân tích dữ liệu lớn như SQL hay R.", type: "negative" }
+      { textKey: "landing.aiScreening.candidate2Highlight1", type: "positive" },
+      { textKey: "landing.aiScreening.candidate2Highlight2", type: "positive" },
+      { textKey: "landing.aiScreening.candidate2Highlight3", type: "negative" }
     ]
   },
   {
     id: "3",
     name: "Phạm Minh Đức",
-    role: "UI Designer",
+    roleKey: "landing.aiScreening.candidate3Role",
     match: 62,
     culture: "6.0/10",
     status: "Failed",
     avatar: "Đ",
-    summary: "Kỹ năng thiết kế visual cơ bản tốt nhưng thiếu tư duy phân tích UX và chưa có kinh nghiệm làm việc chặt chẽ với Technical Team. Kết quả làm bài Test kỹ thuật chưa đạt yêu cầu.",
+    summaryKey: "landing.aiScreening.candidate3Summary",
     details: [
-      { label: "Visual Design", value: 75 },
-      { label: "UX Flow Design", value: 50 },
-      { label: "Làm việc nhóm", value: 65 },
-      { label: "Tech Collaboration", value: 55 }
+      { labelKey: "landing.aiScreening.candidate3Detail1", value: 75 },
+      { labelKey: "landing.aiScreening.candidate3Detail2", value: 50 },
+      { labelKey: "landing.aiScreening.candidate3Detail3", value: 65 },
+      { labelKey: "landing.aiScreening.candidate3Detail4", value: 55 }
     ],
     highlights: [
-      { text: "Sử dụng Figma thành thạo, các Layout Grid thiết kế khá sạch sẽ.", type: "positive" },
-      { text: "Chưa nắm rõ nguyên lý Responsive và chuyển đổi trạng thái giao diện phức tạp.", type: "negative" },
-      { text: "Câu trả lời về xử lý mâu thuẫn ý kiến với Dev còn chung chung, thiếu thực tế.", type: "negative" }
+      { textKey: "landing.aiScreening.candidate3Highlight1", type: "positive" },
+      { textKey: "landing.aiScreening.candidate3Highlight2", type: "negative" },
+      { textKey: "landing.aiScreening.candidate3Highlight3", type: "negative" }
     ]
   }
 ];
 
 export default function AiScreening() {
+  const { t } = useLanguage();
   const [selectedId, setSelectedId] = useState<string>("1");
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState<boolean>(false);
 
   const selectedCandidate = mockCandidates.find((c) => c.id === selectedId) || mockCandidates[0];
+  const getStatusLabel = (status: Candidate["status"]) => {
+    if (status === "Passed") return t("landing.aiScreening.statusPassed");
+    if (status === "Review") return t("landing.aiScreening.statusReview");
+    return t("landing.aiScreening.statusRejected");
+  };
 
   return (
     <section id="ai-screening" className="w-full px-6 md:px-36 py-16 lg:py-0 lg:min-h-screen lg:flex lg:items-center bg-transparent relative z-10">
@@ -107,10 +114,10 @@ export default function AiScreening() {
               {/* Dashboard Header */}
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Hiring Pipeline</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("landing.aiScreening.pipeline")}</span>
                   <h5 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                    Sàng lọc Product Team - Vòng 1
-                    <span className="text-[9px] font-medium text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full">3 Hồ sơ</span>
+                    {t("landing.aiScreening.dashboardTitle")}
+                    <span className="text-[9px] font-medium text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full">{t("landing.aiScreening.resumeCount")}</span>
                   </h5>
                 </div>
               </div>
@@ -120,7 +127,7 @@ export default function AiScreening() {
                 
                 {/* Left Pane: Candidate List */}
                 <div className={`lg:col-span-5 flex flex-col gap-2.5 lg:overflow-y-auto lg:pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isMobileDetailOpen ? 'hidden lg:flex' : 'flex'}`}>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">Danh sách ứng viên</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">{t("landing.aiScreening.candidateList")}</span>
                   <div className="flex flex-col gap-2.5">
                     {mockCandidates.map((candidate) => {
                       const isActive = candidate.id === selectedId;
@@ -145,13 +152,13 @@ export default function AiScreening() {
                             </div>
                             <div className="flex flex-col">
                               <span className={`text-xs font-bold transition-colors ${isActive ? "text-emerald-400" : "text-white group-hover/item:text-emerald-400"}`}>{candidate.name}</span>
-                              <span className="text-[10px] text-zinc-400 mt-0.5">{candidate.role}</span>
+                              <span className="text-[10px] text-zinc-400 mt-0.5">{t(candidate.roleKey)}</span>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Độ khớp</span>
+                              <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">{t("landing.aiScreening.match")}</span>
                               <span className={`text-xs font-extrabold ${isActive ? "text-emerald-400" : "text-zinc-200"}`}>{candidate.match}%</span>
                             </div>
                             <AltArrowRight className={`w-4 h-4 text-zinc-500 transition-transform ${isActive ? "translate-x-0.5 text-emerald-400" : "group-hover/item:translate-x-0.5"}`} />
@@ -172,7 +179,7 @@ export default function AiScreening() {
                       className="flex items-center gap-2 text-zinc-400 text-xs font-semibold hover:text-white"
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      Quay lại danh sách
+                      {t("landing.aiScreening.backToList")}
                     </button>
                     <span 
                       className={`text-[9px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider ${
@@ -183,7 +190,7 @@ export default function AiScreening() {
                           : "bg-zinc-800/40 text-zinc-400 border-white/5"
                       }`}
                     >
-                      {selectedCandidate.status === "Passed" ? "Passed V1" : selectedCandidate.status === "Review" ? "Review" : "Rejected"}
+                      {getStatusLabel(selectedCandidate.status)}
                     </span>
                   </div>
 
@@ -211,15 +218,15 @@ export default function AiScreening() {
                                   : "bg-zinc-800/40 text-zinc-400 border-white/5"
                               }`}
                             >
-                              {selectedCandidate.status === "Passed" ? "Passed V1" : selectedCandidate.status === "Review" ? "Review" : "Rejected"}
+                              {getStatusLabel(selectedCandidate.status)}
                             </span>
                           </div>
-                          <p className="text-[11px] text-zinc-400">{selectedCandidate.role} • Văn hóa: <span className="font-semibold text-zinc-200">{selectedCandidate.culture}</span></p>
+                          <p className="text-[11px] text-zinc-400">{t(selectedCandidate.roleKey)} • {t("landing.aiScreening.culture")}: <span className="font-semibold text-zinc-200">{selectedCandidate.culture}</span></p>
                         </div>
 
                         <div className="flex items-center gap-1.5 bg-zinc-950/40 border border-white/5 px-3 py-1.5 rounded-2xl">
                           <div className="flex flex-col">
-                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">Điểm AI</span>
+                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">{t("landing.aiScreening.aiScore")}</span>
                             <span className="text-sm font-black text-emerald-400">{selectedCandidate.match}<span className="text-zinc-500 text-[10px] font-normal">/100</span></span>
                           </div>
                         </div>
@@ -229,21 +236,21 @@ export default function AiScreening() {
                       <div className="bg-emerald-500/[0.02] border border-emerald-500/10 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden flex-shrink-0">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full" />
                         <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[10px] uppercase tracking-wider">
-                          Đánh giá tổng quan từ AI
+                          {t("landing.aiScreening.aiSummary")}
                         </div>
                         <p className="text-[11px] md:text-xs text-zinc-300 leading-relaxed font-medium">
-                          &quot;{selectedCandidate.summary}&quot;
+                          &quot;{t(selectedCandidate.summaryKey)}&quot;
                         </p>
                       </div>
 
                       {/* Score Breakdown (Metrics) */}
                       <div className="flex flex-col gap-3 flex-shrink-0">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">Chi tiết kỹ năng</span>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">{t("landing.aiScreening.skillDetails")}</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {selectedCandidate.details.map((detail, idx) => (
                             <div key={idx} className="bg-zinc-950/20 border border-white/5 rounded-xl p-3 flex flex-col gap-1.5">
                               <div className="flex justify-between items-center text-[10px]">
-                                <span className="text-zinc-400 font-medium">{detail.label}</span>
+                                <span className="text-zinc-400 font-medium">{t(detail.labelKey)}</span>
                                 <span className="font-bold text-zinc-200">{detail.value}%</span>
                               </div>
                               <Progress value={detail.value} className="h-1.5 bg-white/5" />
@@ -254,7 +261,7 @@ export default function AiScreening() {
 
                       {/* Interview Highlights / Transcription Snippets */}
                       <div className="flex flex-col gap-3 flex-shrink-0">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">Ghi nhận từ phỏng vấn</span>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">{t("landing.aiScreening.interviewNotes")}</span>
                         <div className="flex flex-col gap-2">
                           {selectedCandidate.highlights.map((highlight, idx) => (
                             <div 
@@ -276,7 +283,7 @@ export default function AiScreening() {
                                   <ClockCircle className="w-3.5 h-3.5 text-zinc-400" />
                                 )}
                               </div>
-                              <span>{highlight.text}</span>
+                              <span>{t(highlight.textKey)}</span>
                             </div>
                           ))}
                         </div>
@@ -294,12 +301,12 @@ export default function AiScreening() {
             
             {/* Header / Intro inside right column */}
             <div className="flex flex-col gap-4">
-              <span className="text-emerald-400 text-xs font-bold tracking-wider uppercase">Giải pháp doanh nghiệp</span>
+              <span className="text-emerald-400 text-xs font-bold tracking-wider uppercase">{t("landing.aiScreening.sectionEyebrow")}</span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                Tự động hóa 90% quy trình sàng lọc sơ loại
+                {t("landing.aiScreening.sectionTitle")}
               </h2>
               <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-                Giúp bộ phận HR tiết kiệm hàng chục giờ phỏng vấn thủ công. Lọc nhanh các ứng viên không đạt yêu cầu chuyên môn nhờ trợ lý AI chấm điểm tự động.
+                {t("landing.aiScreening.sectionDescription")}
               </p>
             </div>
 
@@ -311,9 +318,9 @@ export default function AiScreening() {
                   <UsersGroupRounded weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <h4 className="font-bold text-white text-base md:text-lg">Sàng lọc tự động 24/7</h4>
+                  <h4 className="font-bold text-white text-base md:text-lg">{t("landing.aiScreening.feature1Title")}</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    AI thay mặt HR thực hiện phỏng vấn sơ loại thông tin trực tiếp với hàng trăm ứng viên đồng thời qua cuộc gọi voice trực tuyến, không giới hạn khung giờ.
+                    {t("landing.aiScreening.feature1Description")}
                   </p>
                 </div>
               </div>
@@ -324,9 +331,9 @@ export default function AiScreening() {
                   <Chart weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <h4 className="font-bold text-white text-base md:text-lg">Báo cáo đánh giá chi tiết</h4>
+                  <h4 className="font-bold text-white text-base md:text-lg">{t("landing.aiScreening.feature2Title")}</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    AI trích xuất ngay báo cáo đánh giá năng lực chuyên môn, phong cách hành vi và độ tương thích văn hóa (Culture Fit) của từng ứng viên dựa trên JD.
+                    {t("landing.aiScreening.feature2Description")}
                   </p>
                 </div>
               </div>
@@ -337,9 +344,9 @@ export default function AiScreening() {
                   <ShieldCheck weight="BoldDuotone" className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <h4 className="font-bold text-white text-base md:text-lg">Chống gian lận thông minh</h4>
+                  <h4 className="font-bold text-white text-base md:text-lg">{t("landing.aiScreening.feature3Title")}</h4>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    Hệ thống AI phân tích độ trễ phản hồi, ngữ điệu đọc bài viết sẵn và phát hiện âm thanh nền lạ để đảm bảo tính trung thực của câu trả lời.
+                    {t("landing.aiScreening.feature3Description")}
                   </p>
                 </div>
               </div>

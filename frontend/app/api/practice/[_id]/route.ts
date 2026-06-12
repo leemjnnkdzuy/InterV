@@ -54,6 +54,10 @@ export async function GET(
         jobDescription: session.jobDescription,
         topic: session.topic,
         industry: session.industry,
+        language: session.language,
+        voiceId: session.voiceId,
+        difficulty: session.difficulty,
+        questionCount: session.questionCount,
         tags: session.tags || [],
         attemptCount: session.attemptCount || 0,
         highestScore: session.highestScore || 0,
@@ -101,7 +105,22 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, isCompletedRun, score, duration, feedback, ratings, questions, jobDescription, topic, industry } = body;
+    const {
+      title,
+      isCompletedRun,
+      score,
+      duration,
+      feedback,
+      ratings,
+      questions,
+      jobDescription,
+      topic,
+      industry,
+      language,
+      voiceId,
+      difficulty,
+      questionCount,
+    } = body;
 
     await connectDB();
 
@@ -157,6 +176,18 @@ export async function PUT(
       if (industry !== undefined) {
         session.industry = industry;
       }
+      if (language !== undefined) {
+        session.language = language;
+      }
+      if (voiceId !== undefined) {
+        session.voiceId = voiceId;
+      }
+      if (difficulty !== undefined) {
+        session.difficulty = difficulty;
+      }
+      if (questionCount !== undefined) {
+        session.questionCount = questionCount;
+      }
     }
 
     await session.save();
@@ -170,6 +201,10 @@ export async function PUT(
         jobDescription: session.jobDescription,
         topic: session.topic,
         industry: session.industry,
+        language: session.language,
+        voiceId: session.voiceId,
+        difficulty: session.difficulty,
+        questionCount: session.questionCount,
         tags: session.tags || [],
         attemptCount: session.attemptCount || 0,
         highestScore: session.highestScore || 0,

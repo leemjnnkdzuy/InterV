@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
-import { practiceService } from "@/app/services";
+import { aiService, practiceService } from "@/app/services";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Spinner } from "@/app/components/ui/spinner";
 import logoSrc from "@/app/assets/logo.svg";
 import ThreeWaveform from "./ThreeWaveform";
+import { useLanguage } from "@/app/hooks/useLanguage";
 import type { ChatLog, InterviewPhaseProps } from "@/app/types";
 import {
   Microphone,
@@ -30,15 +31,10 @@ const KeyboardIcon = (props: React.ComponentProps<"svg">) => (
     {...props}
   >
     <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
-    <line x1="6" y1="8" x2="6" y2="8" />
-    <line x1="10" y1="8" x2="10" y2="8" />
-    <line x1="14" y1="8" x2="14" y2="8" />
-    <line x1="18" y1="8" x2="18" y2="8" />
-    <line x1="6" y1="12" x2="6" y2="12" />
-    <line x1="10" y1="12" x2="10" y2="12" />
-    <line x1="14" y1="12" x2="14" y2="12" />
-    <line x1="18" y1="12" x2="18" y2="12" />
-    <line x1="7" y1="16" x2="17" y2="16" />
+    <line x1="7" y1="8" x2="7.01" y2="8" />
+    <line x1="11" y1="8" x2="11.01" y2="8" />
+    <line x1="15" y1="8" x2="15.01" y2="8" />
+    <line x1="17" y1="16" x2="7" y2="16" />
   </svg>
 );
 
@@ -59,14 +55,42 @@ const ExitIcon = (props: React.ComponentProps<"svg">) => (
   </svg>
 );
 
+function getMockTranscript(step: number, language: string, jobDescription: string) {
+  if (language === "en-US") {
+    if (step === 0) {
+      return "I have around three years of experience building production web applications. My strongest area is React and Next.js, especially performance optimization and component architecture.";
+    }
+    return "I would first clarify the problem, identify the measurable target, then explain the tradeoffs and validate the result with data from the project.";
+  }
+
+  if (language === "zh-CN") {
+    if (step === 0) {
+      return "我有大约三年的 Web 应用开发经验，主要优势是 React、Next.js 和前端性能优化。";
+    }
+    return "我会先明确问题和目标，再分析可行方案，并用实际数据验证最终结果。";
+  }
+
+  if (step === 1 && jobDescription.toLowerCase().includes("react")) {
+    return "Theo kinh nghiệm của tôi, React Server Components giúp giảm lượng JavaScript gửi xuống client và cải thiện hiệu năng tải trang. Tôi thường tách phần tương tác thành client component nhỏ để tối ưu bundle.";
+  }
+
+  return "Tôi có khoảng ba năm kinh nghiệm phát triển web, thế mạnh là React và Next.js. Trong dự án gần nhất, tôi đã tối ưu hiệu năng và cải thiện điểm Lighthouse từ mức trung bình lên trên 90.";
+}
+
 export default function InterviewPhase({
   practiceId,
+  runId,
+  title,
+  industry,
+  difficulty,
+  language,
+  voiceId,
   questionsList,
   jobDescription,
+  topic,
 }: InterviewPhaseProps) {
   const router = useRouter();
-
-  // Practice States
+  const { t } = useLanguage();
   const [isMicOn, setIsMicOn] = useState(true);
   const [isManualInputOpen, setIsManualInputOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -75,26 +99,39 @@ export default function InterviewPhase({
   const [qaHistory, setQaHistory] = useState<Array<{ question: string; answer: string }>>([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
-
-  // Recording Simulation states
   const [isRecording, setIsRecording] = useState(false);
   const [soundLevel, setSoundLevel] = useState(5);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const micWaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const hasStartedRef = useRef(false);
-
-  // Final evaluation processing
   const [isFinishing, setIsFinishing] = useState(false);
-  const [, setFinishMessage] = useState("");
   const [finishLog, setFinishLog] = useState<string[]>([]);
-
-  // Typing effect state for AI message
   const [typingText, setTypingText] = useState("");
+  const micWaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const hasStartedRef = useRef(false);
+  const startedAtRef = useRef<number | null>(null);
 
-  // Simulating AI speech typing out word-by-word
+  const playQuestionAudio = useCallback(
+    async (text: string) => {
+      try {
+        const data = await aiService.previewTts({
+          text: text.slice(0, 500),
+          language,
+          voiceId,
+        });
+        if (!data.audioBase64) return;
+        const audio = new Audio(`data:${data.contentType};base64,${data.audioBase64}`);
+        await audio.play();
+      } catch (error) {
+        console.warn("TTS playback skipped:", error);
+      }
+    },
+    [language, voiceId]
+  );
+
   const simulateAiSpeech = useCallback((text: string) => {
     setIsAiSpeaking(true);
     setTypingText("");
+    void playQuestionAudio(text);
     const words = text.split(" ");
     let currentWordIdx = 0;
     let accumulatedText = "";
@@ -107,26 +144,24 @@ export default function InterviewPhase({
       } else {
         window.clearInterval(timer);
         setIsAiSpeaking(false);
-        // Append completed message to logs
         setChatLogs((prev) => [
           ...prev,
           {
             sender: "ai",
-            text: text,
+            text,
             timestamp: new Date(),
             isTypingComplete: true,
           },
         ]);
         setTypingText("");
       }
-    }, 90); // 90ms per word
-  }, []);
+    }, 70);
+  }, [playQuestionAudio]);
 
-  // Simulate active voice level wave activity for both AI speech and User recording
   useEffect(() => {
     if (isRecording || isAiSpeaking) {
       micWaveIntervalRef.current = setInterval(() => {
-        setSoundLevel(Math.floor(Math.random() * 55) + 20); // 20 - 75
+        setSoundLevel(Math.floor(Math.random() * 55) + 20);
       }, 100);
       return () => {
         if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
@@ -134,101 +169,112 @@ export default function InterviewPhase({
     }
 
     if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-    const resetTimer = window.setTimeout(() => {
-      setSoundLevel(5);
-    }, 0);
-
+    const resetTimer = window.setTimeout(() => setSoundLevel(5), 0);
     return () => {
       window.clearTimeout(resetTimer);
       if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
     };
   }, [isRecording, isAiSpeaking]);
 
-  // Start interview conversation on mount
   useEffect(() => {
     if (questionsList.length > 0 && !hasStartedRef.current) {
       hasStartedRef.current = true;
+      startedAtRef.current = Date.now();
       let speechTimer: number | undefined;
       const startTimer = window.setTimeout(() => {
-      setIsAiSpeaking(true);
-      setIsAiThinking(true);
+        setIsAiSpeaking(true);
+        setIsAiThinking(true);
         speechTimer = window.setTimeout(() => {
-        setIsAiThinking(false);
-        simulateAiSpeech(questionsList[0]);
-      }, 1500);
+          setIsAiThinking(false);
+          simulateAiSpeech(questionsList[0]);
+        }, 900);
       }, 0);
 
       return () => {
         window.clearTimeout(startTimer);
-        if (speechTimer !== undefined) {
-          window.clearTimeout(speechTimer);
-        }
+        if (speechTimer !== undefined) window.clearTimeout(speechTimer);
       };
     }
   }, [questionsList, simulateAiSpeech]);
 
-  // Voice recording dictation simulator
-  const handleToggleRecording = () => {
+  const startRecording = useCallback(async () => {
     if (!isMicOn) {
-      toast.error("Vui lòng bật Microphone ở bảng điều khiển trước!");
+      toast.error(t("interview.micRequired"));
       return;
     }
 
-    if (isRecording) {
-      // Stop recording
-      setIsRecording(false);
-      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
-    } else {
-      // Start recording
-      setIsRecording(true);
-      toast.info("Đang lắng nghe giọng nói của bạn... Hãy trả lời đi!");
+    if (isRecording) return;
 
-      let answerTemplate = "";
-      if (currentStep === 0) {
-        answerTemplate = "Tôi có khoảng 3 năm kinh nghiệm phát triển Web, trong đó thế mạnh lớn nhất là ReactJS và NextJS. Tôi từng tối ưu hóa Lighthouse Performance cho một hệ thống E-commerce lớn giúp điểm số tăng từ 55 lên 92. Tôi tham gia phỏng vấn vì thấy sản phẩm của InterV có ứng dụng AI rất thú vị và phù hợp với định hướng nghề nghiệp của tôi.";
-      } else if (currentStep === 1) {
-        if (jobDescription.toLowerCase().includes("react")) {
-          answerTemplate = "Theo kinh nghiệm của tôi, React Server Components hay RSC chạy hoàn toàn trên server giúp giảm tải JS tải xuống client, cải thiện FCP rất lớn. Sự khác biệt cốt lõi là RSC không giữ state và không chạy được React hooks như useState hay useEffect. Khi cần tương tác client, tôi tách nhỏ component đó ra và đánh dấu use client để tối ưu code-splitting.";
-        } else if (jobDescription.toLowerCase().includes("marketing")) {
-          answerTemplate = "Tôi từng chạy một chiến dịch phễu tích hợp Facebook Ads dẫn về Landing Page thiết kế riêng biệt. Bằng cách A/B testing tiêu đề và màu sắc nút CTA, tôi đã cải thiện CR từ 1.8% lên 3.5%. Khi số liệu quảng cáo giảm sút, tôi ngay lập tức phân tích phễu rò rỉ và thay đổi đối tượng target.";
-        } else {
-          answerTemplate = "Trong dự án trước, chúng tôi gặp lỗi bộ nhớ quá tải trên production khi lượng user truy cập đồng thời tăng gấp 5 lần. Tôi đã sử dụng công cụ profiling của Node để tìm ra rò rỉ bộ nhớ xuất phát từ việc tạo kết nối cơ sở dữ liệu lặp lại trong vòng lặp. Tôi đã refactor và áp dụng Connection Pool để khắc phục hoàn toàn.";
-        }
-      } else {
-        answerTemplate = "Trong một dự án gần đây, Tech Lead muốn sử dụng Redux Saga để quản lý side-effect, còn tôi đề xuất Zustand vì code gọn và nhẹ hơn rất nhiều cho quy mô dự án đó. Để giải quyết, tôi đã code mẫu 2 demo nhỏ để so sánh lượng boilerplate code, bundle size và thời gian phát triển. Cuối cùng anh ấy đã đồng ý dùng Zustand vì tính thực dụng cao.";
-      }
-
-      const words = answerTemplate.split(" ");
-      let currentIdx = 0;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = recorder;
       setUserAnswer("");
+      setIsRecording(true);
+      toast.info(t("interview.recordingInfo"));
 
-      // Simulate typing transcripts word-by-word
-      recordingIntervalRef.current = setInterval(() => {
-        if (currentIdx < words.length) {
-          setUserAnswer((prev) => prev + (currentIdx === 0 ? "" : " ") + words[currentIdx]);
-          currentIdx++;
-        } else {
-          setIsRecording(false);
-          if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
-          toast.success("Đã ghi nhận câu trả lời bằng giọng nói thành công!");
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
-      }, 150); // Simulates fast continuous voice-to-text conversion
-    }
-  };
+      };
 
-  // Send answer handler
+      recorder.onstop = async () => {
+        setIsRecording(false);
+        stream.getTracks().forEach((track) => track.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        try {
+          const data = await aiService.transcribeAnswer(runId, audioBlob);
+          if (data.success && data.transcript.trim()) {
+            setUserAnswer(data.transcript.trim());
+            toast.success(t("interview.transcribeSuccess"));
+            return;
+          }
+
+          setUserAnswer(getMockTranscript(currentStep, language, jobDescription));
+          toast.warning(data.message || t("interview.sttFallback"));
+        } catch (error) {
+          console.error(error);
+          setUserAnswer(getMockTranscript(currentStep, language, jobDescription));
+          toast.warning(t("interview.sttBackendFallback"));
+        }
+      };
+
+      recorder.start();
+    } catch (error) {
+      console.error(error);
+      toast.error(t("interview.micAccessFailed"));
+    }
+  }, [isMicOn, isRecording, runId, currentStep, language, jobDescription, t]);
+
+  useEffect(() => {
+    if (
+      !isAiSpeaking &&
+      !isAiThinking &&
+      isMicOn &&
+      !isRecording &&
+      !isFinishing &&
+      !userAnswer &&
+      !isManualInputOpen &&
+      questionsList.length > 0 &&
+      hasStartedRef.current
+    ) {
+      void startRecording();
+    }
+  }, [isAiSpeaking, isAiThinking, isMicOn, isRecording, isFinishing, userAnswer, isManualInputOpen, questionsList, startRecording]);
+
   const handleSendAnswer = () => {
     if (isAiSpeaking || isAiThinking) return;
     if (!userAnswer.trim()) {
-      toast.error("Vui lòng nhập hoặc ghi âm câu trả lời trước khi gửi!");
+      toast.error(t("interview.answerRequired"));
       return;
     }
 
     const questionText = questionsList[currentStep];
     const newQa = { question: questionText, answer: userAnswer.trim() };
     setQaHistory((prev) => [...prev, newQa]);
-
-    // Push user message to chat logs
     setChatLogs((prev) => [
       ...prev,
       {
@@ -239,240 +285,159 @@ export default function InterviewPhase({
     ]);
     setUserAnswer("");
 
-    // Next step or finish
     const nextStep = currentStep + 1;
     if (nextStep < questionsList.length) {
       setCurrentStep(nextStep);
       setIsAiThinking(true);
-
-      // Simulate AI thinking delay
-      setTimeout(() => {
+      window.setTimeout(() => {
         setIsAiThinking(false);
         simulateAiSpeech(questionsList[nextStep]);
-      }, 1600);
+      }, 1000);
     } else {
-      toast.success("Bạn đã hoàn thành toàn bộ câu hỏi phỏng vấn! Hãy nộp bài để AI đánh giá kết quả.");
+      toast.success(t("interview.completedQuestions"));
     }
   };
 
-  // Submit and evaluate mock results
   const handleFinishInterview = async () => {
     try {
       setIsFinishing(true);
-      setFinishMessage("Đang tiến hành chấm điểm...");
       setFinishLog([]);
 
       const logs = [
-        "Đang phân tích cấu trúc ngữ pháp và độ mạch lạc của câu trả lời...",
-        "Đang tính toán mức độ tự tin thông qua ngữ điệu giọng nói...",
-        "Đang chấm điểm kỹ năng chuyên môn đối chiếu theo từ khóa JD tuyển dụng...",
-        "Đang tạo bảng đánh giá điểm mạnh, điểm yếu và gợi ý khắc phục chi tiết...",
-        "Đang tổng hợp điểm số kỹ năng và lưu kết quả vào máy chủ...",
+        t("interview.finishLogNormalize"),
+        t("interview.finishLogSend"),
+        t("interview.finishLogEvaluate"),
+        t("interview.finishLogSave"),
       ];
 
-      // Staged logs animation
-      for (let i = 0; i < logs.length; i++) {
-        setFinishMessage(logs[i]);
-        setFinishLog((prev) => [...prev, logs[i]]);
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+      for (const log of logs) {
+        setFinishLog((prev) => [...prev, log]);
+        await new Promise((resolve) => setTimeout(resolve, 450));
       }
 
-      // High quality mock score generation
-      const commScore = Math.floor(Math.random() * 15) + 80;
-      const knowledgeScore = Math.floor(Math.random() * 20) + 75;
-      const pbScore = Math.floor(Math.random() * 15) + 80;
-      const confidenceScore = Math.floor(Math.random() * 15) + 80;
-
-      const questionsFeedback = qaHistory.map((qa, idx) => {
-        const qScore = Math.floor(Math.random() * 15) + 80;
-        let qFeedback = "";
-
-        if (idx === 0) {
-          qFeedback = "Phần giới thiệu lưu loát, cấu trúc tốt. Bạn đã nêu bật được số năm kinh nghiệm và thế mạnh về React/Next.js. Có thể cải thiện bằng cách nói chậm rãi và rõ ràng hơn một chút.";
-        } else if (idx === 1) {
-          qFeedback = "Câu trả lời kỹ thuật cực kỳ sâu sắc, thể hiện sự hiểu biết sâu về Next.js Server Components và cơ chế bundling. Rất tốt khi đưa dẫn chứng tối ưu hóa Lighthouse cụ thể.";
-        } else {
-          qFeedback = "Thể hiện kỹ năng giải quyết xung đột bằng phương pháp chứng minh khoa học (POC). Tư duy teamwork chuyên nghiệp và tôn trọng đồng nghiệp.";
-        }
-
-        return {
-          question: qa.question,
-          answer: qa.answer,
-          feedback: qFeedback,
-          score: qScore,
-        };
-      });
-
-      // Fill in remaining empty questions if user exits early
-      for (let i = questionsFeedback.length; i < questionsList.length; i++) {
-        questionsFeedback.push({
-          question: questionsList[i],
-          answer: "(Không có câu trả lời do kết thúc sớm)",
-          feedback: "Bạn đã bỏ qua câu hỏi này. Cần trả lời đầy đủ để AI có thể đánh giá năng lực toàn diện.",
-          score: 0,
-        });
-      }
-
-      const totalScore = Math.round(questionsFeedback.reduce((acc, q) => acc + q.score, 0) / questionsList.length);
-
-      // Save results to API
-      const data = await practiceService.update(practiceId, {
-        isCompletedRun: true,
-        score: totalScore,
-        duration: `${Math.floor(Math.random() * 5) + 6} phút`,
-        feedback: "Chúc mừng bạn đã hoàn thành buổi phỏng vấn! Nhìn chung, bạn thể hiện chuyên môn vững vàng, diễn đạt lưu loát và tự tin. Hãy tiếp tục củng cố kỹ năng giải trình hệ thống ở các câu hỏi nâng cao.",
-        ratings: {
-          communication: commScore,
-          knowledge: knowledgeScore,
-          problemSolving: pbScore,
-          confidence: confidenceScore,
-        },
-        questions: questionsFeedback,
+      const startedAt = startedAtRef.current || Date.now();
+      const elapsedMinutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+      const data = await practiceService.finishInterview(runId, {
+        practiceId,
+        title,
+        industry,
+        difficulty,
+        language,
+        jobDescription,
+        topic,
+        questionsList,
+        qaHistory,
+        duration: t("interview.durationMinutes", { minutes: elapsedMinutes }),
       });
 
       if (data.success) {
-        toast.success("Đã hoàn thành buổi luyện tập và lưu kết quả!");
+        toast.success(t("interview.finishSuccess"));
         router.push("/practice");
       } else {
-        toast.error("Lỗi lưu kết quả");
+        toast.error(data.message || t("interview.saveResultError"));
         setIsFinishing(false);
       }
     } catch (err: unknown) {
       console.error(err);
-      toast.error("Lỗi kết nối máy chủ");
+      toast.error(t("interview.evaluationFailed"));
       setIsFinishing(false);
     }
   };
 
   const activeDisplayText = isAiSpeaking
     ? typingText
-    : (questionsList[currentStep] || "Đang bắt đầu buổi phỏng vấn...");
+    : questionsList[currentStep] || t("interview.starting");
 
   return (
-    <div
-      className="w-full h-full bg-background text-foreground flex flex-col justify-between overflow-hidden relative select-none"
-    >
-      
-      {/* Header bar */}
+    <div className="w-full h-full bg-background text-foreground flex flex-col justify-between overflow-hidden relative select-none">
       <header className="w-full flex items-center justify-between px-8 py-6 z-20 shrink-0">
-        
-        {/* Left corner: Logo */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div 
-              className="relative w-8 h-8 flex items-center justify-center transition-transform duration-100 ease-out"
-              style={{
-                transform: `scale(${isRecording || isAiSpeaking ? 1 + (soundLevel / 100) * 0.18 : 1})`,
-              }}
-            >
-              <Image
-                src={logoSrc}
-                alt="InterV Logo"
-                width={32}
-                height={32}
-                className="invert dark:invert-0 object-contain"
-                priority
-              />
-            </div>
-            <span className="font-logo font-bold text-2xl tracking-tight text-foreground">
-              InterV<span className="text-[var(--chart-1)]">.</span>
-            </span>
+        <div className="flex items-center gap-3">
+          <div
+            className="relative w-8 h-8 flex items-center justify-center transition-transform duration-100 ease-out"
+            style={{
+              transform: `scale(${isRecording || isAiSpeaking ? 1 + (soundLevel / 100) * 0.18 : 1})`,
+            }}
+          >
+            <Image
+              src={logoSrc}
+              alt="InterV Logo"
+              width={32}
+              height={32}
+              className="invert dark:invert-0 object-contain"
+              priority
+            />
           </div>
+          <span className="font-logo font-bold text-2xl tracking-tight text-foreground">
+            InterV<span className="text-[var(--chart-1)]">.</span>
+          </span>
         </div>
 
-        {/* Right corner: Functional Controls (No borders/padding, compact icons) */}
         <div className="flex items-center gap-5">
-          {/* Progress Indicator */}
           <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground select-none">
             <ClockCircle className="w-4 h-4 text-primary" />
             <span>
-              Câu hỏi {Math.min(currentStep + 1, questionsList.length)} / {questionsList.length}
+              {t("interview.questionProgress", {
+                current: Math.min(currentStep + 1, questionsList.length),
+                total: questionsList.length,
+              })}
             </span>
           </div>
 
-          {/* Mic toggle */}
           <button
             onClick={() => {
               setIsMicOn(!isMicOn);
               if (isMicOn && isRecording) {
-                setIsRecording(false);
-                if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+                mediaRecorderRef.current?.stop();
               }
-              toast.success(isMicOn ? "Đã tắt Microphone" : "Đã bật Microphone");
+              toast.success(isMicOn ? t("interview.micDisabled") : t("interview.micEnabled"));
             }}
             className={`p-0.5 bg-transparent border-none transition-all duration-300 cursor-pointer ${
-              isMicOn
-                ? "text-muted-foreground hover:text-foreground"
-                : "text-red-500 hover:text-red-400"
+              isMicOn ? "text-muted-foreground hover:text-foreground" : "text-red-500 hover:text-red-400"
             }`}
-            title={isMicOn ? "Tắt Microphone" : "Bật Microphone"}
+            title={isMicOn ? t("interview.turnMicOff") : t("interview.turnMicOn")}
           >
             {isMicOn ? <Microphone className="w-5 h-5" /> : <Muted className="w-5 h-5" />}
           </button>
 
-          {/* Manual Input toggle */}
-          <button
+  <button
             onClick={() => {
-              setIsManualInputOpen(!isManualInputOpen);
+              const nextState = !isManualInputOpen;
+              setIsManualInputOpen(nextState);
+              if (nextState && isRecording) {
+                mediaRecorderRef.current?.stop();
+              }
             }}
             className={`p-0.5 bg-transparent border-none transition-all duration-300 cursor-pointer ${
-              isManualInputOpen
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
+              isManualInputOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
-            title="Nhập bằng bàn phím"
+            title={t("interview.keyboardInput")}
           >
             <KeyboardIcon className="w-5 h-5" />
           </button>
 
-          {/* Record/Speak toggle button */}
-          <button
-            onClick={handleToggleRecording}
-            disabled={isAiSpeaking || isAiThinking}
-            className={`p-0.5 bg-transparent border-none transition-all duration-300 cursor-pointer ${
-              isRecording
-                ? "text-red-500 hover:text-red-400 animate-pulse"
-                : "text-muted-foreground hover:text-foreground disabled:opacity-50"
-            }`}
-            title={isRecording ? "Dừng thu âm" : "Ghi âm giọng nói"}
-          >
-            <Microphone className="w-5 h-5" />
-          </button>
-
-          {/* Send Answer button (only visible when manual answer has content) */}
           {userAnswer.trim() && (
             <button
               onClick={handleSendAnswer}
               disabled={isAiSpeaking || isAiThinking}
               className="p-0.5 bg-transparent border-none text-primary hover:text-primary/80 transition-all cursor-pointer disabled:opacity-50"
-              title="Gửi câu trả lời"
+              title={t("interview.sendAnswer")}
             >
               <SendSquare className="w-5 h-5" />
             </button>
           )}
 
-          {/* Submit Evaluation or Exit */}
-          {qaHistory.length > 0 ? (
-            <button
-              onClick={handleFinishInterview}
-              className="p-0.5 bg-transparent border-none text-emerald-500 hover:text-emerald-400 transition-all cursor-pointer"
-              title="Nộp bài & chấm điểm"
-            >
-              <MedalStar className="w-5 h-5" />
-            </button>
-          ) : (
-            <button
-              onClick={handleFinishInterview}
-              className="p-0.5 bg-transparent border-none text-red-500 hover:text-red-400 transition-all cursor-pointer"
-              title="Kết thúc sớm"
-            >
-              <ExitIcon className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={() => void handleFinishInterview()}
+            className={`p-0.5 bg-transparent border-none transition-all cursor-pointer ${
+              qaHistory.length > 0 ? "text-emerald-500 hover:text-emerald-400" : "text-red-500 hover:text-red-400"
+            }`}
+            title={qaHistory.length > 0 ? t("interview.submitAndGrade") : t("interview.finishEarly")}
+          >
+            {qaHistory.length > 0 ? <MedalStar className="w-5 h-5" /> : <ExitIcon className="w-5 h-5" />}
+          </button>
         </div>
       </header>
 
-      {/* Center Console: Large glowing text */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 max-w-4xl mx-auto text-center z-10 w-full relative">
         {isAiThinking ? (
           <div className="flex flex-col items-center gap-4 animate-pulse">
@@ -481,48 +446,86 @@ export default function InterviewPhase({
               <Spinner className="w-10 h-10 text-primary animate-spin" />
             </div>
             <p className="text-xs font-black tracking-widest text-primary uppercase">
-              AI đang phân tích câu trả lời...
+              {t("interview.aiPreparing")}
             </p>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Displayed question */}
             <h1 className="text-xl md:text-2xl lg:text-3xl font-medium tracking-wide leading-relaxed text-foreground max-w-3xl mx-auto select-text selection:bg-primary/20 duration-500 transition-all font-question">
               {activeDisplayText}
             </h1>
 
-            {/* Live user transcript text underneath the question */}
-            {userAnswer && (
-              <div className="pt-8 border-t border-border/40 animate-in fade-in duration-500 max-w-2xl mx-auto">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 select-none">
-                  {isRecording ? "Đang thu âm..." : "Bản ghi câu trả lời của bạn:"}
-                </p>
-                <p className="text-sm md:text-base font-medium text-indigo-600 dark:text-indigo-300 italic leading-relaxed select-text">
-                  &quot;{userAnswer}&quot;
-                </p>
+            {isRecording && (
+              <div className="pt-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center gap-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-500 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  <span>{t("interview.recording")}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    mediaRecorderRef.current?.stop();
+                  }}
+                  className="rounded-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold text-xs tracking-wider shadow-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase"
+                >
+                  {t("interview.doneAnswering") || "Hoàn thành câu trả lời"}
+                </button>
+              </div>
+            )}
+
+            {userAnswer && !isRecording && !isManualInputOpen && (
+              <div className="pt-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center gap-4 w-full">
+                <div className="pt-6 border-t border-border/40 max-w-2xl mx-auto w-full">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 select-none">
+                    {t("interview.answerTranscript")}
+                  </p>
+                  <p className="text-sm md:text-base font-medium text-indigo-600 dark:text-indigo-300 italic leading-relaxed select-text">
+                    &quot;{userAnswer}&quot;
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserAnswer("");
+                    }}
+                    className="rounded-full px-5 py-2.5 bg-muted hover:bg-muted/80 text-muted-foreground font-bold text-xs transition-all duration-200 cursor-pointer"
+                  >
+                    {t("interview.reRecord") || "Thu âm lại"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendAnswer}
+                    disabled={isAiSpeaking || isAiThinking}
+                    className="rounded-full px-6 py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground font-black text-xs tracking-wider shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <SendSquare className="w-4 h-4" />
+                    <span>{t("interview.sendAnswer")}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Sliding Glassmorphic Manual Input Panel */}
       {isManualInputOpen && (
         <div className="w-full max-w-2xl mx-auto px-4 z-20 animate-in slide-in-from-bottom duration-300 mb-4 text-left">
           <div className="bg-card/90 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                Nhập câu trả lời bằng tay
+                {t("interview.manualInputTitle")}
               </span>
               <button
                 onClick={() => setIsManualInputOpen(false)}
                 className="text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
-                Đóng
+                {t("interview.close")}
               </button>
             </div>
             <Textarea
-              placeholder="Nhập câu trả lời của bạn tại đây..."
+              placeholder={t("interview.answerPlaceholder")}
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               disabled={isRecording || isAiSpeaking || isAiThinking}
@@ -532,10 +535,8 @@ export default function InterviewPhase({
         </div>
       )}
 
-      {/* Voice Waveform Visualizer at the bottom */}
       <ThreeWaveform soundLevel={soundLevel} isActive={isRecording || isAiSpeaking} />
 
-      {/* Holographic Loader Overlay when AI compiles analysis */}
       {isFinishing && (
         <div className="fixed inset-0 bg-background/95 backdrop-blur-xl z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
           <div className="flex flex-col items-center gap-6 text-center max-w-md px-6 select-none">
@@ -543,10 +544,13 @@ export default function InterviewPhase({
               <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-75" />
               <Spinner className="w-12 h-12 text-primary" />
             </div>
-            <h3 className="text-lg font-black text-foreground uppercase tracking-wider">AI Đang Tổng Hợp Kết Quả</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Vui lòng giữ kết nối. Hệ thống AI đang tổng hợp các khía cạnh phỏng vấn của bạn...</p>
+            <h3 className="text-lg font-black text-foreground uppercase tracking-wider">
+              {t("interview.finishingTitle")}
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t("interview.finishingDescription")}
+            </p>
 
-            {/* Terminal-like logging display */}
             <div className="w-full bg-muted/50 border border-border p-4 rounded-2xl text-left font-mono text-[9px] text-emerald-600 dark:text-emerald-400 space-y-1.5 max-h-[140px] overflow-y-auto no-scrollbar shadow-inner">
               {finishLog.map((log, idx) => (
                 <div key={idx} className="flex items-start gap-1.5 animate-in fade-in duration-200">

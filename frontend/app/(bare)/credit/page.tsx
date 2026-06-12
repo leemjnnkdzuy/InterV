@@ -10,10 +10,12 @@ import RechargeCreditPage from "@/app/pages/RechargeCreditPage";
 import api from "@/app/lib/Client";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/app/hooks/useLanguage";
 import type { CreditHistoryResponse, CreditLogItem, CreditTransactionItem } from "@/app/types";
 
 export default function CreditPageRoute() {
   const { refreshUser } = useAuthContext();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("balance");
   const [creditLogs, setCreditLogs] = useState<CreditLogItem[]>([]);
   const [transactions, setTransactions] = useState<CreditTransactionItem[]>([]);
@@ -52,35 +54,35 @@ export default function CreditPageRoute() {
       if (status === "success" && orderCode) {
         const verifyPayment = async () => {
           try {
-            toast.loading("Đang xác minh giao dịch thanh toán...", { id: "verify-payment" });
+            toast.loading(t("credit.verifyingPayment"), { id: "verify-payment" });
             const response = await api.post("/payment/verify", {
               orderCode: Number(orderCode),
               mock: mock === "true",
             });
             if (response.data.success && response.data.status === "PAID") {
-              toast.success("Thanh toán thành công! Credits đã được cộng vào tài khoản của bạn.", {
+              toast.success(t("credit.paymentSuccess"), {
                 id: "verify-payment",
               });
               await refreshUser();
               fetchHistory();
             } else {
-              toast.error("Xác minh thanh toán thất bại. Vui lòng liên hệ bộ phận hỗ trợ.", {
+              toast.error(t("credit.paymentVerifyFailed"), {
                 id: "verify-payment",
               });
             }
           } catch {
-            toast.error("Lỗi xác minh thanh toán.", { id: "verify-payment" });
+            toast.error(t("credit.paymentVerifyError"), { id: "verify-payment" });
           } finally {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
         };
         verifyPayment();
       } else if (status === "cancel") {
-        toast.error("Giao dịch thanh toán đã bị hủy bỏ.");
+        toast.error(t("credit.paymentCancelled"));
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-  }, [fetchHistory, refreshUser]);
+  }, [fetchHistory, refreshUser, t]);
 
   const renderContent = () => {
     switch (activeTab) {

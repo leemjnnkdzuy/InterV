@@ -11,6 +11,8 @@ interface LeanCreditLog {
   credits: number;
   action: ICreditLog["action"];
   description?: string;
+  referenceId?: string;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
@@ -60,6 +62,8 @@ export async function GET(request: NextRequest) {
         credits: log.credits,
         action: log.action,
         description: log.description,
+        referenceId: log.referenceId,
+        metadata: log.metadata,
         createdAt: log.createdAt,
       })),
       transactions: transactions.map((tx) => ({

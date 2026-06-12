@@ -77,16 +77,16 @@ export default function RootLayout({
 				/>
 			</head>
 			<body className='min-h-full flex flex-col'>
-				<AuthProvider>
-					<ThemeProvider>
-						<LanguageProvider>
+				<ThemeProvider>
+					<LanguageProvider>
+						<AuthProvider>
 							<TooltipProvider>
 								{children}
 								<Toaster />
 							</TooltipProvider>
-						</LanguageProvider>
-					</ThemeProvider>
-				</AuthProvider>
+						</AuthProvider>
+					</LanguageProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);

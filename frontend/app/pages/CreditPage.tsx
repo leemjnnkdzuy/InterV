@@ -8,10 +8,13 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import RechargeDrawer from "@/app/components/common/Drawer/RechargeDrawer";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import type { CreditPageProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function CreditPage({ setActiveTab, creditLogs, transactions, isLoading }: CreditPageProps) {
   const { user } = useAuthContext();
+  const { language, t } = useLanguage();
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
+  const numberLocale = language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
 
   const totalRechargedVND = transactions
     .filter((tx) => tx.status === "PAID")
@@ -24,9 +27,9 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
   return (
     <div className="space-y-8 w-full text-left">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Số dư ví</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("credit.walletTitle")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Quản lý số dư, xem chi tiết hạn mức và các dịch vụ AI phỏng vấn của bạn.
+          {t("credit.walletDescription")}
         </p>
       </div>
 
@@ -39,13 +42,13 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
 
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Số dư khả dụng</p>
+              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">{t("credit.availableBalance")}</p>
               <div className="flex items-center gap-1.5 mt-2">
                 {isLoading ? (
                   <Skeleton className="h-9 w-24 bg-white/20" />
                 ) : (
                   <span className="text-4xl font-extrabold tracking-tight">
-                    {user?.credits !== undefined ? user.credits.toLocaleString("vi-VN") : "0"}
+                    {user?.credits !== undefined ? user.credits.toLocaleString(numberLocale) : "0"}
                   </span>
                 )}
                 <span className="text-4xl font-extrabold tracking-tight">Credits</span>
@@ -60,13 +63,13 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
               className="border border-white/20 text-white hover:bg-white/10 hover:text-white rounded-2xl px-5 py-2.5 text-xs font-semibold cursor-pointer flex-1 transition-all"
               onClick={() => setActiveTab("used")}
             >
-              Xem lịch sử sử dụng
+              {t("credit.viewUsageHistory")}
             </Button>
             <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-primary/10 cursor-pointer flex-1"
               onClick={() => setIsRechargeOpen(true)}
             >
-              Nạp tiền ngay
+              {t("credit.rechargeNow")}
             </Button>
           </div>
         </div>
@@ -77,13 +80,13 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
             <div className="flex items-center gap-3.5">
               <WalletMoney weight="BoldDuotone" className="w-6 h-6 text-green-400 shrink-0" />
               <div>
-                <p className="text-xs text-muted-foreground">Tổng nạp</p>
+                <p className="text-xs text-muted-foreground">{t("credit.totalRecharged")}</p>
                 <div className="mt-0.5">
                   {isLoading ? (
                     <Skeleton className="h-6 w-20 bg-zinc-800" />
                   ) : (
                     <p className="text-base font-bold text-foreground">
-                      {`${totalRechargedVND.toLocaleString("vi-VN")} đ`}
+                      {`${totalRechargedVND.toLocaleString(numberLocale)} đ`}
                     </p>
                   )}
                 </div>
@@ -94,13 +97,13 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
             <div className="flex items-center gap-3.5">
               <Chart weight="BoldDuotone" className="w-6 h-6 text-orange-400 shrink-0" />
               <div>
-                <p className="text-xs text-muted-foreground">Đã sử dụng</p>
+                <p className="text-xs text-muted-foreground">{t("credit.used")}</p>
                 <div className="mt-0.5">
                   {isLoading ? (
                     <Skeleton className="h-6 w-20 bg-zinc-800" />
                   ) : (
                     <p className="text-base font-bold text-foreground">
-                      {`${totalUsedCredits.toLocaleString("vi-VN")} Credits`}
+                      {`${totalUsedCredits.toLocaleString(numberLocale)} Credits`}
                     </p>
                   )}
                 </div>
@@ -116,12 +119,12 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
         <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">        
           <div className="flex items-center gap-2">
             <ShieldCheck weight="BoldDuotone" className="w-5 h-5 text-primary shrink-0" />
-            <p className="font-bold text-foreground text-sm">Một số lưu ý quan trọng:</p>
+            <p className="font-bold text-foreground text-sm">{t("credit.notesTitle")}</p>
           </div>
           <ul className="list-disc pl-4 space-y-1 mt-1">
-            <li>Số tiền đã nạp không thể quy đổi ngược lại thành tiền mặt trong mọi trường hợp.</li>
-            <li>Mỗi lượt phỏng vấn bị gián đoạn do lỗi kết nối từ phía máy chủ sẽ được hoàn trả 100% chi phí.</li>
-            <li>Hỗ trợ khách hàng 24/7 qua mục liên hệ hoặc email hỗ trợ: support@interv.vn.</li>
+            <li>{t("credit.noteNoRefund")}</li>
+            <li>{t("credit.noteRefund")}</li>
+            <li>{t("credit.noteSupport")}</li>
           </ul>
         </div>
       </CardUI>

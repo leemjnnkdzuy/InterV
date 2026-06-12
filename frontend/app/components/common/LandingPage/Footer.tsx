@@ -5,8 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import logoSrc from "@/app/assets/logo.svg";
 import { ArrowRightUp } from "@solar-icons/react";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function Footer() {
+  const { t } = useLanguage();
+  const year = new Date().getFullYear();
+
   return (
     <footer className="w-full bg-zinc-950/70 backdrop-blur-md border-t border-white/5 py-16 px-12 md:px-36 relative z-10">
       <div className="w-full flex flex-col gap-12">
@@ -30,7 +34,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-zinc-400 text-sm leading-relaxed mt-2">
-              Nền tảng luyện tập phỏng vấn và đánh giá ứng viên thế hệ mới bằng trí tuệ nhân tạo. Đồng hành cùng ứng viên bứt phá sự nghiệp và giúp doanh nghiệp tìm kiếm nhân tài tối ưu nhất.
+              {t("landing.footer.description")}
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-4 mt-4">
@@ -78,28 +82,28 @@ export default function Footer() {
 
           {/* Links Column 1: Candidates */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">Dành cho Ứng viên</h4>
+            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.candidatesTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
-                  Luyện tập với AI
+                  {t("landing.footer.candidateLink1")}
                   <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
-                  Đánh giá CV miễn phí
+                  {t("landing.footer.candidateLink2")}
                   <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Ngân hàng câu hỏi
+                  {t("landing.footer.candidateLink3")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Lịch sử luyện tập
+                  {t("landing.footer.candidateLink4")}
                 </Link>
               </li>
             </ul>
@@ -107,27 +111,27 @@ export default function Footer() {
 
           {/* Links Column 2: Employers */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">Dành cho Doanh nghiệp</h4>
+            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.employersTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group">
-                  Giải pháp tuyển dụng
+                  {t("landing.footer.employerLink1")}
                   <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Tự động hóa phỏng vấn
+                  {t("landing.footer.employerLink2")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Đánh giá & Xếp hạng
+                  {t("landing.footer.employerLink3")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Bảng giá B2B
+                  {t("landing.footer.employerLink4")}
                 </Link>
               </li>
             </ul>
@@ -135,26 +139,26 @@ export default function Footer() {
 
           {/* Links Column 3: Legal & Resources */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">Tài nguyên & Pháp lý</h4>
+            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.resourcesTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Blog & Chia sẻ
+                  {t("landing.footer.resourceLink1")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Điều khoản dịch vụ
+                  {t("landing.footer.resourceLink2")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Chính sách bảo mật
+                  {t("landing.footer.resourceLink3")}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  Liên hệ hỗ trợ
+                  {t("landing.footer.resourceLink4")}
                 </Link>
               </li>
             </ul>
@@ -167,11 +171,11 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-          <span>&copy; {new Date().getFullYear()} InterV. All rights reserved.</span>
+          <span>{t("landing.footer.copyright", { year })}</span>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Tất cả hệ thống hoạt động bình thường
+              {t("landing.footer.systemStatus")}
             </span>
           </div>
         </div>

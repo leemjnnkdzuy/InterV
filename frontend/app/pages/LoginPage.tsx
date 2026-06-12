@@ -9,10 +9,12 @@ import { useRouter } from "next/navigation";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, loading } = useAuthContext();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -29,7 +31,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!identifier || !password) {
-      toast.error("Vui lòng điền đầy đủ thông tin đăng nhập");
+      toast.error(t("auth.loginRequiredFields"));
       return;
     }
 
@@ -39,10 +41,10 @@ export default function LoginPage() {
       if (res.success) {
         router.push("/");
       } else {
-        toast.error(res.message || "Tên đăng nhập/Email hoặc mật khẩu không chính xác");
+        toast.error(res.message || t("auth.invalidLogin"));
       }
     } catch {
-      toast.error("Đã xảy ra lỗi khi kết nối với máy chủ");
+      toast.error(t("auth.serverError"));
     } finally {
       setIsLoading(false);
     }
@@ -75,12 +77,12 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
-        <h1 className="text-3xl font-extrabold text-center">Đăng nhập</h1>
-        <p className="text-sm text-zinc-400 text-center mt-2">Chào mừng bạn quay trở lại</p>
+        <h1 className="text-3xl font-extrabold text-center">{t("auth.loginTitle")}</h1>
+        <p className="text-sm text-zinc-400 text-center mt-2">{t("auth.loginSubtitle")}</p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-          <label className="text-xs text-zinc-400">Email hoặc Username</label>
+          <label className="text-xs text-zinc-400">{t("auth.identifierLabel")}</label>
           <Input
-            placeholder="Nhập email hoặc username..."
+            placeholder={t("auth.identifierPlaceholder")}
             aria-label="email-or-username"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
@@ -88,10 +90,10 @@ export default function LoginPage() {
             disabled={isLoading}
           />
 
-          <label className="text-xs text-zinc-400">Mật khẩu</label>
+          <label className="text-xs text-zinc-400">{t("auth.passwordLabel")}</label>
           <Input
             type="password"
-            placeholder="Nhập mật khẩu..."
+            placeholder={t("auth.passwordPlaceholder")}
             aria-label="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -107,7 +109,7 @@ export default function LoginPage() {
                 className="w-4 h-4"
                 disabled={isLoading}
               />
-              <span>Lưu đăng nhập</span>
+              <span>{t("auth.remember")}</span>
             </label>
             <button
               type="button"
@@ -115,7 +117,7 @@ export default function LoginPage() {
               className="text-amber-400 cursor-pointer hover:underline"
               disabled={isLoading}
             >
-              Quên mật khẩu?
+              {t("auth.forgotPassword")}
             </button>
           </div>
 
@@ -127,10 +129,10 @@ export default function LoginPage() {
             {isLoading ? (
               <>
                 <Spinner />
-                Đang đăng nhập...
+                {t("auth.loggingIn")}
               </>
             ) : (
-              "Đăng nhập"
+              t("auth.loginButton")
             )}
           </Button>
         </form>
@@ -138,7 +140,7 @@ export default function LoginPage() {
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-3 text-xs text-zinc-400">
             <span className="h-px flex-1 bg-white/10" />
-            <span>hoặc</span>
+            <span>{t("auth.or")}</span>
             <span className="h-px flex-1 bg-white/10" />
           </div>
           <Button
@@ -170,13 +172,13 @@ export default function LoginPage() {
         </div>
 
         <p className="text-sm text-zinc-400 text-center mt-6">
-          Chưa có tài khoản?{" "}
+          {t("auth.noAccount")}{" "}
           <button
             onClick={() => router.push("/register")}
             className="text-white font-bold cursor-pointer hover:underline"
             disabled={isLoading}
           >
-            Đăng ký
+            {t("auth.registerLink")}
           </button>
         </p>
       </div>

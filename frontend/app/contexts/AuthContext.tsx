@@ -13,21 +13,23 @@ import api from "@/app/lib/Client";
 import { getErrorMessage } from "@/app/lib/Utils";
 import { toast } from "sonner";
 import AppLoadingScreen from "@/app/components/common/AppLoadingScreen";
+import { useLanguage } from "@/app/hooks/useLanguage";
 import type { User, AuthContextType } from "@/app/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const handleSessionRevoked = useCallback(() => {
     setUser(null);
     localStorage.removeItem("interv_auth_status");
-    toast.warning("Phiên đăng nhập đã bị đăng xuất hoặc hết hạn.");
+    toast.warning(t("auth.sessionExpired"));
     router.push("/login");
-  }, [router]);
+  }, [router, t]);
 
   const fetchUser = useCallback(async () => {
     const hasAuth = localStorage.getItem("interv_auth_status");
@@ -82,17 +84,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           return {
             success: false,
-            message: response.data.message || "Đăng nhập thất bại",
+            message: response.data.message || t("auth.loginFailed"),
           };
         }
       } catch (error: unknown) {
         return {
           success: false,
-          message: getErrorMessage(error, "Đăng nhập thất bại"),
+          message: getErrorMessage(error, t("auth.loginFailed")),
         };
       }
     },
-    []
+    [t]
   );
 
   const logout = useCallback(async () => {

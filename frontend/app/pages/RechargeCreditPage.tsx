@@ -3,26 +3,30 @@
 import { formatCurrency, formatDate } from "@/app/lib/Utils";
 import { Card } from "@/app/components/ui/card";
 import type { RechargeCreditPageProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function RechargeCreditPage({ transactions, isLoading }: RechargeCreditPageProps) {
+  const { language, t } = useLanguage();
+  const numberLocale = language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PAID":
         return (
           <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
-            Thành công
+            {t("credit.statusPaid")}
           </span>
         );
       case "PENDING":
         return (
           <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-500/10 text-amber-500 border border-amber-500/10">
-            Chờ thanh toán
+            {t("credit.statusPending")}
           </span>
         );
       case "CANCELLED":
         return (
           <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-red-500/10 text-red-500 border border-red-500/10">
-            Đã hủy
+            {t("credit.statusCancelled")}
           </span>
         );
       default:
@@ -37,9 +41,9 @@ export default function RechargeCreditPage({ transactions, isLoading }: Recharge
   return (
     <div className="space-y-8 w-full text-left">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Nạp tiền & Lịch sử nạp</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("credit.rechargeHistoryTitle")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Nạp tiền vào ví qua chuyển khoản ngân hàng hoặc cổng PayOS trực tuyến để tiếp tục luyện phỏng vấn AI.
+          {t("credit.rechargeHistoryDescription")}
         </p>
       </div>
 
@@ -50,25 +54,25 @@ export default function RechargeCreditPage({ transactions, isLoading }: Recharge
             <table className="w-full text-sm text-left border-collapse">
               <thead>
                 <tr className="border-b border-border/10 text-muted-foreground font-semibold text-xs uppercase tracking-wider">
-                  <th className="px-6 py-4">Mã đơn hàng</th>
-                  <th className="px-6 py-4">Hình thức</th>
-                  <th className="px-6 py-4">Thời gian nạp</th>
-                  <th className="px-6 py-4 text-right">Số tiền</th>
-                  <th className="px-6 py-4 text-right">Credits nhận</th>
-                  <th className="px-6 py-4 text-center">Trạng thái</th>
+                  <th className="px-6 py-4">{t("credit.orderCode")}</th>
+                  <th className="px-6 py-4">{t("credit.method")}</th>
+                  <th className="px-6 py-4">{t("credit.rechargeTime")}</th>
+                  <th className="px-6 py-4 text-right">{t("credit.amount")}</th>
+                  <th className="px-6 py-4 text-right">{t("credit.receivedCredits")}</th>
+                  <th className="px-6 py-4 text-center">{t("credit.status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/10 font-medium">
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
-                      Đang tải lịch sử nạp tiền...
+                      {t("credit.loadingRechargeHistory")}
                     </td>
                   </tr>
                 ) : transactions.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
-                      Chưa có lịch sử nạp tiền nào.
+                      {t("credit.emptyRechargeHistory")}
                     </td>
                   </tr>
                 ) : (
@@ -78,16 +82,16 @@ export default function RechargeCreditPage({ transactions, isLoading }: Recharge
                         #{item.orderCode}
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {item.amount === 0 ? "Quà tặng hệ thống" : "Thanh toán PayOS"}
+                        {item.amount === 0 ? t("credit.systemGift") : t("credit.payosPayment")}
                       </td>
                       <td className="px-6 py-4 text-xs text-muted-foreground">
                         {formatDate(item.createdAt)}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-foreground text-xs">
-                        {item.amount === 0 ? "Miễn phí" : formatCurrency(item.amount)}
+                        {item.amount === 0 ? t("credit.free") : formatCurrency(item.amount)}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-green-500">
-                        +{item.credits.toLocaleString("vi-VN")} Credits
+                        +{item.credits.toLocaleString(numberLocale)} Credits
                       </td>
                       <td className="px-6 py-4 text-center">
                         {getStatusBadge(item.status)}

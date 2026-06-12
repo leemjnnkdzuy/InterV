@@ -6,6 +6,10 @@ export interface IPracticeSession extends Document {
   jobDescription?: string;
   topic?: string;
   industry?: string;
+  language?: string;
+  voiceId?: string;
+  difficulty?: string;
+  questionCount?: number;
   tags?: string[];
   attemptCount: number;
   highestScore: number;
@@ -15,10 +19,11 @@ export interface IPracticeSession extends Document {
     feedback: string;
     ratings: {
       communication: number;
-      knowledge: number;
-      problemSolving: number;
-      confidence: number;
-    };
+        knowledge: number;
+        problemSolving: number;
+        confidence: number;
+        jdFit?: number;
+      };
     questions: Array<{
       question: string;
       answer: string;

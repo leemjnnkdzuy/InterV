@@ -21,6 +21,7 @@ import {
 } from "@solar-icons/react";
 import { Check, Clock } from "lucide-react";
 import type { ResultPracticeDrawerProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function ResultPracticeDrawer({
   isOpen,
@@ -28,6 +29,7 @@ export default function ResultPracticeDrawer({
   title,
   resultData,
 }: ResultPracticeDrawerProps) {
+  const { language, t } = useLanguage();
   if (!resultData) return null;
 
   const { score, duration, feedback, ratings, questions, createdAt } = resultData;
@@ -38,17 +40,21 @@ export default function ResultPracticeDrawer({
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   const getRatingTier = (val: number) => {
-    if (val >= 90) return { label: "Xuất sắc", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
-    if (val >= 80) return { label: "Rất tốt", color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" };
-    if (val >= 65) return { label: "Khá", color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" };
-    return { label: "Cần cải thiện", color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" };
+    if (val >= 90) return { label: t("resultDrawer.excellent"), color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
+    if (val >= 80) return { label: t("resultDrawer.veryGood"), color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" };
+    if (val >= 65) return { label: t("resultDrawer.good"), color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" };
+    return { label: t("resultDrawer.needsImprovement"), color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" };
   };
 
   const tier = getRatingTier(score);
 
   const formatDateTime = (dateVal: string | Date) => {
     const d = new Date(dateVal);
-    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()} lúc ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+    const locale = language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
+    return t("resultDrawer.dateAt", {
+      date: d.toLocaleDateString(locale),
+      time: d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }),
+    });
   };
 
   return (
@@ -62,16 +68,16 @@ export default function ResultPracticeDrawer({
               <div>
                 <DrawerTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
                   <MedalStar className="w-6 h-6 text-primary" />
-                  Báo cáo kết quả phỏng vấn AI
+                  {t("resultDrawer.title")}
                 </DrawerTitle>
                 <DrawerDescription className="text-xs text-muted-foreground mt-1">
-                  {title} • Đã thực hiện ngày {formatDateTime(createdAt)}
+                  {t("resultDrawer.performedAt", { title, date: formatDateTime(createdAt) })}
                 </DrawerDescription>
               </div>
               <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground bg-card/40 border border-border/20 rounded-2xl px-4 py-2 w-fit">
                 <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" />{duration}</span>
                 <span className="h-3 w-px bg-border/40" />
-                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />{questions?.length || 0} câu hỏi</span>
+                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />{t("resultDrawer.questionCount", { count: questions?.length || 0 })}</span>
               </div>
             </div>
           </DrawerHeader>
@@ -81,7 +87,7 @@ export default function ResultPracticeDrawer({
             
             {/* Left Box: Score Ring & Sub-Scores */}
             <div className="md:col-span-4 flex flex-col items-center justify-center p-6 border border-border/20 rounded-3xl bg-card/25 backdrop-blur-sm shadow-sm">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Điểm tổng quát</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">{t("resultDrawer.overallScore")}</span>
               
               <div className="relative w-36 h-36 flex items-center justify-center">
                 {/* SVG Progress Circle */}
@@ -110,7 +116,7 @@ export default function ResultPracticeDrawer({
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center">
                   <span className="text-3xl font-black text-foreground tracking-tight">{score}</span>
-                  <span className="text-[10px] text-muted-foreground font-semibold">trên 100</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold">{t("resultDrawer.outOf100")}</span>
                 </div>
               </div>
 
@@ -124,13 +130,13 @@ export default function ResultPracticeDrawer({
               
               {/* Ratings progress */}
               <div className="space-y-3.5">
-                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Đánh giá các khía cạnh</h4>
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("resultDrawer.aspectRatings")}</h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Communication */}
                   <div className="space-y-1.5 p-3 rounded-2xl bg-card/15 border border-border/10">
                     <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                      <span className="flex items-center gap-1.5"><ChatRound className="w-3.5 h-3.5 text-blue-500" /> Giao tiếp & Ứng xử</span>
+                      <span className="flex items-center gap-1.5"><ChatRound className="w-3.5 h-3.5 text-blue-500" /> {t("resultDrawer.communication")}</span>
                       <span className="font-bold">{ratings.communication}/100</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -141,7 +147,7 @@ export default function ResultPracticeDrawer({
                   {/* Technical Knowledge */}
                   <div className="space-y-1.5 p-3 rounded-2xl bg-card/15 border border-border/10">
                     <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                      <span className="flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-purple-500" /> Kiến thức chuyên môn</span>
+                      <span className="flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-purple-500" /> {t("resultDrawer.knowledge")}</span>
                       <span className="font-bold">{ratings.knowledge}/100</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -152,7 +158,7 @@ export default function ResultPracticeDrawer({
                   {/* Problem Solving */}
                   <div className="space-y-1.5 p-3 rounded-2xl bg-card/15 border border-border/10">
                     <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                      <span className="flex items-center gap-1.5"><Lightning className="w-3.5 h-3.5 text-amber-500" /> Giải quyết vấn đề</span>
+                      <span className="flex items-center gap-1.5"><Lightning className="w-3.5 h-3.5 text-amber-500" /> {t("resultDrawer.problemSolving")}</span>
                       <span className="font-bold">{ratings.problemSolving}/100</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -163,7 +169,7 @@ export default function ResultPracticeDrawer({
                   {/* Confidence */}
                   <div className="space-y-1.5 p-3 rounded-2xl bg-card/15 border border-border/10">
                     <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                      <span className="flex items-center gap-1.5"><Stars className="w-3.5 h-3.5 text-emerald-500" /> Sự tự tin</span>
+                      <span className="flex items-center gap-1.5"><Stars className="w-3.5 h-3.5 text-emerald-500" /> {t("resultDrawer.confidence")}</span>
                       <span className="font-bold">{ratings.confidence}/100</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -178,7 +184,7 @@ export default function ResultPracticeDrawer({
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -z-10" />
                 <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Pulse className="w-4 h-4" />
-                  Đánh giá chung của AI
+                  {t("resultDrawer.aiGeneralFeedback")}
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                   {feedback}
@@ -190,7 +196,7 @@ export default function ResultPracticeDrawer({
 
           {/* Details Q&A Accordion/List */}
           <div className="mt-2 text-left space-y-4">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Chi tiết các câu hỏi & Trả lời</h4>
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("resultDrawer.qaDetails")}</h4>
             
             <div className="space-y-4">
               {questions && questions.map((q, idx) => {
@@ -200,11 +206,11 @@ export default function ResultPracticeDrawer({
                     {/* Collapsible header styling */}
                     <div className="p-4 bg-muted/10 border-b border-border/10 flex items-start justify-between gap-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-extrabold text-primary uppercase">Câu hỏi {idx + 1}</span>
+                        <span className="text-[10px] font-extrabold text-primary uppercase">{t("resultDrawer.questionNumber", { number: idx + 1 })}</span>
                         <h5 className="text-xs font-bold text-foreground leading-snug">{q.question}</h5>
                       </div>
                       <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${qTier.bg} ${qTier.color} ${qTier.border}`}>
-                        {q.score} điểm
+                        {t("resultDrawer.points", { score: q.score })}
                       </div>
                     </div>
                     
@@ -212,15 +218,15 @@ export default function ResultPracticeDrawer({
                     <div className="p-4 space-y-3.5 text-xs">
                       {/* User's Answer */}
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Câu trả lời của bạn:</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{t("resultDrawer.yourAnswer")}</span>
                         <div className="p-3 bg-muted/20 border border-border/5 rounded-2xl text-muted-foreground font-medium italic">
-                          &quot;{q.answer || "Không có câu trả lời."}&quot;
+                          &quot;{q.answer || t("resultDrawer.noAnswer")}&quot;
                         </div>
                       </div>
 
                       {/* AI Feedback */}
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-primary uppercase">Phân tích & Đánh giá từ AI:</span>
+                        <span className="text-[10px] font-bold text-primary uppercase">{t("resultDrawer.aiFeedback")}</span>
                         <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl text-foreground font-medium">
                           {q.feedback}
                         </div>
@@ -236,7 +242,7 @@ export default function ResultPracticeDrawer({
           <DrawerFooter className="px-0 pt-6 mt-4 border-t border-border/20 flex flex-row gap-3">
             <DrawerClose asChild>
               <Button variant="outline" className="flex-1 rounded-2xl py-5 text-xs font-semibold cursor-pointer">
-                Đóng báo cáo
+                {t("resultDrawer.close")}
               </Button>
             </DrawerClose>
           </DrawerFooter>

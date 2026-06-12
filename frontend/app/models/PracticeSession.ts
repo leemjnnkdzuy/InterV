@@ -25,6 +25,22 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
       type: String,
       default: "Công nghệ thông tin",
     },
+    language: {
+      type: String,
+      default: "vi-VN",
+    },
+    voiceId: {
+      type: String,
+      default: "vi-VN-HoaiMyNeural",
+    },
+    difficulty: {
+      type: String,
+      default: "Middle",
+    },
+    questionCount: {
+      type: Number,
+      default: 3,
+    },
     tags: {
       type: [String],
       default: [],
@@ -47,6 +63,7 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
           knowledge: { type: Number, required: true },
           problemSolving: { type: Number, required: true },
           confidence: { type: Number, required: true },
+          jdFit: { type: Number, required: false },
         },
         questions: {
           type: [

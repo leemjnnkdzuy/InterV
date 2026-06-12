@@ -124,19 +124,19 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
           {
             id: "balance",
             title: t("sidebar.balance"),
-            subtitle: "Quản lý & Xem số dư",
+            subtitle: t("sidebar.balanceSub"),
             icon: WalletMoney,
           },
           {
             id: "used",
-            title: "Lịch sử sử dụng",
-            subtitle: "Lượt phỏng vấn & Phân tích",
+            title: t("sidebar.usedCredits"),
+            subtitle: t("sidebar.usedCreditsSub"),
             icon: History,
           },
           {
             id: "recharge",
-            title: "Lịch sử nạp",
-            subtitle: "Giao dịch nạp tiền vào ví",
+            title: t("sidebar.rechargeHistory"),
+            subtitle: t("sidebar.rechargeHistorySub"),
             icon: CardRecive,
           },
         ];
@@ -328,7 +328,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                   <DropdownMenuTrigger asChild>
                     <div 
                       className="flex items-center justify-center p-0 bg-transparent border-transparent cursor-pointer group/user"
-                      title="Tùy chọn tài khoản"
+                      title={t("sidebar.accountOptions")}
                     >
                       {/* Avatar with Glow ring */}
                       <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 shadow-inner transition-all duration-300 h-12 w-12 p-0.5 group-hover/user:from-primary/50 group-hover/user:to-primary/50">
@@ -378,6 +378,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
               ) : (
                 <div 
                   className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-border/20 bg-card/40 backdrop-blur-md shadow-sm transition-all duration-300"
+                  title={t("sidebar.accountOptions")}
                 >
                   {/* Avatar with Glow ring */}
                   <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 shadow-inner transition-all duration-300 h-10 w-10 p-0.5">
@@ -417,7 +418,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
-                        title="Tùy chọn tài khoản"
+                        title={t("sidebar.accountOptions")}
                         className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-sidebar-accent border border-transparent hover:border-border/20 transition-all duration-300 cursor-pointer"
                       >
                         <MenuDots className="h-5 w-5 rotate-90" />

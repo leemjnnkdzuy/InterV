@@ -68,6 +68,10 @@ export function getActionName(action: string): string {
       return "Nạp Credits";
     case "AI_INTERVIEW":
       return "Phỏng vấn AI";
+    case "AI_INTERVIEW_REFUND":
+      return "Hoàn Credits phỏng vấn AI";
+    case "AI_JD_EXTRACT":
+      return "Trích xuất JD";
     case "ADMIN_ADJUST":
       return "Điều chỉnh bởi Admin";
     default:

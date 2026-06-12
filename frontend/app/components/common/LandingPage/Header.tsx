@@ -6,9 +6,11 @@ import {useRouter} from "next/navigation";
 import Image from "next/image";
 import {Button} from "@/app/components/ui/button";
 import logoSrc from "@/app/assets/logo.svg";
+import {useLanguage} from "@/app/hooks/useLanguage";
 
 export default function Header() {
 	const router = useRouter();
+	const {t} = useLanguage();
 	const [isScrolled, setIsScrolled] = React.useState(false);
 
 	React.useEffect(() => {
@@ -51,25 +53,25 @@ export default function Header() {
 						href='#your-team'
 						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
 					>
-						Đội ngũ
+						{t("landing.navTeam")}
 					</Link>
 					<Link
 						href='#solutions'
 						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
 					>
-						Giải pháp
+						{t("landing.navSolutions")}
 					</Link>
 					<Link
 						href='#blog'
 						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
 					>
-						Blog
+						{t("landing.navBlog")}
 					</Link>
 					<Link
 						href='#pricing'
 						className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
 					>
-						Bảng giá
+						{t("landing.navPricing")}
 					</Link>
 				</nav>
 			</div>
@@ -80,13 +82,13 @@ export default function Header() {
 					onClick={() => router.push("/login")}
 					className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
 				>
-					Đăng nhập
+					{t("landing.login")}
 				</button>
 				<Button
 					onClick={() => router.push("/register")}
 					className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] text-zinc-950 font-bold px-5 py-2 h-auto border-none transition-all duration-300 shadow-[0_0_15px_rgba(187,244,81,0.15)]'
 				>
-					Tham gia ngay
+					{t("landing.joinNow")}
 				</Button>
 			</div>
 		</header>

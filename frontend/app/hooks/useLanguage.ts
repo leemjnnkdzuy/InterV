@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import langTranslations from "@/app/i18n";
 import type { Language, LanguageContextType } from "@/app/types";
 
@@ -58,16 +58,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = language;
   }, [language, mounted]);
 
-  const t = (key: string): string => {
+  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
     const keys = key.split(".");
     const current = getTranslationValue(translations[language], keys);
+    const value = current ?? getTranslationValue(translations.vi, keys) ?? key;
 
-    if (current) {
-      return current;
+    if (!params) {
+      return value;
     }
 
-    return getTranslationValue(translations.vi, keys) ?? key;
-  };
+    return Object.entries(params).reduce(
+      (text, [param, replacement]) =>
+        text.replaceAll(`{{${param}}}`, String(replacement)),
+      value
+    );
+  }, [language]);
 
   return React.createElement(
     LanguageContext.Provider,

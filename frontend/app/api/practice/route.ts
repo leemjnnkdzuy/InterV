@@ -11,6 +11,10 @@ interface LeanPracticeSession {
   jobDescription?: string;
   topic?: string;
   industry?: string;
+  language?: string;
+  voiceId?: string;
+  difficulty?: string;
+  questionCount?: number;
   tags?: string[];
   attemptCount?: number;
   highestScore?: number;
@@ -51,6 +55,10 @@ export async function GET(request: NextRequest) {
         jobDescription: session.jobDescription,
         topic: session.topic,
         industry: session.industry,
+        language: session.language,
+        voiceId: session.voiceId,
+        difficulty: session.difficulty,
+        questionCount: session.questionCount,
         tags: session.tags || [],
         attemptCount: session.attemptCount || 0,
         highestScore: session.highestScore || 0,
@@ -133,6 +141,10 @@ export async function POST(request: NextRequest) {
       industry: industry || "Công nghệ thông tin",
       jobDescription: jobDescription || "",
       topic: topic || "",
+      language: "vi-VN",
+      voiceId: "vi-VN-HoaiMyNeural",
+      difficulty: "Middle",
+      questionCount: 3,
       tags: uniqueTags,
       attemptCount: 0,
       highestScore: 0,
@@ -147,6 +159,10 @@ export async function POST(request: NextRequest) {
         jobDescription: newSession.jobDescription,
         topic: newSession.topic,
         industry: newSession.industry,
+        language: newSession.language,
+        voiceId: newSession.voiceId,
+        difficulty: newSession.difficulty,
+        questionCount: newSession.questionCount,
         tags: newSession.tags,
         attemptCount: newSession.attemptCount,
         highestScore: newSession.highestScore,

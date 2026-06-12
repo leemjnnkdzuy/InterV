@@ -16,12 +16,28 @@ const creditLogSchema = new Schema<ICreditLog>(
     action: {
       type: String,
       required: true,
-      enum: ["RECHARGE", "AI_INTERVIEW", "REGISTER_BONUS", "ADMIN_ADJUST"],
+      enum: [
+        "RECHARGE",
+        "AI_INTERVIEW",
+        "AI_INTERVIEW_REFUND",
+        "AI_JD_EXTRACT",
+        "REGISTER_BONUS",
+        "ADMIN_ADJUST",
+      ],
       index: true,
     },
     description: {
       type: String,
       default: "",
+    },
+    referenceId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    metadata: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
   },
   {

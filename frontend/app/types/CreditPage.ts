@@ -1,6 +1,8 @@
 export type CreditLogAction =
   | "RECHARGE"
   | "AI_INTERVIEW"
+  | "AI_INTERVIEW_REFUND"
+  | "AI_JD_EXTRACT"
   | "REGISTER_BONUS"
   | "ADMIN_ADJUST";
 
@@ -11,6 +13,8 @@ export interface CreditLogItem {
   credits: number;
   action: CreditLogAction;
   description?: string;
+  referenceId?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
 }
 

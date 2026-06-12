@@ -19,9 +19,11 @@ import { RECHARGE_PACKAGES } from "@/app/contants";
 import { formatCurrency, getErrorMessage } from "@/app/lib/Utils";
 import { paymentService } from "@/app/services";
 import type { RechargePackage, RechargeDrawerProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerProps) {
   const { refreshUser } = useAuthContext();
+  const { language, t } = useLanguage();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPackage, setSelectedPackage] = useState<RechargePackage | null>(null);
   
@@ -29,6 +31,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
   const [orderCode, setOrderCode] = useState<number | null>(null);
   const [isLoadingLink, setIsLoadingLink] = useState<boolean>(false);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const numberLocale = language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -54,7 +57,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
           const isMock = paymentUrl.includes("mock=true");
           const data = await paymentService.verifyPayment(orderCode, isMock);
           if (data.success && data.status === "PAID") {
-            toast.success("Nạp tiền thành công! Số dư tài khoản đã được cập nhật.");
+            toast.success(t("credit.paymentPollSuccess"));
             await refreshUser();
             onOpenChange(false);
           }
@@ -71,7 +74,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
         clearInterval(intervalId);
       }
     };
-  }, [step, orderCode, isOpen, paymentUrl, refreshUser, onOpenChange]);
+  }, [step, orderCode, isOpen, paymentUrl, refreshUser, onOpenChange, t]);
 
   const handleContinuePayment = async () => {
     if (!selectedPackage) return;
@@ -83,11 +86,11 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
         setPaymentUrl(data.paymentUrl);
         setOrderCode(data.orderCode);
       } else {
-        toast.error(data.message || "Không thể tạo liên kết thanh toán");
+        toast.error(data.message || t("credit.createPaymentFailed"));
         setStep(1);
       }
     } catch (error: unknown) {
-      toast.error(getErrorMessage(error, "Lỗi tạo liên kết thanh toán. Vui lòng thử lại."));
+      toast.error(getErrorMessage(error, t("credit.createPaymentError")));
       setStep(1);
     } finally {
       setIsLoadingLink(false);
@@ -101,16 +104,16 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
       const isMock = paymentUrl.includes("mock=true");
       const data = await paymentService.verifyPayment(orderCode, isMock);
       if (data.success && data.status === "PAID") {
-        toast.success("Xác nhận nạp tiền thành công!");
+        toast.success(t("credit.verifySuccess"));
         await refreshUser();
         onOpenChange(false);
       } else if (data.status === "PENDING") {
-        toast.info("Hệ thống chưa nhận được thanh toán. Vui lòng hoàn tất giao dịch.");
+        toast.info(t("credit.verifyPending"));
       } else {
-        toast.error(data.message || "Giao dịch không thành công");
+        toast.error(data.message || t("credit.transactionFailed"));
       }
     } catch {
-      toast.error("Không thể xác minh giao dịch. Vui lòng thử lại.");
+      toast.error(t("credit.verifyFailed"));
     } finally {
       setIsVerifying(false);
     }
@@ -128,10 +131,10 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
             <DrawerHeader className="px-0 pt-4 pb-2 text-left">
               <DrawerTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
                 <WalletMoney className="w-6 h-6 text-primary" />
-                Nạp tiền vào ví
+                {t("credit.drawerTitle")}
               </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground mt-1">
-                Quy đổi tiền nạp thành Credit để sử dụng các dịch vụ luyện tập phỏng vấn AI. Nạp gói lớn nhận thêm Credit bonus!
+                {t("credit.drawerDescription")}
               </DrawerDescription>
             </DrawerHeader>
 
@@ -154,14 +157,14 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                         {formatCurrency(pkg.amount)}
                       </p>
                       <p className="text-xl font-black text-foreground tracking-tight">
-                        {(pkg.credit + pkg.bonus).toLocaleString("vi-VN")}
+                        {(pkg.credit + pkg.bonus).toLocaleString(numberLocale)}
                       </p>
                       <p className="text-[10px] text-muted-foreground font-medium">Credits</p>
                     </div>
 
                     {pkg.bonus > 0 ? (
                       <div className="mt-2.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/10 flex items-center justify-center">
-                        +{pkg.bonus} bonus
+                        {t("credit.bonus", { bonus: pkg.bonus })}
                       </div>
                     ) : (
                       <div className="mt-2.5 h-[17px] w-full" />
@@ -174,7 +177,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
             <DrawerFooter className="px-0 pt-2 flex flex-row gap-3">
               <DrawerClose asChild>
                 <Button variant="outline" className="flex-1 rounded-2xl py-5 text-xs font-semibold cursor-pointer">
-                  Hủy bỏ
+                  {t("credit.cancel")}
                 </Button>
               </DrawerClose>
               <Button
@@ -182,7 +185,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                 onClick={handleContinuePayment}
                 className="flex-1 rounded-2xl py-5 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-md shadow-primary/10"
               >
-                Tiếp tục thanh toán
+                {t("credit.continuePayment")}
               </Button>
             </DrawerFooter>
           </div>
@@ -201,11 +204,11 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                   <AltArrowLeft className="w-5 h-5" />
                 </button>
                 <DrawerTitle className="text-lg font-extrabold text-foreground">
-                  Thanh toán qua cổng PayOS
+                  {t("credit.payosTitle")}
                 </DrawerTitle>
               </div>
               <DrawerDescription className="text-xs text-muted-foreground mt-1">
-                Giao dịch được xử lý an toàn qua nền tảng thanh toán PayOS (chuyển khoản VietQR nhanh, thẻ ngân hàng).
+                {t("credit.payosDescription")}
               </DrawerDescription>
             </DrawerHeader>
 
@@ -213,17 +216,17 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
               {isLoadingLink ? (
                 <div className="flex flex-col items-center gap-3">
                   <Spinner className="w-8 h-8 text-primary" />
-                  <p className="text-sm font-medium text-muted-foreground">Đang khởi tạo liên kết thanh toán...</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("credit.loadingPaymentLink")}</p>
                 </div>
               ) : (
                 <div className="space-y-4 w-full max-w-sm">
                   <div>
-                    <span className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground">Gói nạp đã chọn</span>
+                    <span className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground">{t("credit.selectedPackage")}</span>
                     <h3 className="text-2xl font-black text-foreground mt-0.5">
-                      {(selectedPackage.credit + selectedPackage.bonus).toLocaleString("vi-VN")} Credits
+                      {(selectedPackage.credit + selectedPackage.bonus).toLocaleString(numberLocale)} Credits
                     </h3>
                     <p className="text-sm font-semibold text-primary mt-1">
-                      Thành tiền: {formatCurrency(selectedPackage.amount)}
+                      {t("credit.totalAmount", { amount: formatCurrency(selectedPackage.amount) })}
                     </p>
                   </div>
 
@@ -231,7 +234,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                     onClick={() => window.open(paymentUrl, "_blank")}
                     className="w-full rounded-2xl py-6 font-bold bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white transition-all cursor-pointer shadow-md shadow-primary/10 flex items-center justify-center gap-2"
                   >
-                    Mở cổng thanh toán PayOS
+                    {t("credit.openPayos")}
                     <ArrowRightUp className="w-4 h-4" />
                   </Button>
 
@@ -240,7 +243,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    Đang chờ bạn chuyển khoản... Tự động cộng credits khi hoàn tất.
+                    {t("credit.waitingPayment")}
                   </div>
                 </div>
               )}
@@ -253,7 +256,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                 onClick={() => setStep(1)}
                 className="flex-1 rounded-2xl py-5 text-xs font-semibold cursor-pointer disabled:opacity-50"
               >
-                Quay lại
+                {t("credit.back")}
               </Button>
               <Button
                 disabled={isLoadingLink || isVerifying || !paymentUrl}
@@ -261,7 +264,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
                 className="flex-1 rounded-2xl py-5 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-md shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isVerifying && <Spinner className="w-3.5 h-3.5" />}
-                Tôi đã thanh toán
+                {t("credit.paidButton")}
               </Button>
             </DrawerFooter>
           </div>

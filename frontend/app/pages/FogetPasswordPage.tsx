@@ -11,10 +11,12 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { getErrorMessage } from "@/app/lib/Utils";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuthContext();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -43,7 +45,7 @@ export default function FogetPasswordPage() {
     e.preventDefault();
 
     if (!email) {
-      toast.error("Vui lòng nhập email đăng ký");
+      toast.error(t("auth.emailRequired"));
       return;
     }
 
@@ -52,14 +54,14 @@ export default function FogetPasswordPage() {
       const data = await authService.sendResetPin(email);
 
       if (data.success) {
-        toast.success("Mã khôi phục đã được gửi đến email của bạn");
+        toast.success(t("auth.resetPinSent"));
         setPhase("pin");
         setCountdown(30);
       } else {
-        toast.error(data.message || "Không thể gửi mã PIN");
+        toast.error(data.message || t("auth.cannotSendPin"));
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Lỗi kết nối. Vui lòng thử lại."));
+      toast.error(getErrorMessage(err, t("auth.connectionRetry")));
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +71,7 @@ export default function FogetPasswordPage() {
     e.preventDefault();
 
     if (pin.length !== 6) {
-      toast.error("Vui lòng nhập đủ 6 chữ số");
+      toast.error(t("auth.pinRequired"));
       return;
     }
 
@@ -78,13 +80,13 @@ export default function FogetPasswordPage() {
       const data = await authService.verifyResetPin(email, pin);
 
       if (data.success) {
-        toast.success("Xác thực mã PIN thành công. Hãy đặt mật khẩu mới.");
+        toast.success(t("auth.pinVerified"));
         setPhase("newPassword");
       } else {
-        toast.error(data.message || "Mã PIN không đúng");
+        toast.error(data.message || t("auth.pinWrong"));
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Xác thực mã PIN thất bại"));
+      toast.error(getErrorMessage(err, t("auth.resetPinFailed")));
     } finally {
       setIsLoading(false);
     }
@@ -94,12 +96,12 @@ export default function FogetPasswordPage() {
     e.preventDefault();
 
     if (newPassword.length < 6) {
-      toast.error("Mật khẩu mới phải từ 6 ký tự trở lên");
+      toast.error(t("dialogs.passwordMinLength"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu nhập lại không khớp");
+      toast.error(t("auth.passwordMismatch"));
       return;
     }
 
@@ -108,13 +110,13 @@ export default function FogetPasswordPage() {
       const data = await authService.resetPassword(email, newPassword);
 
       if (data.success) {
-        toast.success("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
+        toast.success(t("auth.resetSuccess"));
         router.push("/login");
       } else {
-        toast.error(data.message || "Đổi mật khẩu thất bại");
+        toast.error(data.message || t("auth.resetFailed"));
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Đặt lại mật khẩu thất bại"));
+      toast.error(getErrorMessage(err, t("auth.resetPasswordFailed")));
     } finally {
       setIsLoading(false);
     }
@@ -127,13 +129,13 @@ export default function FogetPasswordPage() {
     try {
       const data = await authService.sendResetPin(email);
       if (data.success) {
-        toast.success("Đã gửi lại mã PIN mới đến email");
+        toast.success(t("auth.resendResetSuccess"));
         setCountdown(30);
       } else {
-        toast.error(data.message || "Không thể gửi lại mã PIN");
+        toast.error(data.message || t("auth.cannotResendPin"));
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Lỗi gửi lại mã PIN"));
+      toast.error(getErrorMessage(err, t("auth.resendError")));
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +161,7 @@ export default function FogetPasswordPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden">
-        <h1 className="text-3xl font-extrabold text-center">Quên mật khẩu</h1>
+        <h1 className="text-3xl font-extrabold text-center">{t("auth.forgotTitle")}</h1>
 
         <AnimatePresence mode="wait">
           {phase === "email" && (
@@ -171,13 +173,13 @@ export default function FogetPasswordPage() {
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
               <p className="text-sm text-zinc-400 text-center mt-2">
-                Nhập email của bạn để nhận mã khôi phục mật khẩu
+                {t("auth.forgotDescription")}
               </p>
               <form onSubmit={handleSendPin} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400">Email đăng ký</label>
+                <label className="text-xs text-zinc-400">{t("auth.registeredEmailLabel")}</label>
                 <Input
                   type="email"
-                  placeholder="Nhập email đăng ký..."
+                  placeholder={t("auth.registeredEmailPlaceholder")}
                   aria-label="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -192,22 +194,22 @@ export default function FogetPasswordPage() {
                   {isLoading ? (
                     <>
                       <Spinner className="mr-2" />
-                      Đang gửi mã...
+                      {t("auth.sendingCode")}
                     </>
                   ) : (
-                    "Gửi mã khôi phục"
+                    t("auth.sendRecoveryCode")
                   )}
                 </Button>
               </form>
 
               <p className="text-sm text-zinc-400 text-center mt-6">
-                Quay lại{" "}
+                {t("auth.backTo")}{" "}
                 <button
                   onClick={() => router.push("/login")}
                   className="text-white font-bold cursor-pointer hover:underline"
                   disabled={isLoading}
                 >
-                  Đăng nhập
+                  {t("auth.loginButton")}
                 </button>
               </p>
             </motion.div>
@@ -222,11 +224,11 @@ export default function FogetPasswordPage() {
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
               <p className="text-sm text-zinc-400 text-center mt-2">
-                Chúng tôi đã gửi mã PIN 6 số đến email: <br />
+                {t("auth.pinSentTo")} <br />
                 <strong className="text-white">{email}</strong>
               </p>
               <form onSubmit={handleVerifyPin} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400 text-center">Nhập mã PIN xác nhận</label>
+                <label className="text-xs text-zinc-400 text-center">{t("auth.pinLabel")}</label>
                 <Input
                   type="text"
                   placeholder="------"
@@ -245,16 +247,16 @@ export default function FogetPasswordPage() {
                   {isLoading ? (
                     <>
                       <Spinner className="mr-2" />
-                      Đang xác thực...
+                      {t("auth.verifying")}
                     </>
                   ) : (
-                    "Xác nhận mã PIN"
+                    t("auth.confirmPin")
                   )}
                 </Button>
               </form>
 
               <div className="flex items-center justify-center gap-2 mt-6">
-                <p className="text-sm text-zinc-400">Bạn không nhận được mã?</p>
+                <p className="text-sm text-zinc-400">{t("auth.noCode")}</p>
                 <button
                   type="button"
                   onClick={handleResendPin}
@@ -263,7 +265,7 @@ export default function FogetPasswordPage() {
                   }`}
                   disabled={isLoading || countdown > 0}
                 >
-                  {countdown > 0 ? `Gửi lại sau (${countdown}s)` : "Gửi lại mã PIN"}
+                  {countdown > 0 ? t("auth.resendCountdown", { seconds: countdown }) : t("auth.resendPin")}
                 </button>
               </div>
 
@@ -273,7 +275,7 @@ export default function FogetPasswordPage() {
                   onClick={() => setPhase("email")}
                   className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4" /> Quay lại
+                  <ArrowLeft className="w-4 h-4" /> {t("auth.back")}
                 </button>
               </div>
             </motion.div>
@@ -288,23 +290,23 @@ export default function FogetPasswordPage() {
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
               <p className="text-sm text-zinc-400 text-center mt-2">
-                Thiết lập mật khẩu mới cho tài khoản của bạn
+                {t("auth.newPasswordDescription")}
               </p>
               <form onSubmit={handleResetPassword} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400">Mật khẩu mới</label>
+                <label className="text-xs text-zinc-400">{t("auth.newPasswordLabel")}</label>
                 <Input
                   type="password"
-                  placeholder="Mật khẩu mới"
+                  placeholder={t("auth.newPasswordPlaceholder")}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   disabled={isLoading}
                 />
 
-                <label className="text-xs text-zinc-400">Xác nhận mật khẩu mới</label>
+                <label className="text-xs text-zinc-400">{t("auth.confirmNewPasswordLabel")}</label>
                 <Input
                   type="password"
-                  placeholder="Nhập lại mật khẩu mới"
+                  placeholder={t("auth.confirmNewPasswordPlaceholder")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -319,10 +321,10 @@ export default function FogetPasswordPage() {
                   {isLoading ? (
                     <>
                       <Spinner className="mr-2" />
-                      Đang lưu mật khẩu...
+                      {t("auth.savingPassword")}
                     </>
                   ) : (
-                    "Đặt lại mật khẩu"
+                    t("auth.resetPasswordButton")
                   )}
                 </Button>
               </form>
@@ -333,7 +335,7 @@ export default function FogetPasswordPage() {
                   onClick={() => setPhase("pin")}
                   className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4" /> Quay lại
+                  <ArrowLeft className="w-4 h-4" /> {t("auth.back")}
                 </button>
               </div>
             </motion.div>

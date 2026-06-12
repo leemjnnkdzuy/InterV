@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { CreatePracticeDialog, ConfirmDeleteDialog } from "@/app/components/common/Dialog";
 import ResultPracticeDrawer from "@/app/components/common/Drawer/ResultPracticeDrawer";
 import { practiceService } from "@/app/services";
+import { useLanguage } from "@/app/hooks/useLanguage";
+import { translateIndustry } from "@/app/lib/Localization";
 import type {
   PracticeMutationResponse,
   PracticeProjectSession,
@@ -26,6 +28,7 @@ import type {
 
 export default function PracticeProjectPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [sessions, setSessions] = useState<PracticeProjectSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -48,15 +51,15 @@ export default function PracticeProjectPage() {
       if (data.success) {
         setSessions(data.sessions);
       } else {
-        toast.error("Không thể lấy danh sách buổi luyện tập");
+        toast.error(t("practiceList.loadFailed"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối máy chủ");
+      toast.error(t("practiceSetup.serverConnectionError"));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -77,7 +80,7 @@ export default function PracticeProjectPage() {
 
   const handleSaveRename = async (id: string) => {
     if (!editingTitle.trim()) {
-      toast.error("Tiêu đề không được để trống");
+      toast.error(t("practiceList.titleRequired"));
       return;
     }
 
@@ -88,14 +91,14 @@ export default function PracticeProjectPage() {
         setSessions((prev) =>
           prev.map((s) => (s.id === id ? { ...s, title: data.session.title } : s))
         );
-        toast.success("Đã đổi tên buổi luyện tập");
+        toast.success(t("practiceList.renameSuccess"));
         setEditingSessionId(null);
       } else {
-        toast.error(data.message || "Đổi tên thất bại");
+        toast.error(data.message || t("practiceList.renameFailed"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi cập nhật tên");
+      toast.error(t("practiceList.renameError"));
     } finally {
       setIsSavingRename(false);
     }
@@ -114,14 +117,14 @@ export default function PracticeProjectPage() {
       const data = await practiceService.delete(sessionToDelete.id);
       if (data.success) {
         setSessions((prev) => prev.filter((s) => s.id !== sessionToDelete.id));
-        toast.success("Xóa buổi luyện tập thành công");
+        toast.success(t("practiceList.deleteSuccess"));
         setSessionToDelete(null);
       } else {
-        toast.error(data.message || "Xóa thất bại");
+        toast.error(data.message || t("practiceList.deleteFailed"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi xóa dữ liệu");
+      toast.error(t("practiceList.deleteError"));
     } finally {
       setIsDeleting(false);
     }
@@ -130,7 +133,7 @@ export default function PracticeProjectPage() {
   const handleOpenResult = (session: PracticeProjectSession, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!session.latestResult) {
-      toast.info("Bạn chưa từng luyện tập buổi này. Hãy nhấn 'Luyện tập ngay' để bắt đầu.");
+      toast.info(t("practiceList.noResultInfo"));
       return;
     }
     setSelectedSessionForResult(session);
@@ -199,7 +202,7 @@ export default function PracticeProjectPage() {
           className="rounded-2xl py-5 px-5 font-extrabold shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/95 text-sm gap-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-5 h-5" />
-          Tạo buổi luyện tập
+          {t("practiceList.createButton")}
         </Button>
 
         <div className="flex items-center bg-muted/30 border border-border/10 rounded-2xl p-1 gap-1">
@@ -210,7 +213,7 @@ export default function PracticeProjectPage() {
                 ? "bg-background shadow text-primary border border-border/10"
                 : "text-muted-foreground hover:text-foreground border border-transparent"
             }`}
-            title="Dạng lưới"
+            title={t("practiceList.gridView")}
           >
             <Widget className="w-4 h-4" />
           </button>
@@ -221,7 +224,7 @@ export default function PracticeProjectPage() {
                 ? "bg-background shadow text-primary border border-border/10"
                 : "text-muted-foreground hover:text-foreground border border-transparent"
             }`}
-            title="Dạng danh sách"
+            title={t("practiceList.listView")}
           >
             <List className="w-4 h-4" />
           </button>
@@ -273,16 +276,16 @@ export default function PracticeProjectPage() {
           <div className="text-primary mb-5">
             <FolderOpen weight="BoldDuotone" className="w-12 h-12" />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-1">Chưa có buổi luyện tập nào</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t("practiceList.emptyTitle")}</h3>
           <p className="text-muted-foreground text-xs max-w-sm leading-relaxed mb-6">
-            Hãy tạo một buổi luyện tập phỏng vấn giả lập đầu tiên để cải thiện kỹ năng ứng xử và chuyên môn của bạn trước mặt nhà tuyển dụng.
+            {t("practiceList.emptyDescription")}
           </p>
           <Button
             onClick={() => setIsCreateOpen(true)}
             className="rounded-2xl py-5 px-6 font-bold shadow-md shadow-primary/15 bg-primary text-background hover:bg-primary/95 text-xs gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Tạo buổi luyện tập đầu tiên
+            {t("practiceList.emptyCreateButton")}
           </Button>
         </motion.div>
       ) : (
@@ -316,12 +319,12 @@ export default function PracticeProjectPage() {
                         {/* Header: Industry tag & delete icon */}
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase ${getIndustryBadgeColor(session.industry)}`}>
-                            {session.industry || "Ngành nghề"}
+                            {session.industry ? translateIndustry(t, session.industry) : t("practiceList.industryFallback")}
                           </span>
                           <button
                             onClick={(e) => handleDeleteClick(session, e)}
                             className="p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
-                            title="Xóa buổi phỏng vấn"
+                            title={t("practiceList.deleteTitle")}
                           >
                             <TrashBinMinimalistic className="w-4 h-4" />
                           </button>
@@ -366,7 +369,7 @@ export default function PracticeProjectPage() {
                               <button
                                 onClick={() => handleStartRename(session)}
                                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground opacity-0 group-hover/title:opacity-100 transition-opacity cursor-pointer shrink-0"
-                                title="Đổi tên"
+                                title={t("practiceList.rename")}
                               >
                                 <PenNewSquare className="w-3.5 h-3.5" />
                               </button>
@@ -375,9 +378,11 @@ export default function PracticeProjectPage() {
 
                           {/* AI generated summary / contents */}
                           <p className="text-xs text-muted-foreground leading-relaxed mt-2 line-clamp-3 select-none">
-                            {session.topic || session.jobDescription 
-                              ? `Chủ đề luyện tập: ${session.topic || "Phỏng vấn theo JD ứng tuyển"}.`
-                              : "Hệ thống AI sẽ tự động điều chỉnh bộ câu hỏi dựa theo lĩnh vực ngành nghề phỏng vấn."
+                            {session.topic || session.jobDescription
+                              ? t("practiceList.topicSummary", {
+                                  topic: session.topic || t("practiceList.defaultJdTopic"),
+                                })
+                              : t("practiceList.autoSummary")
                             }
                           </p>
                         </div>
@@ -389,7 +394,7 @@ export default function PracticeProjectPage() {
                         <div className="grid grid-cols-3 gap-2 border-t border-b border-border/5 py-3 mb-5 mt-2">
                           {/* Attempts */}
                           <div className="text-center">
-                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Lượt tập</span>
+                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.attempts")}</span>
                             <span className="block text-sm font-black text-foreground mt-1 select-none">
                               {session.attemptCount || 0}
                             </span>
@@ -397,7 +402,7 @@ export default function PracticeProjectPage() {
 
                           {/* Highest Score */}
                           <div className="text-center border-x border-border/10">
-                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Điểm cao nhất</span>
+                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.highestScore")}</span>
                             <span className="block text-sm font-black text-emerald-500 mt-1 select-none">
                               {hasPracticed ? `${session.highestScore}` : "0"}
                               <span className="text-[10px] text-muted-foreground font-normal">/100</span>
@@ -406,7 +411,7 @@ export default function PracticeProjectPage() {
 
                           {/* Average Score */}
                           <div className="text-center">
-                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Trung bình</span>
+                            <span className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.averageScore")}</span>
                             <span className="block text-sm font-black text-amber-500 mt-1 select-none">
                               {hasPracticed 
                                 ? `${((session.highestScore + (session.latestResult?.score || 0)) / 2).toFixed(1)}` 
@@ -423,7 +428,7 @@ export default function PracticeProjectPage() {
                             className="flex-1 rounded-2xl py-4 text-xs font-extrabold shadow-sm bg-primary text-primary-foreground hover:bg-primary/95 flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
-                            Luyện tập ngay
+                            {t("practiceList.practiceNow")}
                           </Button>
                           
                           <Button
@@ -432,7 +437,7 @@ export default function PracticeProjectPage() {
                             onClick={(e) => handleOpenResult(session, e)}
                             className="flex-1 rounded-2xl py-4 text-xs font-bold border border-border/20 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted/10 cursor-pointer"
                           >
-                            Kết quả gần nhất
+                            {t("practiceList.latestResult")}
                           </Button>
                         </div>
                       </div>
@@ -444,7 +449,7 @@ export default function PracticeProjectPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase shrink-0 ${getIndustryBadgeColor(session.industry)}`}>
-                            {session.industry || "Ngành nghề"}
+                            {session.industry ? translateIndustry(t, session.industry) : t("practiceList.industryFallback")}
                           </span>
                         </div>
 
@@ -486,14 +491,14 @@ export default function PracticeProjectPage() {
                               <button
                                 onClick={() => handleStartRename(session)}
                                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                                title="Đổi tên"
+                                title={t("practiceList.rename")}
                               >
                                 <PenNewSquare className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={(e) => handleDeleteClick(session, e)}
                                 className="p-1 rounded-lg text-muted-foreground hover:text-red-500 cursor-pointer"
-                                title="Xóa buổi phỏng vấn"
+                                title={t("practiceList.deleteTitle")}
                               >
                                 <TrashBinMinimalistic className="w-3.5 h-3.5" />
                               </button>
@@ -502,9 +507,11 @@ export default function PracticeProjectPage() {
                         )}
                         
                         <p className="text-xs text-muted-foreground leading-relaxed mt-1 truncate max-w-xl select-none">
-                          {session.topic || session.jobDescription 
-                            ? `Chủ đề: ${session.topic || "Phỏng vấn theo JD ứng tuyển"}.`
-                            : "Hệ thống AI sẽ tự động điều chỉnh bộ câu hỏi dựa theo lĩnh vực ngành nghề phỏng vấn."
+                          {session.topic || session.jobDescription
+                            ? t("practiceList.topicInline", {
+                                topic: session.topic || t("practiceList.defaultJdTopic"),
+                              })
+                            : t("practiceList.autoSummary")
                           }
                         </p>
                       </div>
@@ -512,14 +519,14 @@ export default function PracticeProjectPage() {
                       {/* Middle: 3 Stats Columns */}
                       <div className="grid grid-cols-3 gap-4 lg:gap-8 shrink-0 py-3 lg:py-0 border-y lg:border-y-0 border-border/5 lg:px-6 lg:border-x border-border/10">
                         <div className="text-center lg:text-left min-w-[70px]">
-                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Lượt tập</span>
+                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.attempts")}</span>
                           <span className="block text-sm lg:text-base font-black text-foreground mt-0.5 select-none">
                             {session.attemptCount || 0}
                           </span>
                         </div>
                         
                         <div className="text-center lg:text-left min-w-[80px]">
-                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Điểm cao nhất</span>
+                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.highestScore")}</span>
                           <span className="block text-sm lg:text-base font-black text-emerald-500 mt-0.5 select-none">
                             {hasPracticed ? `${session.highestScore}` : "0"}
                             <span className="text-[10px] text-muted-foreground font-normal">/100</span>
@@ -527,7 +534,7 @@ export default function PracticeProjectPage() {
                         </div>
 
                         <div className="text-center lg:text-left min-w-[80px]">
-                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">Trung bình</span>
+                          <span className="block text-[8px] lg:text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceList.averageScore")}</span>
                           <span className="block text-sm lg:text-base font-black text-amber-500 mt-0.5 select-none">
                             {hasPracticed 
                               ? `${((session.highestScore + (session.latestResult?.score || 0)) / 2).toFixed(1)}` 
@@ -544,7 +551,7 @@ export default function PracticeProjectPage() {
                           className="flex-1 rounded-xl py-4 text-xs font-extrabold shadow-sm bg-primary text-primary-foreground hover:bg-primary/95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
-                          Luyện tập ngay
+                          {t("practiceList.practiceNow")}
                         </Button>
                         
                         <Button
@@ -553,7 +560,7 @@ export default function PracticeProjectPage() {
                           onClick={(e) => handleOpenResult(session, e)}
                           className="flex-1 rounded-xl py-4 text-xs font-bold border border-border/20 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted/10 cursor-pointer"
                         >
-                          Kết quả gần nhất
+                          {t("practiceList.latestResult")}
                         </Button>
                       </div>
 

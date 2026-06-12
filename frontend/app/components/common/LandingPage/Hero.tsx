@@ -14,6 +14,7 @@ import {
 	Heart,
 	Global,
 } from "@solar-icons/react";
+import {useLanguage} from "@/app/hooks/useLanguage";
 
 interface OrbitItem {
 	type: "avatar" | "badge";
@@ -140,6 +141,8 @@ const orbitRings: OrbitRingConfig[] = [
 ];
 
 export default function Hero() {
+	const {t} = useLanguage();
+
 	const renderBadgeIcon = (
 		icon?:
 			| "cloud"
@@ -184,32 +187,32 @@ export default function Hero() {
 				<div className='lg:col-span-7 flex flex-col items-start gap-8 z-20'>
 					<h1 className='text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.02em] leading-[1.1] max-w-4xl'>
 						<span className='bg-gradient-to-r from-white via-white to-zinc-300 bg-clip-text text-transparent'>
-							Phỏng vấn AI Thế hệ Mới
+							{t("landing.heroTitleLine1")}
 						</span>
 						<br className='hidden lg:block' />
 						<span className='bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent'>
-							cho Cả Hai Phía –{" "}
+							{t("landing.heroTitleLine2")}{" "}
 						</span>
 						<span className='bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent'>
-							Luyện tập
+							{t("landing.heroPractice")}
 						</span>
 						<span className='bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent'>
 							{" "}
-							hoặc{" "}
+							{t("landing.heroOr")}{" "}
 						</span>
 						<span className='bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent'>
-							Tuyển dụng
+							{t("landing.heroRecruit")}
 						</span>
 						<br className='hidden lg:block' />
 						<span className='hero-shimmer-text'>
-							Chỉ Với Một Cú Nhấp Chuột!
+							{t("landing.heroTitleLine3")}
 						</span>
 					</h1>
 
 					<div className='relative flex flex-col items-start gap-4'>
 						{/* Start Button */}
 						<Button className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] border-none text-zinc-950 font-bold px-6 py-5 h-auto text-sm shadow-[0_4px_25px_rgba(187,244,81,0.2)] flex items-center gap-2 group/btn transition-all duration-300'>
-							Bắt đầu Miễn phí
+							{t("landing.heroStartFree")}
 							<AltArrowRight className='w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform' />
 						</Button>
 					</div>
@@ -325,7 +328,7 @@ export default function Hero() {
 								50k+
 							</span>
 							<span className='text-[9px] sm:text-[11px] tracking-wider text-zinc-400 font-bold uppercase mt-1 max-w-[110px] leading-tight'>
-								Phỏng vấn AI
+								{t("landing.heroInterviewCount")}
 							</span>
 						</div>
 					</div>

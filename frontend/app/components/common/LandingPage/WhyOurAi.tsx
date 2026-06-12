@@ -2,10 +2,11 @@
 
 import React from "react";
 import { CpuBolt, Pulse, LockKeyhole } from "@solar-icons/react";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface Benefit {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ReactNode;
   bgGlow: string;
   iconColor: string;
@@ -14,24 +15,24 @@ interface Benefit {
 
 const benefits: Benefit[] = [
   {
-    title: "Đối thoại thông minh tự nhiên",
-    description: "Công nghệ AI đàm thoại thế hệ mới giúp trợ lý ảo hỏi đáp và phản hồi ngữ cảnh thực tế, không rập khuôn theo kịch bản có sẵn.",
+    titleKey: "landing.whyAi.benefit1Title",
+    descriptionKey: "landing.whyAi.benefit1Description",
     icon: <CpuBolt weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-[var(--chart-1)]/5",
     iconColor: "text-[var(--chart-1)]",
     iconBg: "",
   },
   {
-    title: "Phân tích tâm lý & kỹ năng sâu",
-    description: "Đánh giá chính xác từ vựng chuyên ngành, đo lường tốc độ nói, phát hiện từ đệm thừa và phân tích tông giọng, ngữ điệu tự tin.",
+    titleKey: "landing.whyAi.benefit2Title",
+    descriptionKey: "landing.whyAi.benefit2Description",
     icon: <Pulse weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-emerald-500/5",
     iconColor: "text-emerald-400",
     iconBg: "",
   },
   {
-    title: "Bảo mật thông tin tuyệt đối",
-    description: "Cam kết bảo mật 100% dữ liệu cuộc gọi thoại của ứng viên và thông tin tuyển dụng doanh nghiệp theo tiêu chuẩn bảo mật dữ liệu toàn cầu.",
+    titleKey: "landing.whyAi.benefit3Title",
+    descriptionKey: "landing.whyAi.benefit3Description",
     icon: <LockKeyhole weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-violet-500/5",
     iconColor: "text-violet-400",
@@ -40,18 +41,20 @@ const benefits: Benefit[] = [
 ];
 
 export default function WhyOurAi() {
+  const { t } = useLanguage();
+
   return (
     <section id="why-our-ai" className="w-full px-12 md:px-36 py-24 bg-transparent relative z-10">
       <div className="w-full mx-auto flex flex-col items-center gap-16">
         
         {/* Section Header */}
         <div className="text-center max-w-2xl flex flex-col gap-4">
-          <span className="text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">Sức mạnh công nghệ</span>
+          <span className="text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">{t("landing.whyAi.eyebrow")}</span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Ưu điểm vượt trội từ Trợ lý AI
+            {t("landing.whyAi.title")}
           </h2>
           <p className="text-zinc-400 text-base leading-relaxed">
-            Ứng dụng các thuật toán học sâu và xử lý ngôn ngữ tự nhiên tiên tiến để mang lại kết quả đánh giá chân thực, chuẩn xác nhất.
+            {t("landing.whyAi.description")}
           </p>
         </div>
 
@@ -73,10 +76,10 @@ export default function WhyOurAi() {
               {/* Content */}
               <div className="flex flex-col gap-3 z-10">
                 <h4 className="font-bold text-white text-base md:text-lg">
-                  {benefit.title}
+                  {t(benefit.titleKey)}
                 </h4>
                 <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                  {benefit.description}
+                  {t(benefit.descriptionKey)}
                 </p>
               </div>
 

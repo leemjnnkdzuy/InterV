@@ -10,6 +10,7 @@ export interface PracticeResultRatings {
   knowledge: number;
   problemSolving: number;
   confidence: number;
+  jdFit?: number;
 }
 
 export interface PracticeResultData {
@@ -27,6 +28,10 @@ export interface PracticeProjectSession {
   jobDescription?: string;
   topic?: string;
   industry?: string;
+  language?: string;
+  voiceId?: string;
+  difficulty?: string;
+  questionCount?: number;
   tags: string[];
   attemptCount: number;
   highestScore: number;
@@ -59,6 +64,10 @@ export interface PracticeUpdatePayload {
   jobDescription?: string;
   topic?: string;
   industry?: string;
+  language?: string;
+  voiceId?: string;
+  difficulty?: string;
+  questionCount?: number;
   isCompletedRun?: boolean;
   score?: number;
   duration?: string;

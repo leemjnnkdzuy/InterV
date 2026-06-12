@@ -5,16 +5,23 @@ import { formatDate, getActionName } from "@/app/lib/Utils";
 import { Card } from "@/app/components/ui/card";
 import { CpuBolt } from "@solar-icons/react";
 import type { UsedCreditPageProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPageProps) {
+  const { t } = useLanguage();
   const usageLogs = creditLogs.filter((log) => log.credits < 0);
+  const getActionLabel = (action: string) => {
+    const key = `creditActions.${action}`;
+    const translated = t(key);
+    return translated === key ? getActionName(action) : translated;
+  };
 
   return (
     <div className="space-y-8 w-full text-left">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Lịch sử sử dụng</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("credit.usageTitle")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Theo dõi lịch sử tiêu dùng tài khoản cho các buổi phỏng vấn AI và đánh giá năng lực.
+          {t("credit.usageDescription")}
         </p>
       </div>
 
@@ -23,25 +30,25 @@ export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPage
           <table className="w-full text-sm text-left border-collapse">
             <thead>
               <tr className="border-b border-border/10 text-muted-foreground font-semibold text-xs uppercase tracking-wider">
-                <th className="px-6 py-4">Mã giao dịch</th>
-                <th className="px-6 py-4">Loại dịch vụ</th>
-                <th className="px-6 py-4">Chi tiết giao dịch</th>
-                <th className="px-6 py-4">Thời gian</th>
-                <th className="px-6 py-4 text-right">Biến động</th>
-                <th className="px-6 py-4 text-center">Trạng thái</th>
+                <th className="px-6 py-4">{t("credit.transactionId")}</th>
+                <th className="px-6 py-4">{t("credit.serviceType")}</th>
+                <th className="px-6 py-4">{t("credit.transactionDetail")}</th>
+                <th className="px-6 py-4">{t("credit.time")}</th>
+                <th className="px-6 py-4 text-right">{t("credit.change")}</th>
+                <th className="px-6 py-4 text-center">{t("credit.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/10 font-medium">
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
-                    Đang tải lịch sử sử dụng...
+                    {t("credit.loadingUsageHistory")}
                   </td>
                 </tr>
               ) : usageLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground font-medium">
-                    Chưa có giao dịch sử dụng nào.
+                    {t("credit.emptyUsageHistory")}
                   </td>
                 </tr>
               ) : (
@@ -53,11 +60,11 @@ export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPage
                     <td className="px-6 py-4.5">
                       <div className="flex items-center gap-2">
                         <CpuBolt className="w-4 h-4 text-primary shrink-0" />
-                        <span>{getActionName(item.action)}</span>
+                        <span>{getActionLabel(item.action)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4.5 text-muted-foreground text-xs">
-                      {item.description || "Không có chi tiết"}
+                      {item.description || t("credit.noDetail")}
                     </td>
                     <td className="px-6 py-4.5 text-xs text-muted-foreground">
                       {formatDate(item.createdAt)}
@@ -69,7 +76,7 @@ export default function UsedCreditPage({ creditLogs, isLoading }: UsedCreditPage
                     </td>
                     <td className="px-6 py-4.5 text-center">
                       <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
-                        Thành công
+                        {t("credit.statusPaid")}
                       </span>
                     </td>
                   </tr>

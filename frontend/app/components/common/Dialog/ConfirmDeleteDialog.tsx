@@ -11,17 +11,22 @@ import {
 } from "@/app/components/ui/dialog";
 import { TrashBinMinimalistic } from "@solar-icons/react";
 import { ConfirmDeleteDialogProps } from "@/app/types";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 
 export default function ConfirmDeleteDialog({
   isOpen,
   onOpenChange,
   onConfirm,
-  title = "Xóa buổi luyện tập",
+  title,
   itemName,
-  description = "Hành động này không thể hoàn tác. Tất cả dữ liệu và lịch sử liên quan đến buổi luyện tập này sẽ bị xóa vĩnh viễn.",
+  description,
   isSubmitting = false,
 }: ConfirmDeleteDialogProps) {
+  const { t } = useLanguage();
+  const dialogTitle = title || t("confirmDelete.title");
+  const dialogDescription = description || t("confirmDelete.description");
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px]" showCloseButton={true}>
@@ -33,15 +38,15 @@ export default function ConfirmDeleteDialog({
 
           <DialogHeader className="space-y-2">
             <DialogTitle className="text-xl font-bold text-foreground text-center">
-              {title}
+              {dialogTitle}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs text-center max-w-sm leading-relaxed">
               {itemName ? (
                 <>
-                  Bạn có chắc chắn muốn xóa <span className="font-extrabold text-foreground">&quot;{itemName}&quot;</span> không? {description}
+                  {t("confirmDelete.question", { name: itemName })} {dialogDescription}
                 </>
               ) : (
-                description
+                dialogDescription
               )}
             </DialogDescription>
           </DialogHeader>
@@ -53,14 +58,14 @@ export default function ConfirmDeleteDialog({
               className="flex-1 rounded-2xl cursor-pointer"
               disabled={isSubmitting}
             >
-              Hủy
+              {t("confirmDelete.cancel")}
             </Button>
             <Button
               onClick={onConfirm}
               disabled={isSubmitting}
               className="flex-1 rounded-2xl cursor-pointer bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-500/10"
             >
-              {isSubmitting ? "Đang xóa..." : "Xóa vĩnh viễn"}
+              {isSubmitting ? t("confirmDelete.submitting") : t("confirmDelete.confirm")}
             </Button>
           </div>
         </div>

@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { INDUSTRIES } from "@/app/contants";
 import { practiceService } from "@/app/services";
+import { useLanguage } from "@/app/hooks/useLanguage";
+import { translateIndustry } from "@/app/lib/Localization";
 import type { CreatePracticeDialogProps, PracticeMutationResponse } from "@/app/types";
 
 export default function CreatePracticeDialog({
@@ -27,6 +29,7 @@ export default function CreatePracticeDialog({
   onOpenChange,
   onSuccess,
 }: CreatePracticeDialogProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [industry, setIndustry] = useState("Công nghệ thông tin");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +47,7 @@ export default function CreatePracticeDialog({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      toast.error("Vui lòng nhập tên buổi luyện tập");
+      toast.error(t("createPractice.titleRequired"));
       return;
     }
 
@@ -56,15 +59,15 @@ export default function CreatePracticeDialog({
       })) as PracticeMutationResponse;
 
       if (data.success) {
-        toast.success("Đã tạo buổi luyện tập phỏng vấn thành công!");
+        toast.success(t("createPractice.success"));
         onSuccess(data.session);
         onOpenChange(false);
       } else {
-        toast.error(data.message || "Tạo buổi luyện tập thất bại");
+        toast.error(data.message || t("createPractice.failed"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối máy chủ");
+      toast.error(t("createPractice.serverError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -75,21 +78,21 @@ export default function CreatePracticeDialog({
       <DialogContent className="sm:max-w-[500px]" showCloseButton={true}>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-foreground">
-            Tạo buổi luyện tập phỏng vấn
+            {t("createPractice.title")}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">
-            Nhập tên buổi phỏng vấn và ngành nghề để AI chuẩn bị bộ khung phỏng vấn tốt nhất.
+            {t("createPractice.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2 text-left">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground">
-              Tên buổi luyện tập <span className="text-red-500">*</span>
+              {t("createPractice.titleLabel")} <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
-              placeholder="Ví dụ: Phỏng vấn vị trí Senior React Developer tại Google"
+              placeholder={t("createPractice.titlePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="rounded-2xl text-left"
@@ -98,16 +101,16 @@ export default function CreatePracticeDialog({
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground">
-              Ngành nghề / Lĩnh vực
+              {t("createPractice.industryLabel")}
             </label>
             <Select value={industry} onValueChange={setIndustry}>
               <SelectTrigger className="rounded-2xl w-full border border-input bg-background px-3 py-2 text-sm">
-                <SelectValue placeholder="Chọn ngành nghề" />
+                <SelectValue placeholder={t("createPractice.industryPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-card border border-border/10 rounded-2xl shadow-lg">
                 {INDUSTRIES.map((ind) => (
                   <SelectItem key={ind} value={ind} className="cursor-pointer rounded-xl">
-                    {ind}
+                    {translateIndustry(t, ind)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -120,14 +123,14 @@ export default function CreatePracticeDialog({
               onClick={() => onOpenChange(false)}
               className="flex-1 rounded-2xl cursor-pointer"
             >
-              Hủy
+              {t("createPractice.cancel")}
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="flex-1 rounded-2xl cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isSubmitting ? "Đang chuẩn bị..." : "Bắt đầu khởi tạo"}
+              {isSubmitting ? t("createPractice.submitting") : t("createPractice.submit")}
             </Button>
           </div>
         </div>

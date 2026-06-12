@@ -4,11 +4,12 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { UploadMinimalistic, ChatSquareCode, Diploma } from "@solar-icons/react";
+import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface Step {
   num: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ReactNode;
   colorClass: string;
   bgGradient: string;
@@ -18,8 +19,8 @@ interface Step {
 const steps: Step[] = [
   {
     num: "001",
-    title: "CHỌN VỊ TRÍ & TẢI JD",
-    description: "Chọn ngành nghề mong muốn hoặc tải lên mô tả công việc (JD). Trợ lý AI sẽ lập tức thiết kế bộ câu hỏi chuyên sâu tương ứng.",
+    titleKey: "landing.howItWorks.step1Title",
+    descriptionKey: "landing.howItWorks.step1Description",
     icon: <UploadMinimalistic weight="BoldDuotone" className="w-7 h-7 text-rose-400" />,
     colorClass: "rose",
     bgGradient: "from-rose-500/5 to-purple-500/5 border-rose-500/10",
@@ -27,8 +28,8 @@ const steps: Step[] = [
   },
   {
     num: "002",
-    title: "PHỎNG VẤN TRỰC TIẾP",
-    description: "Kiểm tra Micro, bắt đầu buổi phỏng vấn trực tuyến qua voice trực tiếp với trợ lý ảo AI ngay trên trình duyệt.",
+    titleKey: "landing.howItWorks.step2Title",
+    descriptionKey: "landing.howItWorks.step2Description",
     icon: <ChatSquareCode weight="BoldDuotone" className="w-7 h-7 text-amber-400" />,
     colorClass: "amber",
     bgGradient: "from-amber-500/5 to-yellow-500/5 border-amber-500/10",
@@ -36,8 +37,8 @@ const steps: Step[] = [
   },
   {
     num: "003",
-    title: "NHẬN BÁO CÁO AI",
-    description: "Nhận ngay kết quả phân tích kỹ năng nói, độ tự tin và gợi ý hoàn thiện câu trả lời cùng điểm số đánh giá từ AI.",
+    titleKey: "landing.howItWorks.step3Title",
+    descriptionKey: "landing.howItWorks.step3Description",
     icon: <Diploma weight="BoldDuotone" className="w-7 h-7 text-emerald-400" />,
     colorClass: "emerald",
     bgGradient: "from-emerald-500/5 to-teal-500/5 border-emerald-500/10",
@@ -46,6 +47,8 @@ const steps: Step[] = [
 ];
 
 export default function HowItWorks() {
+  const { t } = useLanguage();
+
   return (
     <section id="how-it-works" className="w-full px-6 md:px-36 py-28 bg-transparent relative z-10 overflow-hidden">
       {/* Background Glow */}
@@ -58,10 +61,10 @@ export default function HowItWorks() {
           {/* Left Column: Title + Subtitle */}
           <div className="lg:col-span-7 flex flex-col gap-4 text-left">
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tight uppercase leading-[1.05]">
-              Tối giản hóa <br className="hidden md:inline" /> quy trình tuyển dụng
+              {t("landing.howItWorks.titleLine1")} <br className="hidden md:inline" /> {t("landing.howItWorks.titleLine2")}
             </h2>
             <p className="text-zinc-400 text-sm md:text-base leading-relaxed max-w-xl">
-              Hệ thống tối giản hóa quy trình giúp bạn dễ dàng bắt đầu phỏng vấn thử hoặc sàng lọc hồ sơ chỉ trong vài phút cùng Trợ lý AI thông minh.
+              {t("landing.howItWorks.description")}
             </p>
           </div>
 
@@ -77,7 +80,7 @@ export default function HowItWorks() {
                 <div className="relative w-full h-full">
                   <Image
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&h=800&q=80" 
-                    alt="AI Voice Interview"
+                    alt={t("landing.howItWorks.imageAlt")}
                     fill
                     sizes="(min-width: 640px) 310px, 280px"
                     className="object-cover brightness-[0.75]"
@@ -88,7 +91,7 @@ export default function HowItWorks() {
                   <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent z-20">
                     <div className="flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-sm px-2.5 py-1 rounded w-fit text-[10px] font-bold text-white uppercase tracking-wider mb-3">
                       <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                      VOICE ACTIVE
+                      {t("landing.howItWorks.voiceActive")}
                     </div>
                     {/* Fake Waveform lines */}
                     <div className="flex items-end gap-1 h-8">
@@ -135,10 +138,10 @@ export default function HowItWorks() {
               {/* Bottom Content Box with gradient background */}
               <div className={`bg-gradient-to-br rounded-2xl p-4 text-left border ${step.bgGradient}`}>
                 <h4 className="font-extrabold text-white text-sm tracking-wide mb-2">
-                  {step.title}
+                  {t(step.titleKey)}
                 </h4>
                 <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                  {step.description}
+                  {t(step.descriptionKey)}
                 </p>
               </div>
             </motion.div>
