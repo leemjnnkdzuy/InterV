@@ -10,6 +10,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import SilkBackground from "@/app/components/common/SilkBackground";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -55,26 +56,13 @@ export default function LoginPage() {
       {/* corner icons */}
       <button
         onClick={() => router.push("/")}
-        className="absolute left-6 top-6 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+        className="absolute left-6 top-6 z-20 text-zinc-400 hover:text-white transition-colors cursor-pointer"
         aria-label="home"
       >
         <Home className="w-5 h-5" />
       </button>
 
-      {/* Background Ambient Glow (Mesh Gradient Effect for Dark Theme) */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
-        {/* Soft Gold/Orange/Lime glow in top-left using chart-1 */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[var(--chart-1)]/15 blur-[130px]" />
-
-        {/* Soft Violet/Purple glow in the center-top */}
-        <div className="absolute -top-60 left-[20%] w-[900px] h-[900px] rounded-full bg-[oklch(0.48_0.18_290)]/20 blur-[160px]" />
-
-        {/* Soft Pink/Magenta ambient glow on the right-middle side */}
-        <div className="absolute top-[20%] -right-40 w-[550px] h-[550px] rounded-full bg-[oklch(0.55_0.2_315)]/15 blur-[120px]" />
-
-        {/* Soft Green base ambient glow towards bottom-left using chart-3 */}
-        <div className="absolute -bottom-60 left-[10%] w-[800px] h-[800px] rounded-full bg-[var(--chart-3)]/10 blur-[150px]" />
-      </div>
+      <SilkBackground />
 
       <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
         <h1 className="text-3xl font-extrabold text-center">{t("auth.loginTitle")}</h1>

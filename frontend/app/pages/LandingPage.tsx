@@ -13,6 +13,7 @@ import {
   Faq,
   Footer
 } from "@/app/components/common/LandingPage";
+import SilkBackground from "@/app/components/common/SilkBackground";
 
 export default function LandingPage() {
   return (
@@ -34,6 +35,10 @@ export default function LandingPage() {
 
       {/* Main Content Wrapper */}
       <div className="relative flex flex-col flex-1 z-10">
+        <div className="absolute inset-x-0 top-0 h-[118svh] z-0">
+          <SilkBackground fadeBottom />
+        </div>
+
         {/* Navigation Header */}
         <Header />
 

@@ -15,18 +15,19 @@ export default function Header() {
 
 	React.useEffect(() => {
 		const handleScroll = () => {
-			setIsScrolled(window.scrollY > 1);
+			setIsScrolled(window.scrollY > 12);
 		};
+		handleScroll();
 		window.addEventListener("scroll", handleScroll, {passive: true});
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
 	return (
 		<header
-			className={`sticky top-0 w-full z-50 transition-all duration-300 ease-in-out flex items-center justify-between ${
+			className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out flex items-center justify-between ${
 				isScrolled ?
-					"bg-[var(--sidebar)]/65 backdrop-blur-xl border-b border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] py-4 px-12 md:px-36"
-				:	"bg-transparent border-b border-transparent py-6 px-12 md:px-36"
+					"translate-y-0 opacity-100 bg-[var(--sidebar)]/65 backdrop-blur-xl border-b border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] py-4 px-6 sm:px-12 md:px-36"
+				:	"translate-y-0 opacity-100 bg-transparent border-b border-transparent shadow-none py-6 px-6 sm:px-12 md:px-36"
 			}`}
 		>
 			<div className='flex items-center gap-16'>

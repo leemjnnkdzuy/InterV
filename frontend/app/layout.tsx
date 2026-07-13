@@ -12,7 +12,7 @@ import {ThemeProvider} from "@/app/hooks/useTheme";
 import {LanguageProvider} from "@/app/hooks/useLanguage";
 import {Toaster} from "@/app/components/ui/sonner";
 import {TooltipProvider} from "@/app/components/ui/tooltip";
-import {themeInitializerScript} from "@/app/scripts/Theme";
+import {themeInitializerScript} from "@/app/scripts/theme";
 
 const inter = Inter({subsets: ["latin", "vietnamese"], variable: "--font-sans"});
 
