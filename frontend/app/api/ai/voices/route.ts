@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "@/app/lib/Auth";
-import { callAiBackend } from "@/app/lib/AiBackend";
+import { authenticateRequest } from "@/app/lib/Auth";
+import { aiBackend } from "@/app/lib/AiBackend";
 
-interface AiVoice {
-  id: string;
-  name: string;
-  locale: string;
-  gender?: string;
-  description?: string;
-}
+const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken || !verifyAccessToken(accessToken)) {
+    if (!(await authenticateRequest(request))) {
       return NextResponse.json(
         { success: false, message: "Bạn cần đăng nhập để dùng AI voices" },
         { status: 401 }
@@ -21,9 +14,13 @@ export async function GET(request: NextRequest) {
     }
 
     const language = request.nextUrl.searchParams.get("language") || "vi-VN";
-    const data = await callAiBackend<{ success: boolean; voices: AiVoice[] }>(
-      `/internal/voices?language=${encodeURIComponent(language)}`
-    );
+    if (!SUPPORTED_LANGUAGES.has(language)) {
+      return NextResponse.json(
+        { success: false, message: "Ngôn ngữ không được hỗ trợ" },
+        { status: 400 }
+      );
+    }
+    const data = await aiBackend.listVoices(language);
 
     return NextResponse.json({
       success: true,

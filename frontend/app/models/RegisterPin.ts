@@ -16,13 +16,15 @@ const registerPinSchema = new Schema<IRegisterPin>(
       lowercase: true,
       trim: true,
     },
-    password: {
+    passwordHash: {
       type: String,
       required: true,
+      select: false,
     },
-    pin: {
+    pinHash: {
       type: String,
       required: true,
+      select: false,
     },
     failedAttempts: {
       type: Number,

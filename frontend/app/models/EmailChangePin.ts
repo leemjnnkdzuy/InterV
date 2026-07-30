@@ -10,9 +10,10 @@ const emailChangePinSchema = new Schema<IEmailChangePin>(
       unique: true,
       index: true,
     },
-    currentEmailPin: {
+    currentEmailPinHash: {
       type: String,
       required: true,
+      select: false,
     },
     currentEmailVerified: {
       type: Boolean,
@@ -24,8 +25,17 @@ const emailChangePinSchema = new Schema<IEmailChangePin>(
       lowercase: true,
       trim: true,
     },
-    newEmailPin: {
+    newEmailPinHash: {
       type: String,
+      default: null,
+      select: false,
+    },
+    failedAttempts: {
+      type: Number,
+      default: 0,
+    },
+    blockedUntil: {
+      type: Date,
       default: null,
     },
     expiresAt: {

@@ -1,43 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "@/app/lib/Auth";
-import { AiBackendError, callAiBackend } from "@/app/lib/AiBackend";
+import { authenticateRequest } from "@/app/lib/Auth";
+import { AiBackendError, aiBackend } from "@/app/lib/AiBackend";
+import {
+  enforceRateLimit,
+  readJsonBodyLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
+
+const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken || !verifyAccessToken(accessToken)) {
+    const payload = await authenticateRequest(request);
+    if (!payload) {
       return NextResponse.json(
         { success: false, message: "Bạn cần đăng nhập để nghe thử giọng đọc" },
         { status: 401 }
       );
     }
 
-    const body = await request.json();
-    const data = await callAiBackend<{
-      success: boolean;
-      audio_base64: string;
-      content_type: string;
-      cached: boolean;
-    }>("/internal/tts/preview", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: body.text,
-        language: body.language,
-        voice_id: body.voiceId,
-      }),
+    await enforceRateLimit("ai-tts-preview", payload.userId, 90, 60_000);
+    const body = (await readJsonBodyLimited(
+      request,
+      4 * 1024
+    )) as Record<string, unknown>;
+    if (
+      typeof body.text !== "string" ||
+      body.text.trim().length === 0 ||
+      body.text.length > 500 ||
+      typeof body.language !== "string" ||
+      !SUPPORTED_LANGUAGES.has(body.language) ||
+      typeof body.voiceId !== "string" ||
+      body.voiceId.length > 100
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu giọng đọc không hợp lệ" },
+        { status: 400 }
+      );
+    }
+    const data = await aiBackend.synthesizeTts({
+      text: body.text.trim(),
+      language: body.language,
+      voiceId: body.voiceId,
     });
 
     return NextResponse.json({
       success: true,
-      audioBase64: data.audio_base64,
-      contentType: data.content_type,
+      audioBase64: data.audio.toString("base64"),
+      contentType: data.contentType,
       cached: data.cached,
     });
   } catch (error: unknown) {
     console.error("POST /api/ai/tts/preview error:", error);
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { success: false, message: "Bạn đang yêu cầu giọng đọc quá nhanh" },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu giọng đọc quá lớn" },
+        { status: 413 }
+      );
+    }
     const message =
       error instanceof AiBackendError
         ? error.message

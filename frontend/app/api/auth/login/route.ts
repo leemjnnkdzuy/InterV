@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Types } from "mongoose";
+import bcrypt from "bcryptjs";
 
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
@@ -13,17 +14,36 @@ import {
   REFRESH_TOKEN_LONG_MAX_AGE,
   MAX_SESSIONS,
 } from "@/app/lib/Auth";
+import {
+  enforceRateLimit,
+  getClientIp,
+  normalizeEmail,
+  normalizeUsername,
+  readJsonBodyLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 interface SessionSummary {
   _id: Types.ObjectId;
 }
 
+const dummyPasswordHash = bcrypt.hash("interv-invalid-login-sentinel", 12);
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await readJsonBodyLimited(
+      request,
+      16 * 1024
+    )) as Record<string, unknown>;
     const { identifier, password, rememberMe = false } = body;
 
-    if (!identifier || !password) {
+    if (
+      typeof identifier !== "string" ||
+      typeof password !== "string" ||
+      password.length > 128
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -36,12 +56,35 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const isEmail = identifier.includes("@");
+    const normalizedIdentifier = isEmail
+      ? normalizeEmail(identifier)
+      : normalizeUsername(identifier);
+    if (!normalizedIdentifier) {
+      return NextResponse.json(
+        { success: false, message: "Email/Username hoặc mật khẩu không đúng" },
+        { status: 401 }
+      );
+    }
+
+    const clientIp = getClientIp(request);
+    await Promise.all([
+      enforceRateLimit("login:ip", clientIp, 30, 15 * 60 * 1000),
+      enforceRateLimit(
+        "login:account",
+        normalizedIdentifier,
+        10,
+        15 * 60 * 1000
+      ),
+    ]);
 
     const user = isEmail
-      ? await User.findOne({ email: identifier.toLowerCase() })
-      : await User.findOne({ username: identifier.toLowerCase() });
+      ? await User.findOne({ email: normalizedIdentifier }).select("+password")
+      : await User.findOne({ username: normalizedIdentifier }).select(
+          "+password"
+        );
 
     if (!user) {
+      await bcrypt.compare(password, await dummyPasswordHash);
       return NextResponse.json(
         {
           success: false,
@@ -85,18 +128,26 @@ export async function POST(request: NextRequest) {
       await Session.updateMany({ _id: { $in: revokeIds } }, { $set: { isActive: false } });
     }
 
-    const deviceInfo = request.headers.get("user-agent") || "Unknown device";
-    const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "";
+    const deviceInfo = (
+      request.headers.get("user-agent") || "Unknown device"
+    ).slice(0, 256);
 
     const session = await Session.create({
       userId: user._id,
       deviceInfo,
-      ipAddress,
+      ipAddress: clientIp,
     });
     const sessionId = session._id.toString();
 
     const accessToken = generateAccessToken(userId, sessionId);
-    const refreshToken = generateRefreshToken(userId, rememberMe, sessionId);
+    const refreshBundle = generateRefreshToken(
+      userId,
+      Boolean(rememberMe),
+      sessionId
+    );
+    session.refreshTokenHash = refreshBundle.tokenHash;
+    session.refreshExpiresAt = refreshBundle.expiresAt;
+    await session.save();
 
     const refreshTokenMaxAge = rememberMe
       ? REFRESH_TOKEN_LONG_MAX_AGE
@@ -124,13 +175,28 @@ export async function POST(request: NextRequest) {
       maxAge: ACCESS_TOKEN_MAX_AGE / 1000,
     });
 
-    response.cookies.set("refresh_token", refreshToken, {
+    response.cookies.set("refresh_token", refreshBundle.token, {
       ...cookieOptions,
       maxAge: refreshTokenMaxAge / 1000,
     });
 
     return response;
   } catch (error: unknown) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Quá nhiều lần đăng nhập. Vui lòng thử lại sau.",
+        },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu đăng nhập quá lớn" },
+        { status: 413 }
+      );
+    }
     console.error("Login API error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server. Vui lòng thử lại sau." },

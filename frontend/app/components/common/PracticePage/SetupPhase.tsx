@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Languages, Volume2 } from "lucide-react";
+import { BriefcaseBusiness, Languages, LockKeyhole, Volume2 } from "lucide-react";
 import { aiService, practiceService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
 import { INDUSTRIES } from "@/app/contants";
@@ -65,12 +65,16 @@ export default function SetupPhase({
   voiceId,
   setVoiceId,
   isSavingSetup,
+  recruitmentMode = false,
+  recruitmentExpiresAt,
   handleStartInterview,
 }: SetupPhaseProps) {
   const { user } = useAuthContext();
   const { language: uiLanguage, t } = useLanguage();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [jdTab, setJdTab] = useState<"upload" | "paste">("upload");
+  const [jdTab, setJdTab] = useState<"upload" | "paste">(
+    recruitmentMode ? "paste" : "upload"
+  );
   const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   const [isUpdatingIndustry, setIsUpdatingIndustry] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -85,12 +89,27 @@ export default function SetupPhase({
 
   const quote = useMemo(
     () =>
-      calculatePracticeQuote({
-        duration,
-        hasUploadedJdFile: Boolean(uploadFile),
-        balanceCredits: user?.credits || 0,
-      }),
-    [duration, uploadFile, user?.credits]
+      recruitmentMode
+        ? {
+            totalCredits: 0,
+            vndEquivalent: 0,
+            balanceCredits: user?.credits || 0,
+            remainingCredits: user?.credits || 0,
+            canAfford: true,
+            breakdown: [
+              {
+                key: "recruitment" as const,
+                label: "Nhà tuyển dụng tài trợ",
+                credits: 0,
+              },
+            ],
+          }
+        : calculatePracticeQuote({
+            duration,
+            hasUploadedJdFile: Boolean(uploadFile),
+            balanceCredits: user?.credits || 0,
+          }),
+    [duration, recruitmentMode, uploadFile, user?.credits]
   );
 
   const languageOptions = LANGUAGE_OPTIONS.map((item) => ({
@@ -323,7 +342,7 @@ export default function SetupPhase({
     handleStartInterview({
       language,
       voiceId,
-      hasUploadedJdFile: Boolean(uploadFile),
+      hasUploadedJdFile: recruitmentMode ? false : Boolean(uploadFile),
     });
   };
 
@@ -351,6 +370,33 @@ export default function SetupPhase({
       </div>
 
       <div className="flex-1 flex flex-col p-6 w-full overflow-y-auto no-scrollbar gap-6">
+        {recruitmentMode && (
+          <div className="flex flex-col gap-3 rounded-lg border border-cyan-500/25 bg-cyan-500/8 px-4 py-3 text-cyan-100 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-cyan-500/15 text-cyan-300">
+                <BriefcaseBusiness className="size-4.5" />
+              </span>
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-extrabold">
+                  Phỏng vấn do nhà tuyển dụng giao
+                  <LockKeyhole className="size-3.5" />
+                </p>
+                <p className="mt-0.5 text-xs text-cyan-100/70">
+                  Cấu hình đã được khóa và ứng viên không bị trừ Credits.
+                </p>
+              </div>
+            </div>
+            {recruitmentExpiresAt && (
+              <span className="text-xs font-semibold text-cyan-100/80">
+                Hạn{" "}
+                {new Intl.DateTimeFormat("vi-VN", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                }).format(new Date(recruitmentExpiresAt))}
+              </span>
+            )}
+          </div>
+        )}
         <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
           <div className="lg:col-span-5 flex flex-col h-full min-h-0">
             <Card className="flex-1 border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] overflow-hidden shadow-sm flex flex-col justify-between p-6">
@@ -387,7 +433,9 @@ export default function SetupPhase({
                           {title || t("practiceSetup.unnamedTitle")}
                         </h2>
                         <button
+                          type="button"
                           onClick={() => setIsEditingTitle(true)}
+                          disabled={recruitmentMode}
                           className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 cursor-pointer shrink-0 ml-2"
                           title={t("practiceSetup.renameTitle")}
                         >
@@ -399,7 +447,7 @@ export default function SetupPhase({
 
                   <div className="space-y-1.5">
                     <label className="block text-[8px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.industryLabel")}</label>
-                    <Select value={industry} onValueChange={handleIndustryChange} disabled={isUpdatingIndustry}>
+                    <Select value={industry} onValueChange={handleIndustryChange} disabled={isUpdatingIndustry || recruitmentMode}>
                       <SelectTrigger className="rounded-2xl w-full border border-border/20 bg-card/20 hover:bg-card/45 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4">
                         <div className="flex items-center gap-2">
                           {isUpdatingIndustry && <Spinner className="w-3.5 h-3.5 text-primary" />}
@@ -421,7 +469,9 @@ export default function SetupPhase({
                   <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider">{t("practiceSetup.jobDescription")}</h3>
                   <div className="flex bg-muted/40 p-0.5 rounded-xl border border-border/5">
                     <button
+                      type="button"
                       onClick={() => setJdTab("upload")}
+                      disabled={recruitmentMode}
                       className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold tracking-tight cursor-pointer ${
                         jdTab === "upload" ? "bg-background text-primary shadow" : "text-muted-foreground hover:text-foreground"
                       }`}
@@ -429,7 +479,9 @@ export default function SetupPhase({
                       {t("practiceSetup.uploadFile")}
                     </button>
                     <button
+                      type="button"
                       onClick={() => setJdTab("paste")}
+                      disabled={recruitmentMode}
                       className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold tracking-tight cursor-pointer ${
                         jdTab === "paste" ? "bg-background text-primary shadow" : "text-muted-foreground hover:text-foreground"
                       }`}
@@ -509,6 +561,7 @@ export default function SetupPhase({
                               <Textarea
                                 value={jobDescription}
                                 onChange={(e) => setJobDescription(e.target.value)}
+                                disabled={recruitmentMode}
                                 className="rounded-2xl flex-1 text-left resize-none focus:ring-primary border-border/10 bg-card/5 text-xs leading-relaxed"
                               />
                             </div>
@@ -522,6 +575,7 @@ export default function SetupPhase({
                         placeholder={t("practiceSetup.jdPlaceholder")}
                         value={jobDescription}
                         onChange={(e) => setJobDescription(e.target.value)}
+                        disabled={recruitmentMode}
                         className="w-full flex-1 rounded-2xl text-left resize-none focus:ring-primary border-border/10 bg-card/5 text-xs leading-relaxed"
                       />
                     </div>
@@ -537,6 +591,7 @@ export default function SetupPhase({
                   placeholder={t("practiceSetup.topicPlaceholder")}
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
+                  disabled={recruitmentMode}
                   className="rounded-2xl min-h-[50px] text-left resize-none focus:ring-primary border-border/10 bg-card/5 text-xs"
                 />
               </div>
@@ -557,8 +612,10 @@ export default function SetupPhase({
                       const isSelected = difficulty === levelObj.id;
                       return (
                         <button
+                          type="button"
                           key={levelObj.id}
                           onClick={() => setDifficulty(levelObj.id)}
+                          disabled={recruitmentMode}
                           className={`w-full p-2.5 rounded-xl border text-left cursor-pointer flex items-center justify-between ${
                             isSelected
                               ? "border-primary bg-primary/10 text-primary shadow-sm"
@@ -579,12 +636,14 @@ export default function SetupPhase({
                 <div className="space-y-2 pt-2 border-t border-border/10">
                   <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.questionCountLabel")}</label>
                   <div className="grid grid-cols-1 gap-1.5">
-                    {[3, 5, 7, 12, 16, 20, 25].map((num) => {
+                    {[5, 7, 12, 16, 20, 25].map((num) => {
                       const isSelected = duration === num;
                       return (
                         <button
+                          type="button"
                           key={num}
                           onClick={() => setDuration(num)}
+                          disabled={recruitmentMode}
                           className={`p-2.5 rounded-xl border text-left cursor-pointer flex items-center justify-between ${
                             isSelected
                               ? "border-primary bg-primary/10 text-primary shadow-sm"
@@ -617,7 +676,7 @@ export default function SetupPhase({
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.interviewLanguage")}</label>
-                  <Select value={language} onValueChange={setLanguage}>
+                  <Select value={language} onValueChange={setLanguage} disabled={recruitmentMode}>
                     <SelectTrigger className="rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4">
                       <SelectValue placeholder={t("practiceSetup.languagePlaceholder")} />
                     </SelectTrigger>
@@ -634,7 +693,7 @@ export default function SetupPhase({
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.interviewVoice")}</label>
                   <div className="flex gap-2">
-                    <Select value={voiceId} onValueChange={setVoiceId} disabled={isLoadingVoices}>
+                    <Select value={voiceId} onValueChange={setVoiceId} disabled={isLoadingVoices || recruitmentMode}>
                       <SelectTrigger className="rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4">
                         <div className="flex items-center gap-2">
                           {isLoadingVoices && <Spinner className="w-3.5 h-3.5 text-primary" />}
@@ -653,18 +712,14 @@ export default function SetupPhase({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon"
                       onClick={() => void handlePreviewVoice()}
                       disabled={isPreviewingVoice || isLoadingVoices || !voiceId}
-                      className="h-[42px] w-[48px] shrink-0 rounded-2xl cursor-pointer"
+                      className="!h-[42px] !min-h-[42px] !w-[48px] shrink-0 rounded-2xl p-0 cursor-pointer"
                       title={t("practiceSetup.previewVoice")}
                     >
                       {isPreviewingVoice ? <Spinner className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                     </Button>
                   </div>
-                  <p className="text-[9px] text-muted-foreground leading-relaxed">
-                    {t("practiceSetup.ttsHint")}
-                  </p>
                 </div>
               </div>
             </Card>
@@ -691,7 +746,7 @@ export default function SetupPhase({
 
                 <div className="rounded-2xl border border-border/10 bg-card/10 p-3 space-y-2">
                   {quote.breakdown.map((item) => (
-                    <div key={item.key || item.label} className="flex items-center justify-between gap-3">
+                    <div key={item.key} className="flex items-center justify-between gap-3">
                       <span className="text-muted-foreground">{getQuoteBreakdownLabel(item)}</span>
                       <span className="font-bold text-foreground">{item.credits.toLocaleString(numberLocale)} Credits</span>
                     </div>
@@ -737,7 +792,9 @@ export default function SetupPhase({
                 ) : (
                   <>
                     <PlayCircle weight="BoldDuotone" className="w-4.5 h-4.5" />
-                    {quote.canAfford
+                    {recruitmentMode
+                      ? "Bắt đầu phỏng vấn tuyển dụng"
+                      : quote.canAfford
                       ? t("practiceSetup.startWithCredits", { credits: quote.totalCredits.toLocaleString(numberLocale) })
                       : t("practiceSetup.insufficientCredits")}
                   </>

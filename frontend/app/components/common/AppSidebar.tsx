@@ -179,7 +179,10 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
   };
 
   return (
-    <Sidebar className="bg-sidebar border-none border-e-0 transition-all duration-300" collapsible="icon">
+    <Sidebar
+      className="bg-transparent border-none border-e-0 transition-all duration-300 [&_[data-slot=sidebar-inner]]:bg-sidebar/65 [&_[data-slot=sidebar-inner]]:backdrop-blur-xl [&_[data-slot=sidebar-inner]]:border-e [&_[data-slot=sidebar-inner]]:border-white/10 [&_[data-slot=sidebar-inner]]:shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+      collapsible="icon"
+    >
       {/* Sidebar Header */}
       <SidebarHeader className="flex h-20 flex-row items-center justify-between px-6 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-28">
         {isCollapsed ? (

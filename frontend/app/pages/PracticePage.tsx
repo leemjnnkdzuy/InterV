@@ -1,20 +1,30 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { unlockInterviewAudio } from "@/app/lib/InterviewAudio";
 import { practiceService } from "@/app/services";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import SilkBackground from "@/app/components/common/SilkBackground";
 
 import SetupPhase from "@/app/components/common/PracticePage/SetupPhase";
 import SetupPhaseSkeleton from "@/app/components/seletons/SetupPhaseSkeleton";
 import InterviewPhase from "@/app/components/common/PracticePage/InterviewPhase";
+import PreparationPhase from "@/app/components/common/PracticePage/PreparationPhase";
 import type {
+  GeneratedInterviewQuestion,
+  InterviewQuestionAudio,
   PracticePageProps,
   PracticeSessionResponse,
   PracticeStartOptions,
 } from "@/app/types";
+import {
+  DEFAULT_INTERVIEW_QUESTIONS,
+  normalizeInterviewQuestionCount,
+} from "@/app/lib/PracticeBilling";
 
 const DEFAULT_INDUSTRY = "Công nghệ thông tin";
 const DEFAULT_LANGUAGE = "vi-VN";
@@ -33,19 +43,33 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
   const { language: uiLanguage, t } = useLanguage();
   const numberLocale = uiLanguage === "zh" ? "zh-CN" : uiLanguage === "en" ? "en-US" : "vi-VN";
   const [isLoading, setIsLoading] = useState(true);
-  const [activePhase, setActivePhase] = useState<"setup" | "interview">("setup");
+  const [activePhase, setActivePhase] = useState<
+    "setup" | "preparing" | "interview"
+  >("setup");
 
   const [title, setTitle] = useState("");
   const [industry, setIndustry] = useState(DEFAULT_INDUSTRY);
   const [jobDescription, setJobDescription] = useState("");
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState("Middle");
-  const [duration, setDuration] = useState(3);
+  const [duration, setDuration] = useState(DEFAULT_INTERVIEW_QUESTIONS);
   const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
   const [voiceId, setVoiceId] = useState(DEFAULT_VOICE);
   const [isSavingSetup, setIsSavingSetup] = useState(false);
-  const [questionsList, setQuestionsList] = useState<string[]>([]);
+  const [recruitmentMode, setRecruitmentMode] = useState(false);
+  const [recruitmentExpiresAt, setRecruitmentExpiresAt] = useState<
+    string | undefined
+  >();
+  const [questionsList, setQuestionsList] = useState<
+    GeneratedInterviewQuestion[]
+  >([]);
   const [runId, setRunId] = useState("");
+  const [initialQuestionAudio, setInitialQuestionAudio] =
+    useState<InterviewQuestionAudio>();
+  const startAttemptRef = useRef<{
+    fingerprint: string;
+    idempotencyKey: string;
+  } | null>(null);
 
   const fetchSessionDetails = useCallback(async () => {
     try {
@@ -58,9 +82,11 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         setJobDescription(session.jobDescription || "");
         setTopic(session.topic || "");
         setDifficulty(session.difficulty || "Middle");
-        setDuration(session.questionCount || 3);
+        setDuration(normalizeInterviewQuestionCount(session.questionCount));
         setLanguage(session.language || DEFAULT_LANGUAGE);
         setVoiceId(session.voiceId || DEFAULT_VOICE);
+        setRecruitmentMode(session.source === "recruitment");
+        setRecruitmentExpiresAt(session.expiresAt);
       } else {
         toast.error(t("practiceSetup.loadSessionFailed"));
         router.push("/practice");
@@ -82,19 +108,6 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
     return () => window.clearTimeout(timeoutId);
   }, [fetchSessionDetails]);
 
-  useEffect(() => {
-    if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-          stream.getTracks().forEach((track) => track.stop());
-        })
-        .catch((err) => {
-          console.error("Microphone access permission denied:", err);
-          toast.error(t("practiceSetup.micPermissionDenied"));
-        });
-    }
-  }, [t]);
-
   const handleStartInterview = async ({
     language: selectedLanguage,
     voiceId: selectedVoiceId,
@@ -110,9 +123,18 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
       return;
     }
 
+    unlockInterviewAudio();
     try {
       setIsSavingSetup(true);
-      const data = await practiceService.startInterview(practiceId, {
+      setActivePhase("preparing");
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Microphone is not supported");
+      }
+      const permissionStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      permissionStream.getTracks().forEach((track) => track.stop());
+      const startPayload = {
         title: title.trim(),
         industry,
         jobDescription: jobDescription.trim(),
@@ -122,28 +144,59 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         language: selectedLanguage,
         voiceId: selectedVoiceId,
         hasUploadedJdFile,
-        idempotencyKey: createIdempotencyKey(),
+      };
+      const fingerprint = JSON.stringify(startPayload);
+      if (startAttemptRef.current?.fingerprint !== fingerprint) {
+        startAttemptRef.current = {
+          fingerprint,
+          idempotencyKey: createIdempotencyKey(),
+        };
+      }
+      const data = await practiceService.startInterview(practiceId, {
+        ...startPayload,
+        idempotencyKey: startAttemptRef.current.idempotencyKey,
       });
 
       if (!data.success || !data.runId || !data.questions?.length) {
+        startAttemptRef.current = null;
         toast.error(data.message || t("practiceSetup.startInterviewFailed"));
+        setActivePhase("setup");
         return;
       }
 
+      startAttemptRef.current = null;
       setRunId(data.runId);
-      setQuestionsList(data.questions.map((question) => question.text));
+      setQuestionsList(data.questions);
       setLanguage(selectedLanguage);
       setVoiceId(selectedVoiceId);
-      await refreshUser();
-      toast.success(
-        t("practiceSetup.chargedAndStarted", {
-          credits: (data.quote?.totalCredits || 0).toLocaleString(numberLocale),
-        })
-      );
+      setInitialQuestionAudio(data.firstQuestionAudio);
       setActivePhase("interview");
+      void refreshUser();
+      toast.success(
+        recruitmentMode
+          ? "Buổi phỏng vấn tuyển dụng đã bắt đầu"
+          : t("practiceSetup.chargedAndStarted", {
+              credits: (data.quote?.totalCredits || 0).toLocaleString(numberLocale),
+            })
+      );
     } catch (err: unknown) {
       console.error(err);
-      toast.error(t("practiceSetup.chargeOrStartFailed"));
+      if (
+        axios.isAxiosError(err) &&
+        err.response &&
+        [400, 401, 402, 403, 404, 409, 410].includes(err.response.status)
+      ) {
+        startAttemptRef.current = null;
+      }
+      if (
+        err instanceof DOMException &&
+        ["NotAllowedError", "SecurityError"].includes(err.name)
+      ) {
+        toast.error(t("practiceSetup.micPermissionDenied"));
+      } else {
+        toast.error(t("practiceSetup.chargeOrStartFailed"));
+      }
+      setActivePhase("setup");
     } finally {
       setIsSavingSetup(false);
     }
@@ -151,51 +204,63 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-screen bg-background">
-        <SetupPhaseSkeleton />
+      <div className="dark flex h-screen w-screen bg-zinc-950 relative overflow-hidden">
+        <SilkBackground fadeBottom bottomColor="var(--background)" />
+        <div className="relative z-10 w-full">
+          <SetupPhaseSkeleton />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-screen bg-background text-left relative overflow-hidden flex flex-col animate-in fade-in duration-300">
-      {activePhase === "setup" ? (
-        <SetupPhase
-          router={router}
-          practiceId={practiceId}
-          title={title}
-          setTitle={setTitle}
-          industry={industry}
-          setIndustry={setIndustry}
-          jobDescription={jobDescription}
-          setJobDescription={setJobDescription}
-          topic={topic}
-          setTopic={setTopic}
-          difficulty={difficulty}
-          setDifficulty={setDifficulty}
-          duration={duration}
-          setDuration={setDuration}
-          language={language}
-          setLanguage={setLanguage}
-          voiceId={voiceId}
-          setVoiceId={setVoiceId}
-          isSavingSetup={isSavingSetup}
-          handleStartInterview={handleStartInterview}
-        />
-      ) : (
-        <InterviewPhase
-          practiceId={practiceId}
-          runId={runId}
-          title={title}
-          industry={industry}
-          difficulty={difficulty}
-          language={language}
-          voiceId={voiceId}
-          questionsList={questionsList}
-          jobDescription={jobDescription}
-          topic={topic}
-        />
-      )}
+    <div className="dark w-full h-screen bg-background text-left relative overflow-hidden flex flex-col animate-in fade-in duration-300">
+      <SilkBackground fadeBottom bottomColor="var(--background)" />
+      <div className="relative z-10 w-full h-full flex flex-col">
+        {activePhase === "setup" ? (
+          <SetupPhase
+            router={router}
+            practiceId={practiceId}
+            title={title}
+            setTitle={setTitle}
+            industry={industry}
+            setIndustry={setIndustry}
+            jobDescription={jobDescription}
+            setJobDescription={setJobDescription}
+            topic={topic}
+            setTopic={setTopic}
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+            duration={duration}
+            setDuration={setDuration}
+            language={language}
+            setLanguage={setLanguage}
+            voiceId={voiceId}
+            setVoiceId={setVoiceId}
+            isSavingSetup={isSavingSetup}
+            recruitmentMode={recruitmentMode}
+            recruitmentExpiresAt={recruitmentExpiresAt}
+            handleStartInterview={handleStartInterview}
+          />
+        ) : activePhase === "preparing" ? (
+          <PreparationPhase />
+        ) : (
+          <InterviewPhase
+            practiceId={practiceId}
+            runId={runId}
+            title={title}
+            industry={industry}
+            difficulty={difficulty}
+            language={language}
+            voiceId={voiceId}
+            questionsList={questionsList}
+            initialQuestionAudio={initialQuestionAudio}
+            questionCount={duration}
+            jobDescription={jobDescription}
+            topic={topic}
+          />
+        )}
+      </div>
     </div>
   );
 }

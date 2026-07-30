@@ -54,8 +54,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     if (step === 2 && orderCode && isOpen) {
       const pollStatus = async () => {
         try {
-          const isMock = paymentUrl.includes("mock=true");
-          const data = await paymentService.verifyPayment(orderCode, isMock);
+          const data = await paymentService.verifyPayment(orderCode);
           if (data.success && data.status === "PAID") {
             toast.success(t("credit.paymentPollSuccess"));
             await refreshUser();
@@ -74,7 +73,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
         clearInterval(intervalId);
       }
     };
-  }, [step, orderCode, isOpen, paymentUrl, refreshUser, onOpenChange, t]);
+  }, [step, orderCode, isOpen, refreshUser, onOpenChange, t]);
 
   const handleContinuePayment = async () => {
     if (!selectedPackage) return;
@@ -101,8 +100,7 @@ export default function RechargeDrawer({ isOpen, onOpenChange }: RechargeDrawerP
     if (!orderCode) return;
     try {
       setIsVerifying(true);
-      const isMock = paymentUrl.includes("mock=true");
-      const data = await paymentService.verifyPayment(orderCode, isMock);
+      const data = await paymentService.verifyPayment(orderCode);
       if (data.success && data.status === "PAID") {
         toast.success(t("credit.verifySuccess"));
         await refreshUser();

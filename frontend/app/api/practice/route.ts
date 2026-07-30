@@ -2,11 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Types } from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
 import PracticeSession from "@/app/models/PracticeSession";
-import { verifyAccessToken } from "@/app/lib/Auth";
+import { authenticateRequest } from "@/app/lib/Auth";
 import type { IPracticeSession } from "@/app/types";
+import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
+import {
+  readJsonBodyLimited,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 interface LeanPracticeSession {
   _id: Types.ObjectId;
+  source?: "practice" | "recruitment";
+  lockedConfig?: boolean;
+  scheduledAt?: Date;
+  expiresAt?: Date;
   title: string;
   jobDescription?: string;
   topic?: string;
@@ -25,15 +34,7 @@ interface LeanPracticeSession {
 
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ hoặc đã hết hạn" },
@@ -45,12 +46,17 @@ export async function GET(request: NextRequest) {
 
     const sessions = await PracticeSession.find({ userId: payload.userId })
       .sort({ updatedAt: -1 })
+      .limit(100)
       .lean<LeanPracticeSession[]>();
 
     return NextResponse.json({
       success: true,
       sessions: sessions.map((session) => ({
         id: session._id.toString(),
+        source: session.source || "practice",
+        lockedConfig: session.lockedConfig === true,
+        scheduledAt: session.scheduledAt,
+        expiresAt: session.expiresAt,
         title: session.title,
         jobDescription: session.jobDescription,
         topic: session.topic,
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
         language: session.language,
         voiceId: session.voiceId,
         difficulty: session.difficulty,
-        questionCount: session.questionCount,
+        questionCount: normalizeInterviewQuestionCount(session.questionCount),
         tags: session.tags || [],
         attemptCount: session.attemptCount || 0,
         highestScore: session.highestScore || 0,
@@ -78,15 +84,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ hoặc đã hết hạn" },
@@ -94,38 +92,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { title, industry, jobDescription, topic } = body;
+    const body = (await readJsonBodyLimited(
+      request,
+      64 * 1024
+    )) as Record<string, unknown>;
+    const title = typeof body.title === "string" ? body.title.trim() : "";
+    const industry =
+      typeof body.industry === "string" ? body.industry.trim() : "";
+    const jobDescription =
+      typeof body.jobDescription === "string"
+        ? body.jobDescription.trim()
+        : "";
+    const topic = typeof body.topic === "string" ? body.topic.trim() : "";
 
-    if (!title || !title.trim()) {
+    if (
+      !title ||
+      title.length > 200 ||
+      industry.length > 120 ||
+      jobDescription.length > 50_000 ||
+      topic.length > 2_000
+    ) {
       return NextResponse.json(
-        { success: false, message: "Tiêu đề buổi phỏng vấn không được để trống" },
+        { success: false, message: "Nội dung buổi phỏng vấn không hợp lệ" },
         { status: 400 }
       );
     }
 
     await connectDB();
 
-    // AI summary simulation - parse tags and content based on inputs
+    // Derive searchable tags from the submitted practice context.
     const tags: string[] = [];
     if (industry) {
       tags.push(industry);
     }
-    // Add extra tags based on job description / topic keywords
-    const keywords = (topic + " " + jobDescription).toLowerCase();
-    if (keywords.includes("react") || keywords.includes("frontend") || keywords.includes("nextjs") || keywords.includes("html") || keywords.includes("css") || keywords.includes("js") || keywords.includes("javascript") || keywords.includes("web")) {
+    const keywords = `${topic || ""} ${jobDescription || ""}`.toLowerCase();
+    const mentionsNode = /\bnode(?:\.?js)?\b/i.test(keywords);
+    const mentionsStandaloneJs = /\bjs\b/i.test(keywords) && !mentionsNode;
+
+    if (
+      /\b(react|frontend|next(?:\.?js)?|html|css|javascript)\b/i.test(
+        keywords
+      ) ||
+      mentionsStandaloneJs
+    ) {
       tags.push("Frontend");
     }
-    if (keywords.includes("backend") || keywords.includes("node") || keywords.includes("python") || keywords.includes("golang") || keywords.includes("java") || keywords.includes("api") || keywords.includes("database") || keywords.includes("sql")) {
+    if (
+      /\b(backend|node(?:\.?js)?|python|golang|java|api|database|sql|mongodb|grpc)\b/i.test(
+        keywords
+      )
+    ) {
       tags.push("Backend");
     }
-    if (keywords.includes("system design") || keywords.includes("architecture")) {
+    if (/\b(system design|architecture)\b/i.test(keywords)) {
       tags.push("System Design");
     }
-    if (keywords.includes("marketing") || keywords.includes("seo") || keywords.includes("ads")) {
+    if (/\b(marketing|seo|ads)\b/i.test(keywords)) {
       tags.push("Marketing");
     }
-    if (keywords.includes("sales") || keywords.includes("bán hàng")) {
+    if (/\b(sales|bán hàng)\b/i.test(keywords)) {
       tags.push("Sales");
     }
     if (tags.length === 0) {
@@ -137,14 +162,14 @@ export async function POST(request: NextRequest) {
 
     const newSession = await PracticeSession.create({
       userId: payload.userId,
-      title: title.trim(),
+      title,
       industry: industry || "Công nghệ thông tin",
-      jobDescription: jobDescription || "",
-      topic: topic || "",
+      jobDescription,
+      topic,
       language: "vi-VN",
       voiceId: "vi-VN-HoaiMyNeural",
       difficulty: "Middle",
-      questionCount: 3,
+      questionCount: 5,
       tags: uniqueTags,
       attemptCount: 0,
       highestScore: 0,
@@ -171,6 +196,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu buổi luyện tập quá lớn" },
+        { status: 413 }
+      );
+    }
     console.error("POST /api/practice error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },

@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class VoiceInfo(BaseModel):
-    id: str
-    name: str
-    locale: str
+    id: str = Field(min_length=1, max_length=120)
+    name: str = Field(min_length=1, max_length=200)
+    locale: str = Field(min_length=2, max_length=20)
     gender: str | None = None
     description: str | None = None
 
@@ -18,8 +18,8 @@ class VoicesResponse(BaseModel):
 
 class TtsPreviewRequest(BaseModel):
     text: str = Field(min_length=1, max_length=500)
-    language: str = "vi-VN"
-    voice_id: str
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)
+    voice_id: str = Field(min_length=1, max_length=120)
 
 
 class TtsPreviewResponse(BaseModel):
@@ -32,9 +32,9 @@ class TtsPreviewResponse(BaseModel):
 class NormalizedJd(BaseModel):
     title: str | None = None
     company: str | None = None
-    responsibilities: list[str] = []
-    requirements: list[str] = []
-    skills: list[str] = []
+    responsibilities: list[str] = Field(default_factory=list, max_length=20)
+    requirements: list[str] = Field(default_factory=list, max_length=20)
+    skills: list[str] = Field(default_factory=list, max_length=50)
     seniority: str | None = None
     language: str | None = None
 
@@ -46,30 +46,36 @@ class JdExtractResponse(BaseModel):
 
 
 class InterviewStartRequest(BaseModel):
-    session_id: str
-    title: str
-    industry: str = ""
-    job_description: str = ""
-    topic: str = ""
-    difficulty: str = "Middle"
-    duration: int = Field(default=3, ge=1, le=25)
-    language: str = "vi-VN"
-    voice_id: str = "vi-VN-HoaiMyNeural"
+    session_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=200)
+    industry: str = Field(default="", max_length=120)
+    job_description: str = Field(default="", max_length=50_000)
+    topic: str = Field(default="", max_length=2_000)
+    difficulty: str = Field(default="Middle", min_length=1, max_length=80)
+    requested_questions: int = Field(default=1, ge=1, le=25)
+    question_count: int = Field(default=5, ge=5, le=25)
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)
+    voice_id: str = Field(
+        default="vi-VN-HoaiMyNeural",
+        min_length=1,
+        max_length=120,
+    )
 
 
 class GeneratedQuestion(BaseModel):
-    id: str
-    text: str
-    competency: str
-    difficulty: str | None = None
-    expected_signals: list[str] = []
+    id: str = Field(min_length=1, max_length=64)
+    text: str = Field(min_length=1, max_length=500)
+    competency: str = Field(min_length=1, max_length=120)
+    difficulty: str | None = Field(default=None, max_length=80)
+    expected_signals: list[str] = Field(default_factory=list, max_length=20)
+    grounding_ids: list[str] = Field(default_factory=list, max_length=30)
 
 
 class InterviewStartResponse(BaseModel):
     success: bool = True
     run_id: str
     questions: list[GeneratedQuestion]
-    provider: Literal["deepseek", "fallback"] = "fallback"
+    provider: Literal["deepseek"] = "deepseek"
 
 
 class TranscribeResponse(BaseModel):
@@ -77,53 +83,76 @@ class TranscribeResponse(BaseModel):
     transcript: str
     language: str | None = None
     duration_sec: float | None = None
-    provider: Literal["faster-whisper", "fallback"] = "fallback"
+    provider: Literal["faster-whisper"] = "faster-whisper"
     message: str | None = None
 
 
 class InterviewAnswerRequest(BaseModel):
-    run_id: str
-    question_id: str
-    question: str
-    answer: str
-    language: str = "vi-VN"
+    run_id: str = Field(min_length=1, max_length=64)
+    question_id: str = Field(min_length=1, max_length=64)
+    question: str = Field(min_length=1, max_length=1_500)
+    answer: str = Field(min_length=1, max_length=20_000)
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)
+
+
+class InterviewFollowUpRequest(InterviewAnswerRequest):
+    session_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=200)
+    industry: str = Field(default="", max_length=120)
+    job_description: str = Field(default="", max_length=50_000)
+    topic: str = Field(default="", max_length=2_000)
+    difficulty: str = Field(default="Middle", min_length=1, max_length=80)
+    question_count: int = Field(default=5, ge=5, le=25)
+    next_question_index: int = Field(ge=1, le=24)
+    qa_history: list[dict[str, object]] = Field(
+        default_factory=list,
+        max_length=25,
+    )
 
 
 class InterviewAnswerResponse(BaseModel):
     success: bool = True
     feedback_hint: str | None = None
+    has_next_question: bool = False
+    next_question: GeneratedQuestion | None = None
+    provider: Literal["deepseek"] = "deepseek"
 
 
 class EvaluationQuestion(BaseModel):
-    question: str
-    answer: str
-    score: int
-    feedback: str
-    evidence: list[str] = []
+    question: str = Field(min_length=1, max_length=1_500)
+    answer: str = Field(max_length=20_000)
+    score: int = Field(ge=0, le=100)
+    feedback: str = Field(max_length=5_000)
+    evidence: list[str] = Field(default_factory=list, max_length=30)
+    grounding_ids: list[str] = Field(default_factory=list, max_length=30)
 
 
 class InterviewEvaluation(BaseModel):
-    score: int
+    score: int = Field(ge=0, le=100)
     ratings: dict[str, int]
-    feedback: str
-    strengths: list[str]
-    weaknesses: list[str]
-    recommendations: list[str]
-    questions: list[EvaluationQuestion]
+    feedback: str = Field(max_length=10_000)
+    strengths: list[str] = Field(max_length=30)
+    weaknesses: list[str] = Field(max_length=30)
+    recommendations: list[str] = Field(max_length=30)
+    questions: list[EvaluationQuestion] = Field(min_length=5, max_length=25)
+    audio_analysis: dict[str, object] | None = None
+    grounding_ids: list[str] = Field(default_factory=list, max_length=50)
 
 
 class InterviewEvaluateRequest(BaseModel):
-    run_id: str
-    title: str
-    industry: str = ""
-    job_description: str = ""
-    topic: str = ""
-    difficulty: str = "Middle"
-    language: str = "vi-VN"
-    qa_history: list[dict[str, str]]
+    session_id: str = Field(min_length=1, max_length=64)
+    run_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=200)
+    industry: str = Field(default="", max_length=120)
+    job_description: str = Field(default="", max_length=50_000)
+    topic: str = Field(default="", max_length=2_000)
+    difficulty: str = Field(default="Middle", min_length=1, max_length=80)
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)
+    qa_history: list[dict[str, object]] = Field(min_length=5, max_length=25)
+    audio_analysis: dict[str, object] | None = None
 
 
 class InterviewEvaluateResponse(BaseModel):
     success: bool = True
     evaluation: InterviewEvaluation
-    provider: Literal["deepseek", "fallback"] = "fallback"
+    provider: Literal["deepseek"] = "deepseek"

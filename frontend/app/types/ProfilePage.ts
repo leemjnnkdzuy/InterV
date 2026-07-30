@@ -7,7 +7,7 @@ export interface ProfilePageProps {
 export interface ProfileUser {
   id: string;
   username: string;
-  email: string;
+  email?: string;
   role: string;
   avatar?: string;
   dob?: string;

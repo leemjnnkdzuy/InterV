@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { getErrorMessage } from "@/app/lib/Utils";
 import { PasswordDialogProps } from "@/app/types";
+import { PASSWORD_MIN_LENGTH } from "@/app/contants";
 
 export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogProps) {
   const { t } = useLanguage();
@@ -44,7 +45,7 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
       toast.error(t("dialogs.passwordsNotMatch"));
       return;
     }
-    if (newPassword.length < 6) {
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
       toast.error(t("dialogs.passwordMinLength"));
       return;
     }
@@ -57,6 +58,9 @@ export default function PasswordDialog({ isOpen, onOpenChange }: PasswordDialogP
       if (res.success) {
         toast.success(t("dialogs.updatePasswordSuccess"));
         onOpenChange(false);
+        if ("reauthenticate" in res && res.reauthenticate) {
+          window.dispatchEvent(new CustomEvent("session-revoked"));
+        }
       } else {
         toast.error(res.message || t("dialogs.updatePasswordFailed"));
       }

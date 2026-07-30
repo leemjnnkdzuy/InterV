@@ -25,6 +25,23 @@ const sessionSchema = new Schema<ISession>(
       type: Date,
       default: Date.now,
     },
+    refreshTokenHash: {
+      type: String,
+      default: "",
+      select: false,
+    },
+    previousRefreshTokenHash: {
+      type: String,
+      default: "",
+      select: false,
+    },
+    previousRefreshValidUntil: {
+      type: Date,
+    },
+    refreshExpiresAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,
@@ -33,6 +50,7 @@ const sessionSchema = new Schema<ISession>(
 
 sessionSchema.index({ userId: 1, isActive: 1 });
 sessionSchema.index({ lastActiveAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+sessionSchema.index({ refreshExpiresAt: 1 }, { expireAfterSeconds: 0 });
 
 if (mongoose.models.Session) {
   delete mongoose.models.Session;

@@ -7,8 +7,8 @@ export const paymentService = {
     return response.data;
   },
 
-  verifyPayment: async (orderCode: number, mock: boolean): Promise<VerifyPaymentResponse> => {
-    const response = await api.post("/payment/verify", { orderCode, mock });
+  verifyPayment: async (orderCode: number): Promise<VerifyPaymentResponse> => {
+    const response = await api.post("/payment/verify", { orderCode });
     return response.data;
   },
 };

@@ -68,7 +68,7 @@ export default function HowItWorks() {
             </p>
           </div>
 
-          {/* Right Column: Visual Mockup matching the offset layers in the image */}
+          {/* Right Column: visual workflow preview */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
             <div className="relative w-[280px] h-[360px] sm:w-[310px] sm:h-[400px] group/visual">
               {/* Offset Layer (Primary background, rotated clockwise, shifted top-right) */}
@@ -76,7 +76,7 @@ export default function HowItWorks() {
               {/* Main Visual Image Card */}
               <div className="absolute inset-0 rounded-[32px] overflow-hidden bg-zinc-950 shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex items-center justify-center z-10">
                 
-                {/* User Mock Audio/Voice Call */}
+                {/* User audio/voice-call preview */}
                 <div className="relative w-full h-full">
                   <Image
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&h=800&q=80" 

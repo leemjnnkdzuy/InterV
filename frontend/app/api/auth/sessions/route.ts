@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import Session from "@/app/models/Session";
-import { verifyAccessToken, cookieOptions } from "@/app/lib/Auth";
+import { authenticateRequest, cookieOptions } from "@/app/lib/Auth";
+import {
+  readJsonBodyLimited,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ" },
@@ -56,15 +52,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ" },
@@ -72,8 +60,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { sessionId, revokeAll } = body;
+    const body = (await readJsonBodyLimited(
+      request,
+      4 * 1024
+    )) as Record<string, unknown>;
+    const sessionId =
+      typeof body.sessionId === "string" ? body.sessionId : "";
+    const revokeAll = body.revokeAll === true;
 
     await connectDB();
 
@@ -118,7 +111,6 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Set target session as inactive
     const result = await Session.updateOne(
       {
         _id: sessionId,
@@ -143,6 +135,12 @@ export async function DELETE(request: NextRequest) {
       message: "Đã đăng xuất thiết bị thành công",
     });
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu thu hồi phiên quá lớn" },
+        { status: 413 }
+      );
+    }
     console.error("Revoke session error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi server" },

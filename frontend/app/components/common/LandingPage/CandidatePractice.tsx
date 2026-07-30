@@ -74,7 +74,7 @@ export default function CandidatePractice() {
             </div>
           </div>
 
-          {/* Right Column: Interactive Mock Card (6 cols - aligned right) */}
+          {/* Right Column: interactive result preview */}
           <div className="lg:col-span-6 flex lg:justify-end justify-center w-full">
             <div className="relative w-full max-w-[540px] group/card">
               {/* Card Ambient Glow behind the card */}

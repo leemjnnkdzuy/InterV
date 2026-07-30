@@ -3,7 +3,7 @@ import type { Types } from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
 import CreditLog from "@/app/models/CreditLog";
 import Transaction from "@/app/models/Transaction";
-import { verifyAccessToken } from "@/app/lib/Auth";
+import { authenticateRequest } from "@/app/lib/Auth";
 import type { ICreditLog, ITransaction } from "@/app/types";
 
 interface LeanCreditLog {
@@ -27,15 +27,7 @@ interface LeanTransaction {
 
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy access token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Access token không hợp lệ hoặc đã hết hạn" },
@@ -48,11 +40,13 @@ export async function GET(request: NextRequest) {
     // Fetch credit logs (usage history)
     const creditLogs = await CreditLog.find({ userId: payload.userId })
       .sort({ createdAt: -1 })
+      .limit(100)
       .lean<LeanCreditLog[]>();
 
     // Fetch transactions (recharge history)
     const transactions = await Transaction.find({ userId: payload.userId })
       .sort({ createdAt: -1 })
+      .limit(100)
       .lean<LeanTransaction[]>();
 
     return NextResponse.json({

@@ -20,6 +20,7 @@ import ResultPracticeDrawer from "@/app/components/common/Drawer/ResultPracticeD
 import { practiceService } from "@/app/services";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { translateIndustry } from "@/app/lib/Localization";
+import SilkBackground from "@/app/components/common/SilkBackground";
 import type {
   PracticeMutationResponse,
   PracticeProjectSession,
@@ -189,12 +190,14 @@ export default function PracticeProjectPage() {
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      className="space-y-8 max-w-7xl mx-auto pb-10"
-    >
+    <div className="dark relative min-h-[calc(100vh-4rem)] -m-6 lg:-m-8 px-6 py-6 lg:px-8 lg:py-8 overflow-hidden bg-background">
+      <SilkBackground fadeBottom bottomColor="var(--background)" />
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="relative z-10 space-y-8 max-w-7xl mx-auto pb-10"
+      >
       {/* Top Controls Bar */}
       <motion.div variants={itemVariants} className="flex items-center justify-between gap-4 border-b border-border/10 pb-6 text-left">
         <Button
@@ -598,6 +601,7 @@ export default function PracticeProjectPage() {
         itemName={sessionToDelete?.title}
         isSubmitting={isDeleting}
       />
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

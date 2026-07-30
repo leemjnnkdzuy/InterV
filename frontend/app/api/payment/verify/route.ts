@@ -1,129 +1,116 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import connectDB from "@/app/lib/ConnectDB";
-import User from "@/app/models/User";
 import Transaction from "@/app/models/Transaction";
-import CreditLog from "@/app/models/CreditLog";
-import { verifyAccessToken } from "@/app/lib/Auth";
-import payos from "@/app/lib/PayOS";
-import { getErrorMessage } from "@/app/lib/Utils";
+import { authenticateRequest } from "@/app/lib/Auth";
+import {
+  PaymentIntegrityError,
+  reconcilePayOSPayment,
+} from "@/app/lib/PaymentSettlement";
+import {
+  enforceRateLimit,
+  readJsonBodyLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy access token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
-        { success: false, message: "Access token không hợp lệ hoặc đã hết hạn" },
+        { success: false, message: "Phiên đăng nhập không hợp lệ" },
         { status: 401 }
       );
     }
-
-    const body = await request.json();
-    const { orderCode, mock } = body;
-
-    if (!orderCode) {
+    const body = (await readJsonBodyLimited(
+      request,
+      4 * 1024
+    )) as Record<string, unknown>;
+    const orderCode = body.orderCode;
+    if (
+      typeof orderCode !== "number" ||
+      !Number.isSafeInteger(orderCode) ||
+      orderCode <= 0
+    ) {
       return NextResponse.json(
-        { success: false, message: "Thiếu mã giao dịch (orderCode)" },
+        { success: false, message: "Mã giao dịch không hợp lệ" },
         { status: 400 }
       );
     }
 
     await connectDB();
-    const transaction = await Transaction.findOne({ orderCode });
-
+    await enforceRateLimit("payment-verify", payload.userId, 30, 10 * 60_000);
+    const transaction = await Transaction.findOne({
+      orderCode,
+      userId: payload.userId,
+    });
     if (!transaction) {
       return NextResponse.json(
         { success: false, message: "Giao dịch không tồn tại" },
         { status: 404 }
       );
     }
-
     if (transaction.status === "PAID") {
       return NextResponse.json({
         success: true,
-        message: "Giao dịch đã được thanh toán và xử lý thành công trước đó",
+        message: "Giao dịch đã được xử lý trước đó",
         status: "PAID",
       });
     }
 
-    let paymentStatus = "PENDING";
-
-    // Handle mock transactions or mock parameter
-    if (mock || transaction.paymentLinkId.startsWith("MOCK_")) {
-      paymentStatus = "PAID";
-    } else {
-      try {
-        const paymentInfo = await payos.paymentRequests.get(orderCode);
-        paymentStatus = paymentInfo.status; // "PENDING", "PAID", "CANCELLED", etc.
-      } catch (payosError: unknown) {
-        console.error(
-          `Error querying status for orderCode ${orderCode}:`,
-          getErrorMessage(payosError, "Unknown PayOS error")
-        );
-        // Fallback to check if mock transaction
-        if (transaction.paymentLinkId.startsWith("MOCK_")) {
-          paymentStatus = "PAID";
-        }
-      }
+    const reconciliation = await reconcilePayOSPayment(transaction._id);
+    if (reconciliation.status === "PAID") {
+      return NextResponse.json({
+        success: true,
+        message: "Giao dịch đã được cộng credits thành công",
+        status: "PAID",
+      });
     }
-
-    if (paymentStatus === "PAID" || paymentStatus === "completed") {
-      // Perform atomic database update to prevent double spending
-      const updatedTransaction = await Transaction.findOneAndUpdate(
-        { _id: transaction._id, status: "PENDING" },
-        { $set: { status: "PAID" } },
-        { returnDocument: 'after' }
-      );
-
-      if (updatedTransaction) {
-        // Increment user credits
-        await User.updateOne(
-          { _id: transaction.userId },
-          { $inc: { credits: transaction.credits } }
-        );
-
-        // Log the credit log
-        await CreditLog.create({
-          userId: transaction.userId,
-          credits: transaction.credits,
-          action: "RECHARGE",
-          description: `Nạp thành công ${transaction.credits} Credits qua PayOS (Giao dịch #${transaction.orderCode})`,
-        });
-
-        return NextResponse.json({
-          success: true,
-          message: "Giao dịch đã được xử lý và cộng tiền thành công!",
-          status: "PAID",
-        });
-      }
-    } else if (paymentStatus === "CANCELLED" || paymentStatus === "cancelled") {
-      await Transaction.updateOne(
-        { _id: transaction._id, status: "PENDING" },
-        { $set: { status: "CANCELLED" } }
-      );
+    if (reconciliation.status === "CANCELLED") {
       return NextResponse.json({
         success: true,
         message: "Giao dịch đã bị hủy bỏ",
         status: "CANCELLED",
+        providerStatus: reconciliation.providerStatus,
       });
     }
-
     return NextResponse.json({
       success: true,
       message: "Giao dịch đang chờ thanh toán",
       status: "PENDING",
+      providerStatus: reconciliation.providerStatus,
     });
   } catch (error: unknown) {
     console.error("POST /api/payment/verify error:", error);
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { success: false, message: "Bạn đang kiểm tra giao dịch quá nhanh" },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu xác minh giao dịch quá lớn" },
+        { status: 413 }
+      );
+    }
+    if (error instanceof PaymentIntegrityError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Dữ liệu đối soát PayOS không khớp. Giao dịch chưa được cộng credits.",
+        },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
-      { success: false, message: "Lỗi kiểm tra giao dịch. Vui lòng thử lại sau." },
+      {
+        success: false,
+        message: "Lỗi kiểm tra giao dịch. Vui lòng thử lại sau.",
+      },
       { status: 500 }
     );
   }

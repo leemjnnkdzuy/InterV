@@ -1,11 +1,13 @@
 import { Document } from "mongoose";
 import { ISocialLink } from "./SocialLink";
 
+export type AppRole = "user" | "recruiter" | "admin";
+
 export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
-  role: "user" | "admin";
+  role: AppRole;
   avatar?: string;
   dob?: Date;
   socialLinks?: ISocialLink[];

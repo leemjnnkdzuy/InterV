@@ -8,6 +8,11 @@ export interface PracticePageProps {
 
 export interface PracticeSessionDetails {
   id?: string;
+  source?: "practice" | "recruitment";
+  lockedConfig?: boolean;
+  scheduledAt?: string;
+  expiresAt?: string;
+  maxAttempts?: number;
   title?: string;
   jobDescription?: string;
   topic?: string;
@@ -44,6 +49,8 @@ export interface SetupPhaseProps {
   voiceId: string;
   setVoiceId: (voiceId: string) => void;
   isSavingSetup: boolean;
+  recruitmentMode?: boolean;
+  recruitmentExpiresAt?: string;
   handleStartInterview: (options: PracticeStartOptions) => void;
 }
 
@@ -67,6 +74,7 @@ export interface GeneratedInterviewQuestion {
   competency: string;
   difficulty?: string;
   expectedSignals?: string[];
+  groundingIds?: string[];
 }
 
 export interface PracticeQuoteBreakdownItem {
@@ -105,10 +113,17 @@ export interface PracticeStartResponse {
   message?: string;
   runId?: string;
   questions?: GeneratedInterviewQuestion[];
+  questionCount?: number;
+  firstQuestionAudio?: InterviewQuestionAudio;
   quote?: {
     totalCredits: number;
-    remainingCredits: number;
+    remainingCredits?: number;
   };
+}
+
+export interface InterviewQuestionAudio {
+  audioBase64: string;
+  contentType: string;
 }
 
 export interface ChatLog {
@@ -126,9 +141,75 @@ export interface InterviewPhaseProps {
   difficulty: string;
   language: string;
   voiceId: string;
-  questionsList: string[];
+  questionsList: GeneratedInterviewQuestion[];
+  initialQuestionAudio?: InterviewQuestionAudio;
+  questionCount: number;
   jobDescription: string;
   topic: string;
+}
+
+export interface InterviewAnswerResponse {
+  success: boolean;
+  message?: string;
+  completed: boolean;
+  answeredCount: number;
+  questionCount: number;
+  nextQuestion: GeneratedInterviewQuestion | null;
+  provider?: string;
+}
+
+export interface InterviewAnalysisResult {
+  score: number;
+  duration: string;
+  feedback: string;
+  ratings: {
+    communication: number;
+    knowledge: number;
+    problemSolving: number;
+    confidence: number;
+    jdFit: number;
+    composure: number;
+    vocalDelivery: number;
+  };
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  audioAnalysis?: {
+    confidence: number;
+    composure: number;
+    vocalDelivery: number;
+    dominantEmotion: string;
+    observations: string[];
+    provider: string;
+  };
+  questions: Array<{
+    question: string;
+    answer: string;
+    feedback: string;
+    score: number;
+    evidence?: string[];
+    groundingIds?: string[];
+  }>;
+  groundingIds?: string[];
+  provider?: string;
+  createdAt: string;
+}
+
+export interface InterviewResultResponse {
+  success: boolean;
+  message?: string;
+  run?: {
+    id: string;
+    practiceId: string;
+    title: string;
+    industry: string;
+    difficulty: string;
+    status: string;
+    answeredCount: number;
+    questionCount: number;
+    result: InterviewAnalysisResult;
+    completedAt: string;
+  };
 }
 
 export interface ThreeWaveformProps {

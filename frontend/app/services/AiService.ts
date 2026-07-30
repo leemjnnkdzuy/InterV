@@ -1,5 +1,5 @@
 import api from "@/app/lib/Client";
-import type { InterviewVoice } from "@/app/types";
+import type { InterviewAnswerResponse, InterviewVoice } from "@/app/types";
 
 export const aiService = {
   getVoices: async (
@@ -20,7 +20,9 @@ export const aiService = {
     cached: boolean;
     message?: string;
   }> => {
-    const response = await api.post("/ai/tts/preview", data);
+    const response = await api.post("/ai/tts/preview", data, {
+      timeout: 90_000,
+    });
     return response.data;
   },
 
@@ -43,6 +45,7 @@ export const aiService = {
         if (!event.total || !onUploadProgress) return;
         onUploadProgress(Math.round((event.loaded * 100) / event.total));
       },
+      timeout: 180_000,
     });
     return response.data;
   },
@@ -64,7 +67,62 @@ export const aiService = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 300_000,
     });
+    return response.data;
+  },
+
+  createStreamingToken: async (
+    runId: string
+  ): Promise<{
+    success: boolean;
+    token: string;
+    expiresInSeconds: number;
+    websocketUrl: string;
+    speechModel: string;
+    sampleRate: number;
+    message?: string;
+  }> => {
+    const response = await api.post(`/ai/interview/${runId}/stream-token`);
+    return response.data;
+  },
+
+  submitInterviewAnswer: async (
+    runId: string,
+    data: {
+      questionId: string;
+      answer: string;
+      audio?: Blob;
+      durationSec?: number;
+      assemblySessionId?: string;
+      transcriptionProvider: string;
+    }
+  ): Promise<InterviewAnswerResponse> => {
+    const formData = new FormData();
+    formData.set("questionId", data.questionId);
+    formData.set("answer", data.answer);
+    formData.set("transcriptionProvider", data.transcriptionProvider);
+    if (data.durationSec !== undefined) {
+      formData.set("durationSec", String(data.durationSec));
+    }
+    if (data.assemblySessionId) {
+      formData.set("assemblySessionId", data.assemblySessionId);
+    }
+    if (data.audio && data.audio.size > 0) {
+      const extension = data.audio.type.includes("mp4") ? "m4a" : "webm";
+      formData.set("audio", data.audio, `answer.${extension}`);
+    }
+
+    const response = await api.post(
+      `/ai/interview/${runId}/answer`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 90_000,
+      }
+    );
     return response.data;
   },
 };

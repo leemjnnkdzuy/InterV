@@ -2,22 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import Transaction from "@/app/models/Transaction";
-import { verifyAccessToken } from "@/app/lib/Auth";
-import payos from "@/app/lib/PayOS";
+import { authenticateRequest } from "@/app/lib/Auth";
+import { getPayOS } from "@/app/lib/PayOS";
 import { RECHARGE_PACKAGES } from "@/app/contants";
 import { getErrorMessage } from "@/app/lib/Utils";
+import {
+  createOrderCode,
+  getApplicationOrigin,
+} from "@/app/lib/PaymentSettlement";
+import {
+  enforceRateLimit,
+  readJsonBodyLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy access token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Access token không hợp lệ hoặc đã hết hạn" },
@@ -25,7 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = (await readJsonBodyLimited(
+      request,
+      4 * 1024
+    )) as Record<string, unknown>;
     const { amount } = body;
 
     if (!amount || typeof amount !== "number") {
@@ -44,6 +50,12 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
+    await enforceRateLimit(
+      "payment-create",
+      payload.userId,
+      10,
+      10 * 60 * 1000
+    );
     const user = await User.findById(payload.userId);
     if (!user) {
       return NextResponse.json(
@@ -52,60 +64,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orderCode = Date.now();
+    const orderCode = createOrderCode();
     const totalCredits = matchedPkg.credit + matchedPkg.bonus;
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = getApplicationOrigin();
     const returnUrl = `${appUrl}/credit?status=success&orderCode=${orderCode}`;
     const cancelUrl = `${appUrl}/credit?status=cancel`;
 
-    let paymentUrl = "";
-    let paymentLinkId = "";
-    let isMock = false;
-
-    if (
-      !process.env.PAYOS_CLIENT_ID ||
-      process.env.PAYOS_CLIENT_ID === "MOCK_CLIENT_ID" ||
-      process.env.PAYOS_CLIENT_ID.startsWith("MOCK_")
-    ) {
-      isMock = true;
-    }
-
-    if (!isMock) {
-      try {
-        const paymentLinkData = await payos.paymentRequests.create({
-          orderCode,
-          amount,
-          description: `NAP ${totalCredits} CREDIT`,
-          cancelUrl,
-          returnUrl,
-        });
-
-        paymentUrl = paymentLinkData.checkoutUrl;
-        paymentLinkId = paymentLinkData.paymentLinkId;
-      } catch (payosError: unknown) {
-        console.warn(
-          "PayOS API error, falling back to mock payment:",
-          getErrorMessage(payosError, "Unknown PayOS error")
-        );
-        isMock = true;
-      }
-    }
-
-    if (isMock) {
-      paymentUrl = `${returnUrl}&mock=true`;
-      paymentLinkId = `MOCK_LINK_${orderCode}`;
-    }
-
-    await Transaction.create({
+    const transaction = await Transaction.create({
       userId: user._id,
       orderCode,
       amount,
       credits: totalCredits,
       status: "PENDING",
-      paymentLinkId,
-      paymentUrl,
+      providerStatus: "PENDING",
+      paymentLinkId: "",
     });
+    let paymentUrl: string;
+    try {
+      const paymentLinkData = await getPayOS().paymentRequests.create({
+        orderCode,
+        amount,
+        description: `NAP ${totalCredits} CREDIT`,
+        cancelUrl,
+        returnUrl,
+      });
+      paymentUrl = paymentLinkData.checkoutUrl;
+      await Transaction.updateOne(
+        { _id: transaction._id },
+        {
+          $set: {
+            paymentLinkId: paymentLinkData.paymentLinkId,
+            paymentUrl,
+            providerStatus: paymentLinkData.status,
+          },
+        }
+      );
+    } catch (error) {
+      await Transaction.updateOne(
+        { _id: transaction._id, status: "PENDING" },
+        {
+          $set: {
+            status: "CANCELLED",
+            providerStatus: "FAILED",
+            cancelledAt: new Date(),
+            cancellationReason: "Không thể tạo liên kết thanh toán PayOS",
+          },
+        }
+      );
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
@@ -113,9 +121,30 @@ export async function POST(request: NextRequest) {
       orderCode,
     });
   } catch (error: unknown) {
-    console.error("POST /api/payment/create error:", error);
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Bạn tạo quá nhiều giao dịch. Vui lòng thử lại sau.",
+        },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu tạo giao dịch quá lớn" },
+        { status: 413 }
+      );
+    }
+    console.error(
+      "POST /api/payment/create error:",
+      getErrorMessage(error, "Unknown PayOS error").slice(0, 500)
+    );
     return NextResponse.json(
-      { success: false, message: "Lỗi tạo link thanh toán. Vui lòng thử lại sau." },
+      {
+        success: false,
+        message: "Lỗi tạo link thanh toán. Vui lòng thử lại sau.",
+      },
       { status: 500 }
     );
   }

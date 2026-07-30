@@ -291,7 +291,11 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
             {/* User Details */}
             <div className="text-left mt-4 w-full">
               <h2 className="text-xl font-bold truncate">{displayedUser.username}</h2>
-              <p className="text-sm text-muted-foreground truncate mt-1">{displayedUser.email}</p>
+              {isOwnProfile && displayedUser.email && (
+                <p className="text-sm text-muted-foreground truncate mt-1">
+                  {displayedUser.email}
+                </p>
+              )}
             </div>
 
             {/* Separator */}
@@ -304,6 +308,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
             </div>
 
             {/* Birthdate info */}
+            {isOwnProfile && (
             <div className="w-full flex items-center justify-between text-sm text-muted-foreground mt-3">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-[var(--chart-1)] shrink-0" />
@@ -318,10 +323,9 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                     )
                   : "--/--/----"}</strong></span>
               </div>
-              {isOwnProfile && (
-                <DatePicker value={displayedUser.dob} onConfirm={handleUpdateDob} />
-              )}
+              <DatePicker value={displayedUser.dob} onConfirm={handleUpdateDob} />
             </div>
+            )}
 
             {/* Separator */}
             <div className="w-full h-[1px] bg-border/25 my-5" />

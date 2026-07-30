@@ -49,7 +49,6 @@ export default function CreditPageRoute() {
       const params = new URLSearchParams(window.location.search);
       const status = params.get("status");
       const orderCode = params.get("orderCode");
-      const mock = params.get("mock");
 
       if (status === "success" && orderCode) {
         const verifyPayment = async () => {
@@ -57,7 +56,6 @@ export default function CreditPageRoute() {
             toast.loading(t("credit.verifyingPayment"), { id: "verify-payment" });
             const response = await api.post("/payment/verify", {
               orderCode: Number(orderCode),
-              mock: mock === "true",
             });
             if (response.data.success && response.data.status === "PAID") {
               toast.success(t("credit.paymentSuccess"), {

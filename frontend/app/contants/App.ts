@@ -16,12 +16,6 @@ export const INDUSTRIES = [
   "Khác",
 ];
 
-export const PREDEFINED_QUESTIONS = [
-  "Chào mừng bạn đến với buổi phỏng vấn giả lập của InterV! Hãy giới thiệu ngắn gọn về bản thân, kinh nghiệm làm việc và lý do tại sao bạn quan tâm đến lĩnh vực này?",
-  "Cảm ơn phần giới thiệu của bạn. Tiếp theo, hãy chia sẻ về một dự án hoặc một vấn đề kỹ thuật phức tạp nhất mà bạn đã từng giải quyết. Bạn đã áp dụng giải pháp nào và kết quả cụ thể ra sao?",
-  "Thật thú vị. Để kết thúc buổi phỏng vấn hôm nay, bạn có thể chia sẻ về một lần bạn xảy ra bất đồng ý kiến với đồng nghiệp hoặc cấp trên trong công việc không? Bạn đã giải quyết nó như thế nào?",
-];
-
 export const RECHARGE_PACKAGES: RechargePackage[] = [
   { amount: 10000, credit: 100, bonus: 0 },
   { amount: 20000, credit: 200, bonus: 10 },

@@ -13,6 +13,7 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { getErrorMessage } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
+import { PASSWORD_MIN_LENGTH } from "@/app/contants";
 
 export default function FogetPasswordPage() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function FogetPasswordPage() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
       toast.error(t("dialogs.passwordMinLength"));
       return;
     }

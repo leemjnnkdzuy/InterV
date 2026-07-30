@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import PracticeSession from "@/app/models/PracticeSession";
-import { verifyAccessToken } from "@/app/lib/Auth";
+import PracticeRun from "@/app/models/PracticeRun";
+import PracticeAudio from "@/app/models/PracticeAudio";
+import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
+import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
+import { authenticateRequest } from "@/app/lib/Auth";
+import { aiBackend } from "@/app/lib/AiBackend";
+import {
+  readJsonBodyLimited,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
+
+const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
 export async function GET(
   request: NextRequest,
@@ -16,15 +27,7 @@ export async function GET(
       );
     }
 
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ hoặc đã hết hạn" },
@@ -46,10 +49,34 @@ export async function GET(
       );
     }
 
+    if (
+      session.source === "recruitment" &&
+      session.recruitmentInvitationId
+    ) {
+      await RecruitmentInvitation.updateOne(
+        {
+          _id: session.recruitmentInvitationId,
+          candidateId: payload.userId,
+          status: "INVITED",
+        },
+        {
+          $set: {
+            status: "VIEWED",
+            viewedAt: new Date(),
+          },
+        }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       session: {
         id: session._id.toString(),
+        source: session.source || "practice",
+        lockedConfig: session.lockedConfig === true,
+        scheduledAt: session.scheduledAt,
+        expiresAt: session.expiresAt,
+        maxAttempts: session.maxAttempts,
         title: session.title,
         jobDescription: session.jobDescription,
         topic: session.topic,
@@ -57,7 +84,7 @@ export async function GET(
         language: session.language,
         voiceId: session.voiceId,
         difficulty: session.difficulty,
-        questionCount: session.questionCount,
+        questionCount: normalizeInterviewQuestionCount(session.questionCount),
         tags: session.tags || [],
         attemptCount: session.attemptCount || 0,
         highestScore: session.highestScore || 0,
@@ -88,15 +115,7 @@ export async function PUT(
       );
     }
 
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ hoặc đã hết hạn" },
@@ -104,15 +123,12 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
+    const body = (await readJsonBodyLimited(
+      request,
+      64 * 1024
+    )) as Record<string, unknown>;
     const {
       title,
-      isCompletedRun,
-      score,
-      duration,
-      feedback,
-      ratings,
-      questions,
       jobDescription,
       topic,
       industry,
@@ -121,6 +137,38 @@ export async function PUT(
       difficulty,
       questionCount,
     } = body;
+
+    if (
+      (title !== undefined &&
+        (typeof title !== "string" || title.trim().length > 200)) ||
+      (jobDescription !== undefined &&
+        (typeof jobDescription !== "string" ||
+          jobDescription.length > 50_000)) ||
+      (topic !== undefined &&
+        (typeof topic !== "string" || topic.length > 2_000)) ||
+      (industry !== undefined &&
+        (typeof industry !== "string" || industry.length > 120)) ||
+      (language !== undefined &&
+        (typeof language !== "string" ||
+          !SUPPORTED_LANGUAGES.has(language))) ||
+      (voiceId !== undefined &&
+        (typeof voiceId !== "string" ||
+          voiceId.length === 0 ||
+          voiceId.length > 120)) ||
+      (difficulty !== undefined &&
+        (typeof difficulty !== "string" ||
+          difficulty.length === 0 ||
+          difficulty.length > 80)) ||
+      (questionCount !== undefined &&
+        (!Number.isInteger(Number(questionCount)) ||
+          Number(questionCount) < 5 ||
+          Number(questionCount) > 25))
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu cập nhật không hợp lệ" },
+        { status: 400 }
+      );
+    }
 
     await connectDB();
 
@@ -135,59 +183,48 @@ export async function PUT(
         { status: 404 }
       );
     }
-
-    if (isCompletedRun) {
-      // Practice session completed run simulation
-      const currentScore = score || 0;
-      session.attemptCount = (session.attemptCount || 0) + 1;
-      if (currentScore > (session.highestScore || 0)) {
-        session.highestScore = currentScore;
-      }
-      session.latestResult = {
-        score: currentScore,
-        duration: duration || "10 phút",
-        feedback: feedback || "Tốt ở phần kỹ thuật, cần cải thiện giao tiếp và giải thích rõ hơn.",
-        ratings: ratings || {
-          communication: 80,
-          knowledge: 80,
-          problemSolving: 80,
-          confidence: 80,
+    if (session.lockedConfig || session.source === "recruitment") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Cấu hình phỏng vấn tuyển dụng do nhà tuyển dụng quản lý",
         },
-        questions: questions || [],
-        createdAt: new Date(),
-      };
-    } else {
-      // Just rename/update metadata
-      if (title !== undefined) {
-        if (!title.trim()) {
-          return NextResponse.json(
-            { success: false, message: "Tiêu đề không được để trống" },
-            { status: 400 }
-          );
-        }
-        session.title = title.trim();
+        { status: 403 }
+      );
+    }
+    session.questionCount = normalizeInterviewQuestionCount(
+      session.questionCount
+    );
+
+    if (title !== undefined) {
+      if (!(title as string).trim()) {
+        return NextResponse.json(
+          { success: false, message: "Tiêu đề không được để trống" },
+          { status: 400 }
+        );
       }
-      if (jobDescription !== undefined) {
-        session.jobDescription = jobDescription;
-      }
-      if (topic !== undefined) {
-        session.topic = topic;
-      }
-      if (industry !== undefined) {
-        session.industry = industry;
-      }
-      if (language !== undefined) {
-        session.language = language;
-      }
-      if (voiceId !== undefined) {
-        session.voiceId = voiceId;
-      }
-      if (difficulty !== undefined) {
-        session.difficulty = difficulty;
-      }
-      if (questionCount !== undefined) {
-        session.questionCount = questionCount;
-      }
+      session.title = (title as string).trim();
+    }
+    if (jobDescription !== undefined) {
+      session.jobDescription = jobDescription as string;
+    }
+    if (topic !== undefined) {
+      session.topic = topic as string;
+    }
+    if (industry !== undefined) {
+      session.industry = industry as string;
+    }
+    if (language !== undefined) {
+      session.language = language as string;
+    }
+    if (voiceId !== undefined) {
+      session.voiceId = voiceId as string;
+    }
+    if (difficulty !== undefined) {
+      session.difficulty = difficulty as string;
+    }
+    if (questionCount !== undefined) {
+      session.questionCount = normalizeInterviewQuestionCount(questionCount);
     }
 
     await session.save();
@@ -214,6 +251,12 @@ export async function PUT(
       },
     });
   } catch (error: unknown) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu cập nhật quá lớn" },
+        { status: 413 }
+      );
+    }
     console.error("PUT /api/practice/[id] error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi máy chủ" },
@@ -235,15 +278,7 @@ export async function DELETE(
       );
     }
 
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy token" },
-        { status: 401 }
-      );
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json(
         { success: false, message: "Token không hợp lệ hoặc đã hết hạn" },
@@ -253,17 +288,34 @@ export async function DELETE(
 
     await connectDB();
 
-    const result = await PracticeSession.deleteOne({
+    const session = await PracticeSession.findOne({
       _id,
       userId: payload.userId,
-    });
+    }).select("_id source");
 
-    if (result.deletedCount === 0) {
+    if (!session) {
       return NextResponse.json(
         { success: false, message: "Không tìm thấy hoặc không có quyền xóa buổi luyện tập này" },
         { status: 404 }
       );
     }
+
+    if (session.source === "recruitment") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Không thể xóa buổi phỏng vấn do nhà tuyển dụng giao",
+        },
+        { status: 403 }
+      );
+    }
+
+    await aiBackend.deleteKnowledge({ sessionId: _id });
+    await Promise.all([
+      PracticeAudio.deleteMany({ sessionId: _id, userId: payload.userId }),
+      PracticeRun.deleteMany({ sessionId: _id, userId: payload.userId }),
+      PracticeSession.deleteOne({ _id, userId: payload.userId }),
+    ]);
 
     return NextResponse.json({
       success: true,

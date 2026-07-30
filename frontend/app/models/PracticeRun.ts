@@ -15,11 +15,37 @@ const practiceRunSchema = new Schema<IPracticeRun>(
       required: true,
       index: true,
     },
+    aiRunId: {
+      type: String,
+      default: "",
+      index: true,
+    },
     status: {
       type: String,
-      enum: ["STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "REFUNDED"],
+      enum: [
+        "STARTED",
+        "IN_PROGRESS",
+        "EVALUATING",
+        "COMPLETED",
+        "FAILED",
+        "REFUNDED",
+      ],
       default: "STARTED",
       index: true,
+    },
+    evaluationStartedAt: {
+      type: Date,
+    },
+    startLeaseId: {
+      type: String,
+      default: "",
+    },
+    startLeaseExpiresAt: {
+      type: Date,
+    },
+    startRequestHash: {
+      type: String,
+      default: "",
     },
     language: {
       type: String,
@@ -35,7 +61,9 @@ const practiceRunSchema = new Schema<IPracticeRun>(
     },
     questionCount: {
       type: Number,
-      default: 3,
+      default: 5,
+      min: 5,
+      max: 25,
     },
     questions: {
       type: [
@@ -44,6 +72,8 @@ const practiceRunSchema = new Schema<IPracticeRun>(
           text: { type: String, required: true },
           competency: { type: String, default: "" },
           difficulty: { type: String, default: "" },
+          expectedSignals: { type: [String], default: [] },
+          groundingIds: { type: [String], default: [] },
         },
       ],
       default: [],
@@ -56,8 +86,16 @@ const practiceRunSchema = new Schema<IPracticeRun>(
           transcript: { type: String, default: "" },
           editedAnswer: { type: String, default: "" },
           audioDurationSec: { type: Number },
+          audioId: { type: Schema.Types.ObjectId, ref: "PracticeAudio" },
+          assemblySessionId: { type: String, default: "" },
+          transcriptionProvider: { type: String, default: "" },
+          groundingIds: { type: [String], default: [] },
         },
       ],
+      default: [],
+    },
+    servedQuestionIds: {
+      type: [String],
       default: [],
     },
     evaluation: {
@@ -71,7 +109,15 @@ const practiceRunSchema = new Schema<IPracticeRun>(
     tokenUsage: {
       inputTokens: { type: Number, default: 0 },
       outputTokens: { type: Number, default: 0 },
+      totalTokens: { type: Number, default: 0 },
+      cacheHitTokens: { type: Number, default: 0 },
+      cacheMissTokens: { type: Number, default: 0 },
+      reasoningTokens: { type: Number, default: 0 },
+      requestCount: { type: Number, default: 0 },
+      latencyMs: { type: Number, default: 0 },
+      estimatedCostUsd: { type: Number, default: 0 },
       model: { type: String, default: "" },
+      models: { type: [String], default: [] },
     },
     idempotencyKey: {
       type: String,
@@ -87,6 +133,7 @@ practiceRunSchema.index(
   { userId: 1, sessionId: 1, idempotencyKey: 1 },
   { unique: true }
 );
+practiceRunSchema.index({ status: 1, startLeaseExpiresAt: 1 });
 
 if (mongoose.models.PracticeRun) {
   delete mongoose.models.PracticeRun;

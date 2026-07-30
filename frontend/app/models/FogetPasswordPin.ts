@@ -10,13 +10,22 @@ const fogetPasswordPinSchema = new Schema<IFogetPasswordPin>(
       lowercase: true,
       trim: true,
     },
-    pin: {
+    pinHash: {
       type: String,
       required: true,
+      select: false,
     },
     verified: {
       type: Boolean,
       default: false,
+    },
+    resetTokenHash: {
+      type: String,
+      default: "",
+      select: false,
+    },
+    resetTokenExpiresAt: {
+      type: Date,
     },
     failedAttempts: {
       type: Number,

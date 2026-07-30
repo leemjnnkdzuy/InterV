@@ -1,0 +1,325 @@
+syntax = "proto3";
+
+package interv.ai.v1;
+
+service IntervAi {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc ExtractJd(JdExtractRequest) returns (JdExtractResponse);
+  rpc ListVoices(ListVoicesRequest) returns (ListVoicesResponse);
+  rpc SynthesizeTts(TtsRequest) returns (TtsResponse);
+  rpc StartInterview(InterviewStartRequest) returns (InterviewStartResponse);
+  rpc TranscribeAudio(TranscribeAudioRequest) returns (TranscribeAudioResponse);
+  rpc SubmitAnswer(InterviewAnswerRequest) returns (InterviewAnswerResponse);
+  rpc EvaluateInterview(InterviewEvaluateRequest) returns (InterviewEvaluateResponse);
+  rpc CreateStreamingToken(StreamingTokenRequest) returns (StreamingTokenResponse);
+  rpc AnalyzeInterview(stream AudioAnalysisChunk) returns (AudioAnalysisResponse);
+  rpc GetRagStatus(RagStatusRequest) returns (RagStatusResponse);
+  rpc SearchKnowledge(RagSearchRequest) returns (RagSearchResponse);
+  rpc DeleteKnowledge(RagDeleteRequest) returns (RagDeleteResponse);
+  rpc GetDeepSeekBalance(DeepSeekBalanceRequest) returns (DeepSeekBalanceResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool success = 1;
+  string service = 2;
+  bool deepseek_configured = 3;
+  bool assemblyai_configured = 4;
+  bool sensevoice_ready = 5;
+  string transport = 6;
+  bool rag_ready = 7;
+  string rag_backend = 8;
+  int32 rag_document_count = 9;
+}
+
+message JdExtractRequest {
+  bytes content = 1;
+  string filename = 2;
+  string content_type = 3;
+}
+
+message NormalizedJd {
+  string title = 1;
+  string company = 2;
+  repeated string responsibilities = 3;
+  repeated string requirements = 4;
+  repeated string skills = 5;
+  string seniority = 6;
+  string language = 7;
+}
+
+message JdExtractResponse {
+  bool success = 1;
+  string markdown = 2;
+  NormalizedJd normalized = 3;
+}
+
+message ListVoicesRequest {
+  string language = 1;
+}
+
+message Voice {
+  string id = 1;
+  string name = 2;
+  string locale = 3;
+  string gender = 4;
+  string description = 5;
+}
+
+message ListVoicesResponse {
+  bool success = 1;
+  repeated Voice voices = 2;
+}
+
+message TtsRequest {
+  string text = 1;
+  string language = 2;
+  string voice_id = 3;
+}
+
+message TtsResponse {
+  bool success = 1;
+  bytes audio = 2;
+  string content_type = 3;
+  bool cached = 4;
+}
+
+message InterviewQuestion {
+  string id = 1;
+  string text = 2;
+  string competency = 3;
+  string difficulty = 4;
+  repeated string expected_signals = 5;
+  repeated string grounding_ids = 6;
+}
+
+message InterviewContext {
+  string session_id = 1;
+  string title = 2;
+  string industry = 3;
+  string job_description = 4;
+  string topic = 5;
+  string difficulty = 6;
+  int32 question_count = 7;
+  string language = 8;
+  string voice_id = 9;
+}
+
+message InterviewStartRequest {
+  InterviewContext context = 1;
+}
+
+message InterviewStartResponse {
+  bool success = 1;
+  string run_id = 2;
+  repeated InterviewQuestion questions = 3;
+  string provider = 4;
+  DeepSeekUsage usage = 5;
+}
+
+message TranscribeAudioRequest {
+  bytes audio = 1;
+  string filename = 2;
+  string content_type = 3;
+  string language = 4;
+}
+
+message TranscribeAudioResponse {
+  bool success = 1;
+  string transcript = 2;
+  string language = 3;
+  double duration_sec = 4;
+  string provider = 5;
+  string message = 6;
+}
+
+message QaPair {
+  string question_id = 1;
+  string question = 2;
+  string answer = 3;
+  repeated string grounding_ids = 4;
+}
+
+message InterviewAnswerRequest {
+  string run_id = 1;
+  InterviewContext context = 2;
+  QaPair current = 3;
+  repeated QaPair qa_history = 4;
+  int32 next_question_index = 5;
+}
+
+message InterviewAnswerResponse {
+  bool success = 1;
+  string feedback_hint = 2;
+  bool has_next_question = 3;
+  InterviewQuestion next_question = 4;
+  string provider = 5;
+  DeepSeekUsage usage = 6;
+}
+
+message EvaluationQuestion {
+  string question = 1;
+  string answer = 2;
+  int32 score = 3;
+  string feedback = 4;
+  repeated string evidence = 5;
+  repeated string grounding_ids = 6;
+}
+
+message EvaluationRatings {
+  int32 communication = 1;
+  int32 knowledge = 2;
+  int32 problem_solving = 3;
+  int32 confidence = 4;
+  int32 jd_fit = 5;
+  int32 composure = 6;
+  int32 vocal_delivery = 7;
+}
+
+message AudioBehaviorAnalysis {
+  int32 confidence = 1;
+  int32 composure = 2;
+  int32 vocal_delivery = 3;
+  string dominant_emotion = 4;
+  repeated string observations = 5;
+  string provider = 6;
+}
+
+message InterviewEvaluation {
+  int32 score = 1;
+  EvaluationRatings ratings = 2;
+  string feedback = 3;
+  repeated string strengths = 4;
+  repeated string weaknesses = 5;
+  repeated string recommendations = 6;
+  repeated EvaluationQuestion questions = 7;
+  AudioBehaviorAnalysis audio_analysis = 8;
+  repeated string grounding_ids = 9;
+}
+
+message InterviewEvaluateRequest {
+  string run_id = 1;
+  InterviewContext context = 2;
+  repeated QaPair qa_history = 3;
+  AudioBehaviorAnalysis audio_analysis = 4;
+}
+
+message InterviewEvaluateResponse {
+  bool success = 1;
+  InterviewEvaluation evaluation = 2;
+  string provider = 3;
+  DeepSeekUsage usage = 4;
+}
+
+message DeepSeekUsage {
+  string operation = 1;
+  string model = 2;
+  int32 request_count = 3;
+  int32 successful_request_count = 4;
+  int32 failed_request_count = 5;
+  int64 prompt_tokens = 6;
+  int64 completion_tokens = 7;
+  int64 total_tokens = 8;
+  int64 cache_hit_tokens = 9;
+  int64 cache_miss_tokens = 10;
+  int64 reasoning_tokens = 11;
+  int64 latency_ms = 12;
+  repeated string request_ids = 13;
+}
+
+message DeepSeekBalanceRequest {}
+
+message DeepSeekBalanceInfo {
+  string currency = 1;
+  string total_balance = 2;
+  string granted_balance = 3;
+  string topped_up_balance = 4;
+}
+
+message DeepSeekBalanceResponse {
+  bool success = 1;
+  bool is_available = 2;
+  repeated DeepSeekBalanceInfo balances = 3;
+  string fast_model = 4;
+  string eval_model = 5;
+  string checked_at = 6;
+}
+
+message StreamingTokenRequest {
+  int32 expires_in_seconds = 1;
+  int32 max_session_duration_seconds = 2;
+}
+
+message StreamingTokenResponse {
+  bool success = 1;
+  string token = 2;
+  int32 expires_in_seconds = 3;
+  string websocket_url = 4;
+  string speech_model = 5;
+}
+
+message AudioAnalysisChunk {
+  string run_id = 1;
+  string question_id = 2;
+  string transcript = 3;
+  bytes audio = 4;
+  string content_type = 5;
+  double duration_sec = 6;
+  bool final_chunk = 7;
+}
+
+message AudioAnalysisResponse {
+  bool success = 1;
+  AudioBehaviorAnalysis analysis = 2;
+}
+
+message RagStatusRequest {}
+
+message RagStatusResponse {
+  bool success = 1;
+  bool ready = 2;
+  string backend = 3;
+  string collection = 4;
+  int32 document_count = 5;
+  string dense_model = 6;
+  string sparse_model = 7;
+  string error = 8;
+}
+
+message RagSearchRequest {
+  string query = 1;
+  string industry = 2;
+  string difficulty = 3;
+  string session_id = 4;
+  string run_id = 5;
+  string purpose = 6;
+  int32 limit = 7;
+}
+
+message RagEvidence {
+  string grounding_id = 1;
+  string title = 2;
+  string text = 3;
+  double score = 4;
+  string document_type = 5;
+  string industry = 6;
+  string level = 7;
+  repeated string source_ids = 8;
+  string run_id = 9;
+}
+
+message RagSearchResponse {
+  bool success = 1;
+  repeated RagEvidence evidence = 2;
+}
+
+message RagDeleteRequest {
+  string session_id = 1;
+  string run_id = 2;
+}
+
+message RagDeleteResponse {
+  bool success = 1;
+  int32 deleted_count = 2;
+}

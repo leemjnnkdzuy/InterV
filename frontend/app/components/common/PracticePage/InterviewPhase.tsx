@@ -1,561 +1,687 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Image from "next/image";
+import {
+  ClockCircle,
+  Exit,
+  Keyboard,
+  MedalStar,
+  Microphone,
+  Restart,
+  SendSquare,
+  StopCircle,
+} from "@solar-icons/react";
 import { aiService, practiceService } from "@/app/services";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Spinner } from "@/app/components/ui/spinner";
 import logoSrc from "@/app/assets/logo.svg";
-import ThreeWaveform from "./ThreeWaveform";
 import { useLanguage } from "@/app/hooks/useLanguage";
-import type { ChatLog, InterviewPhaseProps } from "@/app/types";
 import {
-  Microphone,
-  ClockCircle,
-  SendSquare,
-  MedalStar,
-  Muted,
-} from "@solar-icons/react";
+  useRealtimeInterviewRecorder,
+  type RealtimeRecordingResult,
+} from "@/app/hooks/useRealtimeInterviewRecorder";
+import type {
+  GeneratedInterviewQuestion,
+  InterviewPhaseProps,
+} from "@/app/types";
+import {
+  playInterviewAudio,
+  stopInterviewAudio,
+} from "@/app/lib/InterviewAudio";
+import ThreeWaveform from "./ThreeWaveform";
 
-const KeyboardIcon = (props: React.ComponentProps<"svg">) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
-    <line x1="7" y1="8" x2="7.01" y2="8" />
-    <line x1="11" y1="8" x2="11.01" y2="8" />
-    <line x1="15" y1="8" x2="15.01" y2="8" />
-    <line x1="17" y1="16" x2="7" y2="16" />
-  </svg>
-);
-
-const ExitIcon = (props: React.ComponentProps<"svg">) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-function getMockTranscript(step: number, language: string, jobDescription: string) {
-  if (language === "en-US") {
-    if (step === 0) {
-      return "I have around three years of experience building production web applications. My strongest area is React and Next.js, especially performance optimization and component architecture.";
-    }
-    return "I would first clarify the problem, identify the measurable target, then explain the tradeoffs and validate the result with data from the project.";
-  }
-
-  if (language === "zh-CN") {
-    if (step === 0) {
-      return "我有大约三年的 Web 应用开发经验，主要优势是 React、Next.js 和前端性能优化。";
-    }
-    return "我会先明确问题和目标，再分析可行方案，并用实际数据验证最终结果。";
-  }
-
-  if (step === 1 && jobDescription.toLowerCase().includes("react")) {
-    return "Theo kinh nghiệm của tôi, React Server Components giúp giảm lượng JavaScript gửi xuống client và cải thiện hiệu năng tải trang. Tôi thường tách phần tương tác thành client component nhỏ để tối ưu bundle.";
-  }
-
-  return "Tôi có khoảng ba năm kinh nghiệm phát triển web, thế mạnh là React và Next.js. Trong dự án gần nhất, tôi đã tối ưu hiệu năng và cải thiện điểm Lighthouse từ mức trung bình lên trên 90.";
-}
+type InterviewStage =
+  | "preparing"
+  | "speaking"
+  | "connecting"
+  | "recording"
+  | "reviewing"
+  | "submitting"
+  | "finishing"
+  | "error";
 
 export default function InterviewPhase({
   practiceId,
   runId,
-  title,
-  industry,
-  difficulty,
   language,
   voiceId,
   questionsList,
-  jobDescription,
-  topic,
+  initialQuestionAudio,
+  questionCount,
 }: InterviewPhaseProps) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isManualInputOpen, setIsManualInputOpen] = useState(false);
+  const [questions, setQuestions] =
+    useState<GeneratedInterviewQuestion[]>(questionsList);
   const [currentStep, setCurrentStep] = useState(0);
-  const [userAnswer, setUserAnswer] = useState("");
-  const [, setChatLogs] = useState<ChatLog[]>([]);
-  const [qaHistory, setQaHistory] = useState<Array<{ question: string; answer: string }>>([]);
-  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [isAiThinking, setIsAiThinking] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [soundLevel, setSoundLevel] = useState(5);
-  const [isFinishing, setIsFinishing] = useState(false);
+  const [stage, setStage] = useState<InterviewStage>("preparing");
+  const [answer, setAnswer] = useState("");
+  const [recordingResult, setRecordingResult] =
+    useState<RealtimeRecordingResult | null>(null);
+  const [isManualInputOpen, setIsManualInputOpen] = useState(false);
+  const [answeredCount, setAnsweredCount] = useState(0);
   const [finishLog, setFinishLog] = useState<string[]>([]);
-  const [typingText, setTypingText] = useState("");
-  const micWaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const hasStartedRef = useRef(false);
+  const [failureMessage, setFailureMessage] = useState("");
+  const [questionAttempt, setQuestionAttempt] = useState(0);
   const startedAtRef = useRef<number | null>(null);
+  const audioCacheRef = useRef(
+    new Map<string, { audioBase64: string; contentType: string }>()
+  );
+  const audioRequestRef = useRef(
+    new Map<
+      string,
+      Promise<{ audioBase64: string; contentType: string }>
+    >()
+  );
 
-  const playQuestionAudio = useCallback(
-    async (text: string) => {
-      try {
-        const data = await aiService.previewTts({
-          text: text.slice(0, 500),
-          language,
-          voiceId,
-        });
-        if (!data.audioBase64) return;
-        const audio = new Audio(`data:${data.contentType};base64,${data.audioBase64}`);
-        await audio.play();
-      } catch (error) {
-        console.warn("TTS playback skipped:", error);
-      }
-    },
+  const audioKey = useCallback(
+    (question: GeneratedInterviewQuestion) =>
+      `${language}:${voiceId}:${question.id}:${question.text}`,
     [language, voiceId]
   );
 
-  const simulateAiSpeech = useCallback((text: string) => {
-    setIsAiSpeaking(true);
-    setTypingText("");
-    void playQuestionAudio(text);
-    const words = text.split(" ");
-    let currentWordIdx = 0;
-    let accumulatedText = "";
-
-    const timer = window.setInterval(() => {
-      if (currentWordIdx < words.length) {
-        accumulatedText += (currentWordIdx === 0 ? "" : " ") + words[currentWordIdx];
-        setTypingText(accumulatedText);
-        currentWordIdx++;
-      } else {
-        window.clearInterval(timer);
-        setIsAiSpeaking(false);
-        setChatLogs((prev) => [
-          ...prev,
-          {
-            sender: "ai",
-            text,
-            timestamp: new Date(),
-            isTypingComplete: true,
-          },
-        ]);
-        setTypingText("");
-      }
-    }, 70);
-  }, [playQuestionAudio]);
-
   useEffect(() => {
-    if (isRecording || isAiSpeaking) {
-      micWaveIntervalRef.current = setInterval(() => {
-        setSoundLevel(Math.floor(Math.random() * 55) + 20);
-      }, 100);
-      return () => {
-        if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-      };
+    const firstQuestion = questionsList[0];
+    if (!initialQuestionAudio || !firstQuestion) return;
+    const firstKey = audioKey(firstQuestion);
+    if (!audioCacheRef.current.has(firstKey)) {
+      audioCacheRef.current.set(firstKey, initialQuestionAudio);
     }
+  }, [audioKey, initialQuestionAudio, questionsList]);
 
-    if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-    const resetTimer = window.setTimeout(() => setSoundLevel(5), 0);
-    return () => {
-      window.clearTimeout(resetTimer);
-      if (micWaveIntervalRef.current) clearInterval(micWaveIntervalRef.current);
-    };
-  }, [isRecording, isAiSpeaking]);
+  const {
+    liveTranscript,
+    soundLevel,
+    errorMessage,
+    prepare: prepareRecording,
+    start: startRecording,
+    stop: stopRecording,
+    cancel: cancelRecording,
+  } = useRealtimeInterviewRecorder(runId);
 
-  useEffect(() => {
-    if (questionsList.length > 0 && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      startedAtRef.current = Date.now();
-      let speechTimer: number | undefined;
-      const startTimer = window.setTimeout(() => {
-        setIsAiSpeaking(true);
-        setIsAiThinking(true);
-        speechTimer = window.setTimeout(() => {
-          setIsAiThinking(false);
-          simulateAiSpeech(questionsList[0]);
-        }, 900);
-      }, 0);
+  const currentQuestion = questions[currentStep];
+  const isBusy =
+    stage === "preparing" ||
+    stage === "speaking" ||
+    stage === "connecting" ||
+    stage === "submitting" ||
+    stage === "finishing";
 
-      return () => {
-        window.clearTimeout(startTimer);
-        if (speechTimer !== undefined) window.clearTimeout(speechTimer);
-      };
-    }
-  }, [questionsList, simulateAiSpeech]);
+  const getQuestionAudio = useCallback(
+    async (question: GeneratedInterviewQuestion) => {
+      const key = audioKey(question);
+      const cached = audioCacheRef.current.get(key);
+      if (cached) return cached;
+      const pending = audioRequestRef.current.get(key);
+      if (pending) return pending;
 
-  const startRecording = useCallback(async () => {
-    if (!isMicOn) {
-      toast.error(t("interview.micRequired"));
-      return;
-    }
-
-    if (isRecording) return;
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-      mediaRecorderRef.current = recorder;
-      setUserAnswer("");
-      setIsRecording(true);
-      toast.info(t("interview.recordingInfo"));
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      recorder.onstop = async () => {
-        setIsRecording(false);
-        stream.getTracks().forEach((track) => track.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-        try {
-          const data = await aiService.transcribeAnswer(runId, audioBlob);
-          if (data.success && data.transcript.trim()) {
-            setUserAnswer(data.transcript.trim());
-            toast.success(t("interview.transcribeSuccess"));
-            return;
+      const request = aiService
+        .previewTts({
+          text: question.text.slice(0, 500),
+          language,
+          voiceId,
+        })
+        .then((data) => {
+          if (!data.audioBase64) {
+            throw new Error("TTS did not return audio");
           }
+          const audio = {
+            audioBase64: data.audioBase64,
+            contentType: data.contentType,
+          };
+          audioCacheRef.current.set(key, audio);
+          return audio;
+        })
+        .finally(() => {
+          audioRequestRef.current.delete(key);
+        });
+      audioRequestRef.current.set(key, request);
+      return request;
+    },
+    [audioKey, language, voiceId]
+  );
 
-          setUserAnswer(getMockTranscript(currentStep, language, jobDescription));
-          toast.warning(data.message || t("interview.sttFallback"));
-        } catch (error) {
-          console.error(error);
-          setUserAnswer(getMockTranscript(currentStep, language, jobDescription));
-          toast.warning(t("interview.sttBackendFallback"));
-        }
-      };
-
-      recorder.start();
-    } catch (error) {
-      console.error(error);
-      toast.error(t("interview.micAccessFailed"));
-    }
-  }, [isMicOn, isRecording, runId, currentStep, language, jobDescription, t]);
+  const playQuestionAudio = useCallback(
+    async (question: GeneratedInterviewQuestion) => {
+      const data = await getQuestionAudio(question);
+      await playInterviewAudio(data.audioBase64, data.contentType);
+    },
+    [getQuestionAudio]
+  );
 
   useEffect(() => {
-    if (
-      !isAiSpeaking &&
-      !isAiThinking &&
-      isMicOn &&
-      !isRecording &&
-      !isFinishing &&
-      !userAnswer &&
-      !isManualInputOpen &&
-      questionsList.length > 0 &&
-      hasStartedRef.current
-    ) {
-      void startRecording();
-    }
-  }, [isAiSpeaking, isAiThinking, isMicOn, isRecording, isFinishing, userAnswer, isManualInputOpen, questionsList, startRecording]);
+    if (!currentQuestion) return;
 
-  const handleSendAnswer = () => {
-    if (isAiSpeaking || isAiThinking) return;
-    if (!userAnswer.trim()) {
+    let cancelled = false;
+    const askQuestion = async () => {
+      if (startedAtRef.current === null) {
+        startedAtRef.current = Date.now();
+      }
+      setAnswer("");
+      setRecordingResult(null);
+      setIsManualInputOpen(false);
+      setFailureMessage("");
+      setStage("preparing");
+
+      let preparationError: unknown;
+      const recorderPreparation = prepareRecording().catch((error) => {
+        preparationError = error;
+      });
+      try {
+        setStage("speaking");
+        await playQuestionAudio(currentQuestion);
+      } catch (error: unknown) {
+        if (!cancelled) {
+          const message =
+            error instanceof Error ? error.message : t("interview.ttsFailed");
+          setFailureMessage(message);
+          setStage("error");
+        }
+        return;
+      }
+
+      if (cancelled) return;
+      setStage("connecting");
+      try {
+        await recorderPreparation;
+        if (preparationError) {
+          throw preparationError;
+        }
+        await startRecording();
+        if (!cancelled) {
+          setStage("recording");
+          const nextQuestion = questions[currentStep + 1];
+          if (nextQuestion) {
+            void getQuestionAudio(nextQuestion).catch(() => undefined);
+          }
+        }
+      } catch (error: unknown) {
+        console.error(error);
+        if (!cancelled) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : t("interview.micAccessFailed");
+          setFailureMessage(message);
+          setStage("error");
+        }
+      }
+    };
+
+    void askQuestion();
+    return () => {
+      cancelled = true;
+      stopInterviewAudio();
+    };
+  }, [
+    currentQuestion,
+    currentStep,
+    getQuestionAudio,
+    playQuestionAudio,
+    prepareRecording,
+    questionAttempt,
+    questions,
+    startRecording,
+    t,
+  ]);
+
+  const stopCurrentRecording = useCallback(
+    async (openManualInput = false) => {
+      if (stage !== "recording" && stage !== "connecting") {
+        if (openManualInput) {
+          setIsManualInputOpen(true);
+          setStage("reviewing");
+        }
+        return;
+      }
+
+      setStage("connecting");
+      const result = await stopRecording();
+      if (!result) {
+        setStage("reviewing");
+        setIsManualInputOpen(openManualInput);
+        return;
+      }
+
+      let transcript = result.transcript.trim();
+      let provider = result.transcriptionProvider;
+      if (!transcript && result.audio.size > 0) {
+        try {
+          const recovered = await aiService.transcribeAnswer(runId, result.audio);
+          transcript = recovered.transcript?.trim() || "";
+          provider =
+            recovered.provider === "faster-whisper"
+              ? "faster-whisper"
+              : provider;
+        } catch (error: unknown) {
+          console.error("Server transcription failed:", error);
+        }
+      }
+
+      setRecordingResult({
+        ...result,
+        transcript,
+        transcriptionProvider: provider,
+      });
+      setAnswer(transcript);
+      setIsManualInputOpen(openManualInput || !transcript);
+      setStage("reviewing");
+      if (currentStep + 1 < questionCount) {
+        void prepareRecording().catch(() => undefined);
+      }
+
+      if (!transcript) {
+        toast.warning(t("interview.transcriptMissing"));
+      }
+    },
+    [
+      currentStep,
+      prepareRecording,
+      questionCount,
+      runId,
+      stage,
+      stopRecording,
+      t,
+    ]
+  );
+
+  const finishInterview = useCallback(async () => {
+    try {
+      setStage("finishing");
+      setFinishLog([]);
+      cancelRecording();
+
+      const logs = [
+        t("interview.finishLogNormalize"),
+        t("interview.finishLogAudio"),
+        t("interview.finishLogEvaluate"),
+      ];
+      setFinishLog(logs);
+
+      const elapsedMinutes = Math.max(
+        1,
+        Math.round(
+          (Date.now() - (startedAtRef.current || Date.now())) / 60_000
+        )
+      );
+      const data = await practiceService.finishInterview(runId, {
+        practiceId,
+        duration: t("interview.durationMinutes", {
+          minutes: elapsedMinutes,
+        }),
+      });
+
+      if (!data.success) {
+        throw new Error(data.message || t("interview.saveResultError"));
+      }
+
+      setFinishLog((previous) => [
+        ...previous,
+        t("interview.finishLogSave"),
+      ]);
+      toast.success(t("interview.finishSuccess"));
+      router.push(
+        `/practice/${encodeURIComponent(practiceId)}/analysis?runId=${encodeURIComponent(runId)}`
+      );
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("interview.evaluationFailed")
+      );
+      setStage("reviewing");
+    }
+  }, [cancelRecording, practiceId, router, runId, t]);
+
+  const submitAnswer = useCallback(async () => {
+    const normalizedAnswer = answer.trim();
+    if (!currentQuestion || !normalizedAnswer) {
       toast.error(t("interview.answerRequired"));
       return;
     }
 
-    const questionText = questionsList[currentStep];
-    const newQa = { question: questionText, answer: userAnswer.trim() };
-    setQaHistory((prev) => [...prev, newQa]);
-    setChatLogs((prev) => [
-      ...prev,
-      {
-        sender: "user",
-        text: userAnswer.trim(),
-        timestamp: new Date(),
-      },
-    ]);
-    setUserAnswer("");
-
-    const nextStep = currentStep + 1;
-    if (nextStep < questionsList.length) {
-      setCurrentStep(nextStep);
-      setIsAiThinking(true);
-      window.setTimeout(() => {
-        setIsAiThinking(false);
-        simulateAiSpeech(questionsList[nextStep]);
-      }, 1000);
-    } else {
-      toast.success(t("interview.completedQuestions"));
-    }
-  };
-
-  const handleFinishInterview = async () => {
     try {
-      setIsFinishing(true);
-      setFinishLog([]);
-
-      const logs = [
-        t("interview.finishLogNormalize"),
-        t("interview.finishLogSend"),
-        t("interview.finishLogEvaluate"),
-        t("interview.finishLogSave"),
-      ];
-
-      for (const log of logs) {
-        setFinishLog((prev) => [...prev, log]);
-        await new Promise((resolve) => setTimeout(resolve, 450));
-      }
-
-      const startedAt = startedAtRef.current || Date.now();
-      const elapsedMinutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
-      const data = await practiceService.finishInterview(runId, {
-        practiceId,
-        title,
-        industry,
-        difficulty,
-        language,
-        jobDescription,
-        topic,
-        questionsList,
-        qaHistory,
-        duration: t("interview.durationMinutes", { minutes: elapsedMinutes }),
+      setStage("submitting");
+      const response = await aiService.submitInterviewAnswer(runId, {
+        questionId: currentQuestion.id,
+        answer: normalizedAnswer,
+        audio: recordingResult?.audio,
+        durationSec: recordingResult?.durationSec,
+        assemblySessionId: recordingResult?.assemblySessionId,
+        transcriptionProvider:
+          recordingResult?.transcriptionProvider || "manual",
       });
 
-      if (data.success) {
-        toast.success(t("interview.finishSuccess"));
-        router.push("/practice");
-      } else {
-        toast.error(data.message || t("interview.saveResultError"));
-        setIsFinishing(false);
+      if (!response.success) {
+        throw new Error(response.message || t("interview.saveResultError"));
       }
-    } catch (err: unknown) {
-      console.error(err);
-      toast.error(t("interview.evaluationFailed"));
-      setIsFinishing(false);
-    }
-  };
 
-  const activeDisplayText = isAiSpeaking
-    ? typingText
-    : questionsList[currentStep] || t("interview.starting");
+      setAnsweredCount(response.answeredCount);
+      if (response.completed || !response.nextQuestion) {
+        await finishInterview();
+        return;
+      }
+
+      setQuestions((previous) => {
+        const next = response.nextQuestion as GeneratedInterviewQuestion;
+        const existingIndex = previous.findIndex(
+          (question) => question.id === next.id
+        );
+        if (existingIndex >= 0) {
+          return previous.map((question, index) =>
+            index === existingIndex ? next : question
+          );
+        }
+        return [...previous, next];
+      });
+      void getQuestionAudio(response.nextQuestion).catch(() => undefined);
+      setCurrentStep(response.answeredCount);
+      setStage("preparing");
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : t("interview.saveResultError")
+      );
+      setStage("reviewing");
+    }
+  }, [
+    answer,
+    currentQuestion,
+    finishInterview,
+    getQuestionAudio,
+    recordingResult,
+    runId,
+    t,
+  ]);
+
+  const reRecord = useCallback(async () => {
+    setAnswer("");
+    setRecordingResult(null);
+    setIsManualInputOpen(false);
+    setStage("connecting");
+    try {
+      await startRecording();
+      setStage("recording");
+    } catch (error: unknown) {
+      console.error(error);
+      setFailureMessage(
+        error instanceof Error ? error.message : t("interview.micAccessFailed")
+      );
+      setStage("error");
+    }
+  }, [startRecording, t]);
+
+  const retryCurrentQuestion = useCallback(() => {
+    cancelRecording();
+    setFailureMessage("");
+    setQuestionAttempt((previous) => previous + 1);
+  }, [cancelRecording]);
+
+  if (!currentQuestion) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-background">
+        <Spinner className="h-10 w-10 text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full h-full bg-background text-foreground flex flex-col justify-between overflow-hidden relative select-none">
-      <header className="w-full flex items-center justify-between px-8 py-6 z-20 shrink-0">
+    <div className="relative flex h-full w-full select-none flex-col overflow-hidden bg-background text-foreground">
+      <header className="z-20 flex w-full shrink-0 items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
           <div
-            className="relative w-8 h-8 flex items-center justify-center transition-transform duration-100 ease-out"
+            className="relative flex h-8 w-8 items-center justify-center transition-transform duration-100"
             style={{
-              transform: `scale(${isRecording || isAiSpeaking ? 1 + (soundLevel / 100) * 0.18 : 1})`,
+              transform: `scale(${
+                stage === "recording" || stage === "speaking"
+                  ? 1 + (soundLevel / 100) * 0.16
+                  : 1
+              })`,
             }}
           >
             <Image
               src={logoSrc}
-              alt="InterV Logo"
+              alt="InterV"
               width={32}
               height={32}
-              className="invert dark:invert-0 object-contain"
+              className="object-contain invert dark:invert-0"
               priority
             />
           </div>
-          <span className="font-logo font-bold text-2xl tracking-tight text-foreground">
+          <span className="font-logo text-2xl font-bold tracking-normal">
             InterV<span className="text-[var(--chart-1)]">.</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground select-none">
-            <ClockCircle className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-4 md:gap-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+            <ClockCircle
+              className="h-4 w-4 text-primary"
+              weight="BoldDuotone"
+              aria-hidden="true"
+            />
             <span>
               {t("interview.questionProgress", {
-                current: Math.min(currentStep + 1, questionsList.length),
-                total: questionsList.length,
+                current: Math.min(currentStep + 1, questionCount),
+                total: questionCount,
               })}
             </span>
           </div>
 
           <button
-            onClick={() => {
-              setIsMicOn(!isMicOn);
-              if (isMicOn && isRecording) {
-                mediaRecorderRef.current?.stop();
-              }
-              toast.success(isMicOn ? t("interview.micDisabled") : t("interview.micEnabled"));
-            }}
-            className={`p-0.5 bg-transparent border-none transition-all duration-300 cursor-pointer ${
-              isMicOn ? "text-muted-foreground hover:text-foreground" : "text-red-500 hover:text-red-400"
-            }`}
-            title={isMicOn ? t("interview.turnMicOff") : t("interview.turnMicOn")}
-          >
-            {isMicOn ? <Microphone className="w-5 h-5" /> : <Muted className="w-5 h-5" />}
-          </button>
-
-  <button
-            onClick={() => {
-              const nextState = !isManualInputOpen;
-              setIsManualInputOpen(nextState);
-              if (nextState && isRecording) {
-                mediaRecorderRef.current?.stop();
-              }
-            }}
-            className={`p-0.5 bg-transparent border-none transition-all duration-300 cursor-pointer ${
-              isManualInputOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
+            type="button"
+            onClick={() => void stopCurrentRecording(true)}
+            disabled={isBusy && stage !== "connecting"}
+            className="text-muted-foreground transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={t("interview.keyboardInput")}
             title={t("interview.keyboardInput")}
           >
-            <KeyboardIcon className="w-5 h-5" />
+            <Keyboard className="h-5 w-5" weight="BoldDuotone" />
           </button>
 
-          {userAnswer.trim() && (
-            <button
-              onClick={handleSendAnswer}
-              disabled={isAiSpeaking || isAiThinking}
-              className="p-0.5 bg-transparent border-none text-primary hover:text-primary/80 transition-all cursor-pointer disabled:opacity-50"
-              title={t("interview.sendAnswer")}
-            >
-              <SendSquare className="w-5 h-5" />
-            </button>
-          )}
-
           <button
-            onClick={() => void handleFinishInterview()}
-            className={`p-0.5 bg-transparent border-none transition-all cursor-pointer ${
-              qaHistory.length > 0 ? "text-emerald-500 hover:text-emerald-400" : "text-red-500 hover:text-red-400"
-            }`}
-            title={qaHistory.length > 0 ? t("interview.submitAndGrade") : t("interview.finishEarly")}
+            type="button"
+            onClick={() => void finishInterview()}
+            disabled={stage === "finishing" || stage === "submitting"}
+            className="text-muted-foreground transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={
+              answeredCount > 0
+                ? t("interview.submitAndGrade")
+                : t("interview.finishEarly")
+            }
+            title={
+              answeredCount > 0
+                ? t("interview.submitAndGrade")
+                : t("interview.finishEarly")
+            }
           >
-            {qaHistory.length > 0 ? <MedalStar className="w-5 h-5" /> : <ExitIcon className="w-5 h-5" />}
+            {answeredCount > 0 ? (
+              <MedalStar className="h-5 w-5" weight="BoldDuotone" />
+            ) : (
+              <Exit className="h-5 w-5" weight="BoldDuotone" />
+            )}
           </button>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col justify-center items-center px-6 max-w-4xl mx-auto text-center z-10 w-full relative">
-        {isAiThinking ? (
-          <div className="flex flex-col items-center gap-4 animate-pulse">
-            <div className="relative h-16 w-16 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-60" />
-              <Spinner className="w-10 h-10 text-primary animate-spin" />
-            </div>
-            <p className="text-xs font-black tracking-widest text-primary uppercase">
-              {t("interview.aiPreparing")}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-medium tracking-wide leading-relaxed text-foreground max-w-3xl mx-auto select-text selection:bg-primary/20 duration-500 transition-all font-question">
-              {activeDisplayText}
-            </h1>
-
-            {isRecording && (
-              <div className="pt-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-red-500 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <span>{t("interview.recording")}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    mediaRecorderRef.current?.stop();
-                  }}
-                  className="rounded-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold text-xs tracking-wider shadow-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase"
-                >
-                  {t("interview.doneAnswering") || "Hoàn thành câu trả lời"}
-                </button>
+      <main className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-5 pb-10 text-center md:px-8">
+        <div className="w-full space-y-6">
+          <div className="flex min-h-8 items-center justify-center">
+            {stage === "preparing" || stage === "submitting" ? (
+              <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                <Spinner className="h-4 w-4" />
+                <span>
+                  {stage === "submitting"
+                    ? t("interview.savingAnswer")
+                    : t("interview.aiPreparing")}
+                </span>
               </div>
-            )}
-
-            {userAnswer && !isRecording && !isManualInputOpen && (
-              <div className="pt-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center gap-4 w-full">
-                <div className="pt-6 border-t border-border/40 max-w-2xl mx-auto w-full">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 select-none">
-                    {t("interview.answerTranscript")}
-                  </p>
-                  <p className="text-sm md:text-base font-medium text-indigo-600 dark:text-indigo-300 italic leading-relaxed select-text">
-                    &quot;{userAnswer}&quot;
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-center gap-3 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUserAnswer("");
-                    }}
-                    className="rounded-full px-5 py-2.5 bg-muted hover:bg-muted/80 text-muted-foreground font-bold text-xs transition-all duration-200 cursor-pointer"
-                  >
-                    {t("interview.reRecord") || "Thu âm lại"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSendAnswer}
-                    disabled={isAiSpeaking || isAiThinking}
-                    className="rounded-full px-6 py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground font-black text-xs tracking-wider shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <SendSquare className="w-4 h-4" />
-                    <span>{t("interview.sendAnswer")}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {isManualInputOpen && (
-        <div className="w-full max-w-2xl mx-auto px-4 z-20 animate-in slide-in-from-bottom duration-300 mb-4 text-left">
-          <div className="bg-card/90 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                {t("interview.manualInputTitle")}
+            ) : stage === "speaking" ? (
+              <span className="text-xs font-bold text-primary">
+                {t("interview.aiSpeaking")}
               </span>
+            ) : stage === "connecting" ? (
+              <span className="text-xs font-bold text-muted-foreground">
+                {t("interview.connectingMic")}
+              </span>
+            ) : stage === "error" ? (
+              <span className="text-xs font-bold text-red-400">
+                {t("interview.requiredServiceError")}
+              </span>
+            ) : null}
+          </div>
+
+          <h1 className="font-question mx-auto max-w-3xl select-text text-xl font-medium leading-relaxed tracking-normal selection:bg-primary/20 md:text-2xl lg:text-3xl">
+            {currentQuestion.text}
+          </h1>
+
+          {stage === "recording" && (
+            <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
+              <div className="flex items-center gap-2 text-xs font-semibold text-red-500">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+                <span>{t("interview.recording")}</span>
+              </div>
+
+              <div className="min-h-20 w-full border-t border-border/50 pt-4">
+                <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">
+                  {t("interview.liveTranscript")}
+                </p>
+                <p className="select-text text-sm leading-relaxed text-foreground/85 md:text-base">
+                  {liveTranscript || t("interview.listening")}
+                </p>
+              </div>
+
+              {errorMessage && (
+                <p className="text-xs text-amber-500">{errorMessage}</p>
+              )}
+
               <button
-                onClick={() => setIsManualInputOpen(false)}
-                className="text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                type="button"
+                onClick={() => void stopCurrentRecording()}
+                className="flex h-11 items-center gap-2 rounded-full bg-red-500 px-6 text-xs font-bold text-white transition-colors hover:bg-red-600"
               >
-                {t("interview.close")}
+                <StopCircle
+                  className="h-4 w-4"
+                  weight="BoldDuotone"
+                  aria-hidden="true"
+                />
+                <span>{t("interview.doneAnswering")}</span>
               </button>
             </div>
-            <Textarea
-              placeholder={t("interview.answerPlaceholder")}
-              value={userAnswer}
-              onChange={(e) => setUserAnswer(e.target.value)}
-              disabled={isRecording || isAiSpeaking || isAiThinking}
-              className="rounded-xl min-h-[80px] text-xs font-semibold leading-relaxed resize-none focus:ring-primary border-border bg-background text-foreground"
-            />
-          </div>
-        </div>
-      )}
+          )}
 
-      <ThreeWaveform soundLevel={soundLevel} isActive={isRecording || isAiSpeaking} />
+          {stage === "reviewing" && (
+            <div className="mx-auto w-full max-w-2xl border-t border-border/50 pt-5 text-left">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase text-muted-foreground">
+                  {t("interview.answerTranscript")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsManualInputOpen((previous) => !previous)}
+                  className="text-xs font-semibold text-primary hover:text-primary/80"
+                >
+                  {isManualInputOpen
+                    ? t("interview.close")
+                    : t("interview.editAnswer")}
+                </button>
+              </div>
 
-      {isFinishing && (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-xl z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
-          <div className="flex flex-col items-center gap-6 text-center max-w-md px-6 select-none">
-            <div className="relative h-20 w-20 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-75" />
-              <Spinner className="w-12 h-12 text-primary" />
+              {isManualInputOpen ? (
+                <Textarea
+                  autoFocus
+                  placeholder={t("interview.answerPlaceholder")}
+                  value={answer}
+                  onChange={(event) => setAnswer(event.target.value)}
+                  className="min-h-28 resize-none rounded-lg border-border bg-background text-sm leading-relaxed"
+                />
+              ) : (
+                <p className="select-text text-sm leading-relaxed text-foreground/90 md:text-base">
+                  {answer || t("interview.answerPlaceholder")}
+                </p>
+              )}
+
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void reRecord()}
+                  className="flex h-10 items-center gap-2 rounded-full bg-muted px-5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  <Microphone
+                    className="h-4 w-4"
+                    weight="BoldDuotone"
+                    aria-hidden="true"
+                  />
+                  <span>{t("interview.reRecord")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void submitAnswer()}
+                  disabled={!answer.trim()}
+                  className="flex h-10 items-center gap-2 rounded-full bg-primary px-6 text-xs font-black text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <SendSquare
+                    className="h-4 w-4"
+                    weight="BoldDuotone"
+                    aria-hidden="true"
+                  />
+                  <span>{t("interview.sendAnswer")}</span>
+                </button>
+              </div>
             </div>
-            <h3 className="text-lg font-black text-foreground uppercase tracking-wider">
-              {t("interview.finishingTitle")}
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {t("interview.finishingDescription")}
-            </p>
+          )}
 
-            <div className="w-full bg-muted/50 border border-border p-4 rounded-2xl text-left font-mono text-[9px] text-emerald-600 dark:text-emerald-400 space-y-1.5 max-h-[140px] overflow-y-auto no-scrollbar shadow-inner">
-              {finishLog.map((log, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 animate-in fade-in duration-200">
-                  <span className="text-primary shrink-0">&gt;</span>
-                  <span className="leading-normal">{log}</span>
+          {stage === "error" && (
+            <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 border-t border-border/50 pt-5">
+              <p className="select-text text-sm leading-relaxed text-red-400">
+                {failureMessage || t("interview.requiredServiceError")}
+              </p>
+              <button
+                type="button"
+                onClick={retryCurrentQuestion}
+                className="flex h-10 items-center gap-2 rounded-full bg-primary px-6 text-xs font-black text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Restart
+                  className="h-4 w-4"
+                  weight="BoldDuotone"
+                  aria-hidden="true"
+                />
+                <span>{t("interview.retryQuestion")}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+
+      <ThreeWaveform
+        soundLevel={stage === "speaking" ? 42 : soundLevel}
+        isActive={stage === "recording" || stage === "speaking"}
+      />
+
+      {stage === "finishing" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 px-6 backdrop-blur-xl">
+          <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
+            <div className="relative flex h-20 w-20 items-center justify-center">
+              <div className="absolute inset-0 animate-ping rounded-full border border-primary/20 opacity-75" />
+              <Spinner className="h-12 w-12 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-foreground">
+                {t("interview.finishingTitle")}
+              </h2>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {t("interview.finishingDescription")}
+              </p>
+            </div>
+            <div className="max-h-36 w-full overflow-y-auto rounded-lg border border-border bg-muted/40 p-4 text-left font-mono text-[10px] text-emerald-400">
+              {finishLog.map((log) => (
+                <div key={log} className="mb-1.5 flex gap-2">
+                  <span className="text-primary">&gt;</span>
+                  <span>{log}</span>
                 </div>
               ))}
             </div>

@@ -3,30 +3,34 @@
 import React, { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Home } from "@solar-icons/react";
+import { Eye, EyeClosed, Home } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
+import { roleHomePath } from "@/app/lib/RoleRouting";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, loading } = useAuthContext();
+  const searchParams = useSearchParams();
+  const { login, user, isAuthenticated, loading } = useAuthContext();
   const { t } = useLanguage();
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push("/");
+      router.replace(roleHomePath(user?.role));
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, user?.role]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +44,22 @@ export default function LoginPage() {
     try {
       const res = await login(identifier, password, remember);
       if (res.success) {
-        router.push("/");
+        const role = res.user?.role || "user";
+        const requestedPath = searchParams.get("next");
+        const isSafeInternalPath =
+          requestedPath?.startsWith("/") &&
+          !requestedPath.startsWith("//") &&
+          ((role === "admin" && requestedPath.startsWith("/admin")) ||
+            (role === "recruiter" &&
+              requestedPath.startsWith("/recruiter")) ||
+            (role === "user" &&
+              !requestedPath.startsWith("/admin") &&
+              !requestedPath.startsWith("/recruiter")));
+        router.replace(
+          isSafeInternalPath && requestedPath
+            ? requestedPath
+            : roleHomePath(role)
+        );
       } else {
         toast.error(res.message || t("auth.invalidLogin"));
       }
@@ -79,15 +98,32 @@ export default function LoginPage() {
           />
 
           <label className="text-xs text-zinc-400">{t("auth.passwordLabel")}</label>
-          <Input
-            type="password"
-            placeholder={t("auth.passwordPlaceholder")}
-            aria-label="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder={t("auth.passwordPlaceholder")}
+              aria-label="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              className="pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50"
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-pressed={showPassword}
+              disabled={isLoading}
+            >
+              {showPassword ? (
+                <EyeClosed className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
           <div className="flex items-center justify-between text-sm text-zinc-400 mt-1">
             <label className="flex items-center gap-2 cursor-pointer">

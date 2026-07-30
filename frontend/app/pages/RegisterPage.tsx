@@ -13,6 +13,7 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { getErrorMessage } from "@/app/lib/Utils";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
+import { PASSWORD_MIN_LENGTH } from "@/app/contants";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < PASSWORD_MIN_LENGTH) {
       toast.error(t("auth.passwordMin"));
       return;
     }

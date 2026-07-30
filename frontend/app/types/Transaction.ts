@@ -6,8 +6,21 @@ export interface ITransaction extends Document {
   amount: number;
   credits: number;
   status: "PENDING" | "PAID" | "CANCELLED";
+  providerStatus?:
+    | "PENDING"
+    | "CANCELLED"
+    | "UNDERPAID"
+    | "PAID"
+    | "EXPIRED"
+    | "PROCESSING"
+    | "FAILED";
   paymentLinkId: string;
   paymentUrl?: string;
+  paidAt?: Date;
+  cancelledAt?: Date;
+  lastReconciledAt?: Date;
+  cancellationReason?: string;
+  reconciliationError?: string;
   createdAt: Date;
   updatedAt: Date;
 }

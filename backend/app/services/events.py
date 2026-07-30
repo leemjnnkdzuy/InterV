@@ -9,14 +9,21 @@ class EventPublisher:
         self._producer = None
 
     async def connect(self) -> None:
+        producer = None
         try:
             from aiokafka import AIOKafkaProducer
 
-            self._producer = AIOKafkaProducer(
+            producer = AIOKafkaProducer(
                 bootstrap_servers=get_settings().kafka_brokers.split(",")
             )
-            await asyncio.wait_for(self._producer.start(), timeout=1.5)
+            await asyncio.wait_for(producer.start(), timeout=1.5)
+            self._producer = producer
         except Exception:
+            if producer is not None:
+                try:
+                    await producer.stop()
+                except Exception:
+                    pass
             self._producer = None
 
     async def close(self) -> None:

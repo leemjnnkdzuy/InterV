@@ -29,18 +29,41 @@ const transactionSchema = new Schema<ITransaction>(
       default: "PENDING",
       index: true,
     },
+    providerStatus: {
+      type: String,
+      enum: [
+        "PENDING",
+        "CANCELLED",
+        "UNDERPAID",
+        "PAID",
+        "EXPIRED",
+        "PROCESSING",
+        "FAILED",
+      ],
+      default: "PENDING",
+      index: true,
+    },
     paymentLinkId: {
       type: String,
-      required: true,
+      default: "",
     },
     paymentUrl: {
       type: String,
+      maxlength: 2_048,
     },
+    paidAt: { type: Date },
+    cancelledAt: { type: Date },
+    lastReconciledAt: { type: Date },
+    cancellationReason: { type: String, default: "", maxlength: 500 },
+    reconciliationError: { type: String, default: "", maxlength: 500 },
   },
   {
     timestamps: true,
   }
 );
+
+transactionSchema.index({ createdAt: -1, status: 1 });
+transactionSchema.index({ paidAt: -1, status: 1 });
 
 if (mongoose.models.Transaction) {
   delete mongoose.models.Transaction;

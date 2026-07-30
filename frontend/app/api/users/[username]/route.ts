@@ -15,9 +15,20 @@ export async function GET(
       );
     }
 
-    const lowercaseUsername = username.toLowerCase();
+    const lowercaseUsername = username.toLowerCase().trim();
+    if (!/^[a-z0-9_]{3,30}$/.test(lowercaseUsername)) {
+      return NextResponse.json(
+        { success: false, message: "Username không hợp lệ" },
+        { status: 400 }
+      );
+    }
     await connectDB();
-    const user = await User.findOne({ username: lowercaseUsername }).select("-password").lean();
+    const user = await User.findOne({
+      username: lowercaseUsername,
+      isActive: true,
+    })
+      .select("username role avatar socialLinks createdAt")
+      .lean();
 
     if (!user) {
       return NextResponse.json(
@@ -31,10 +42,8 @@ export async function GET(
       user: {
         id: user._id.toString(),
         username: user.username,
-        email: user.email,
         role: user.role || "user",
         avatar: user.avatar,
-        dob: user.dob,
         socialLinks: user.socialLinks || [],
         createdAt: user.createdAt,
       },

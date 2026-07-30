@@ -1,6 +1,13 @@
+import type { AppRole } from "./User";
+
 export interface TokenPayload {
   userId: string;
   sessionId?: string;
+  tokenType: "access" | "refresh";
+  rememberMe?: boolean;
+  jti?: string;
+  iat?: number;
+  exp?: number;
 }
 
 export interface SocialLink {
@@ -13,7 +20,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  role: string;
+  role: AppRole;
   avatar?: string;
   dob?: string;
   socialLinks?: SocialLink[];
@@ -29,7 +36,7 @@ export interface AuthContextType {
     identifier: string,
     password: string,
     rememberMe?: boolean
-  ) => Promise<{ success: boolean; message?: string }>;
+  ) => Promise<{ success: boolean; message?: string; user?: User }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }

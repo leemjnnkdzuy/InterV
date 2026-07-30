@@ -1,125 +1,56 @@
+import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, File, Form, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 
 from app.config import get_settings
-from app.schemas import (
-    InterviewAnswerRequest,
-    InterviewAnswerResponse,
-    InterviewEvaluateRequest,
-    InterviewEvaluateResponse,
-    InterviewStartRequest,
-    InterviewStartResponse,
-    TtsPreviewRequest,
-    TtsPreviewResponse,
-    VoicesResponse,
-)
-from app.security import verify_internal_key
+from app.grpc_server import start_grpc_server
 from app.services.cache import cache_service
-from app.services.deepseek import evaluate_interview, generate_questions, new_run_id
-from app.services.document import extract_jd
 from app.services.events import event_publisher
-from app.services.stt import transcribe_audio
-from app.services.tts import list_voices, synthesize_preview
+from app.services.audio_analysis import warmup_sensevoice
+from app.services.assemblyai import validate_assemblyai_configuration
+from app.services.deepseek import validate_deepseek_configuration
+from app.services.tts import list_voices
+from app.rag import get_rag_agent
+from app.rules import get_rule_catalog
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    get_settings()
+    get_rule_catalog().validate()
+    rag_agent = get_rag_agent()
+    await rag_agent.initialize()
+    validate_deepseek_configuration()
+    validate_assemblyai_configuration()
+    await warmup_sensevoice()
+    await list_voices("vi-VN")
     await cache_service.connect()
     await event_publisher.connect()
-    yield
-    await event_publisher.close()
+    grpc_server = await start_grpc_server()
+    try:
+        yield
+    finally:
+        await grpc_server.stop(grace=3)
+        await event_publisher.close()
+        await cache_service.close()
+        await asyncio.to_thread(rag_agent.store.close)
 
 
-app = FastAPI(title="InterV AI Backend", version="0.1.0", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="InterV AI Backend",
+    version="0.2.0",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 
 @app.get("/health")
 async def health():
-    settings = get_settings()
+    rag_health = await get_rag_agent().health()
     return {
-        "success": True,
+        "success": rag_health.ready,
         "service": "interv-ai-backend",
-        "port": settings.port,
-        "deepseekConfigured": bool(settings.deepseek_api_key),
     }
-
-
-@app.post("/internal/jd/extract", dependencies=[Depends(verify_internal_key)])
-async def jd_extract(file: UploadFile = File(...)):
-    return await extract_jd(file)
-
-
-@app.get("/internal/voices", response_model=VoicesResponse, dependencies=[Depends(verify_internal_key)])
-async def voices(language: str = "vi-VN"):
-    return VoicesResponse(voices=await list_voices(language))
-
-
-@app.post(
-    "/internal/tts/preview",
-    response_model=TtsPreviewResponse,
-    dependencies=[Depends(verify_internal_key)],
-)
-async def tts_preview(payload: TtsPreviewRequest):
-    return await synthesize_preview(payload)
-
-
-@app.post(
-    "/internal/interview/start",
-    response_model=InterviewStartResponse,
-    dependencies=[Depends(verify_internal_key)],
-)
-async def interview_start(payload: InterviewStartRequest):
-    questions, provider = await generate_questions(payload)
-    run_id = new_run_id()
-    await event_publisher.publish(
-        "interview.event",
-        {
-            "type": "INTERVIEW_STARTED",
-            "runId": run_id,
-            "sessionId": payload.session_id,
-            "provider": provider,
-            "questionCount": len(questions),
-        },
-    )
-    return InterviewStartResponse(run_id=run_id, questions=questions, provider=provider)
-
-
-@app.post("/internal/interview/transcribe", dependencies=[Depends(verify_internal_key)])
-async def interview_transcribe(
-    file: UploadFile = File(...),
-    language: str = Form(default="vi-VN"),
-):
-    return await transcribe_audio(file, language)
-
-
-@app.post(
-    "/internal/interview/answer",
-    response_model=InterviewAnswerResponse,
-    dependencies=[Depends(verify_internal_key)],
-)
-async def interview_answer(payload: InterviewAnswerRequest):
-    return InterviewAnswerResponse(feedback_hint="Answer received")
-
-
-@app.post(
-    "/internal/interview/evaluate",
-    response_model=InterviewEvaluateResponse,
-    dependencies=[Depends(verify_internal_key)],
-)
-async def interview_evaluate(payload: InterviewEvaluateRequest):
-    evaluation, provider = await evaluate_interview(payload)
-    await event_publisher.publish(
-        "interview.event",
-        {"type": "INTERVIEW_EVALUATED", "runId": payload.run_id, "provider": provider},
-    )
-    return InterviewEvaluateResponse(evaluation=evaluation, provider=provider)

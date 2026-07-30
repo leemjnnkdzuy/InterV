@@ -20,21 +20,26 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: [254, "Email cannot exceed 254 characters"],
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [12, "Password must be at least 12 characters"],
+      maxlength: [128, "Password cannot exceed 128 characters"],
+      select: false,
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "recruiter", "admin"],
       default: "user",
+      index: true,
     },
     avatar: {
       type: String,
       default: "",
+      maxlength: 3 * 1024 * 1024,
     },
     dob: {
       type: Date,
@@ -42,8 +47,9 @@ const userSchema = new Schema<IUser>(
     socialLinks: {
       type: [
         {
-          platform: { type: String, required: true },
-          usernameOrUrl: { type: String, required: true },
+          platform: { type: String, required: true, maxlength: 30 },
+          usernameOrUrl: { type: String, required: true, maxlength: 300 },
+          _id: false,
         },
       ],
       default: [],
@@ -59,6 +65,8 @@ const userSchema = new Schema<IUser>(
     credits: {
       type: Number,
       default: 500,
+      min: 0,
+      max: Number.MAX_SAFE_INTEGER,
     },
   },
   {
@@ -68,6 +76,7 @@ const userSchema = new Schema<IUser>(
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
+  if (this.$locals.passwordAlreadyHashed === true) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });

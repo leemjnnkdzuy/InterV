@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
@@ -18,10 +19,53 @@ import {
   Stars as Sparkles,
 } from "@solar-icons/react";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import api from "@/app/lib/Client";
+import type { HomeDashboardResponse } from "@/app/types";
+
+const EMPTY_DASHBOARD: HomeDashboardResponse = {
+  success: true,
+  stats: {
+    totalInterviews: 0,
+    averageScore: 0,
+    totalDurationSec: 0,
+  },
+  recentSessions: [],
+};
 
 export default function HomePage() {
   const { user } = useAuthContext();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const [dashboard, setDashboard] =
+    useState<HomeDashboardResponse>(EMPTY_DASHBOARD);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const numberLocale =
+    language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      try {
+        const response = await api.get<HomeDashboardResponse>(
+          "/practice/dashboard"
+        );
+        if (!cancelled && response.data.success) {
+          setDashboard(response.data);
+        }
+      } catch (error: unknown) {
+        console.error("Unable to load practice dashboard:", error);
+      } finally {
+        if (!cancelled) {
+          setIsDashboardLoading(false);
+        }
+      }
+    };
+
+    void loadDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -30,57 +74,46 @@ export default function HomePage() {
     return t("home.greetingEvening");
   };
 
+  const formatDuration = (totalSeconds: number) => {
+    const totalMinutes = Math.round(totalSeconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  };
+
   const stats = [
     {
       title: t("home.statsInterviews"),
-      value: "8",
+      value: dashboard.stats.totalInterviews.toLocaleString(numberLocale),
       description: t("home.statsInterviewsDesc"),
       icon: MessageSquareCode,
       color: "from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
     },
     {
       title: t("home.statsAvgScore"),
-      value: "8.2",
+      value: dashboard.stats.averageScore.toFixed(1),
       description: t("home.statsAvgScoreDesc"),
       icon: Award,
       color: "from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     },
     {
       title: t("home.statsDuration"),
-      value: "2h 45m",
+      value: formatDuration(dashboard.stats.totalDurationSec),
       description: t("home.statsDurationDesc"),
       icon: Clock,
       color: "from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     },
   ];
 
-  // Mock recent sessions
-  const recentSessions = [
-    {
-      id: "1",
-      position: "Frontend Developer",
-      date: "24/05/2026",
-      duration: "18 phút",
-      score: 8.5,
-      status: "completed",
-    },
-    {
-      id: "2",
-      position: "Node.js Backend Developer",
-      date: "20/05/2026",
-      duration: "25 phút",
-      score: 7.8,
-      status: "completed",
-    },
-    {
-      id: "3",
-      position: "Product Manager (Mock)",
-      date: "15/05/2026",
-      duration: "12 phút",
-      score: 6.5,
-      status: "completed",
-    },
-  ];
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(numberLocale, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
+    [numberLocale]
+  );
 
   const quickTracks = [
     {
@@ -151,7 +184,9 @@ export default function HomePage() {
               </div>
             </CardHeader>
             <CardContent className="text-left">
-              <div className="text-3xl font-extrabold tracking-tight mt-1">{stat.value}</div>
+              <div className="text-3xl font-extrabold tracking-tight mt-1">
+                {isDashboardLoading ? "..." : stat.value}
+              </div>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-emerald-500" />
                 {stat.description}
@@ -240,18 +275,27 @@ export default function HomePage() {
                 </tr>
               </thead>
               <tbody className="divide-y border-border">
-                {recentSessions.map((session) => (
+                {dashboard.recentSessions.map((session) => (
                   <tr key={session.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4 font-medium text-foreground">{session.position}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{session.date}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      <Link
+                        href={`/practice/${encodeURIComponent(session.sessionId)}/analysis?runId=${encodeURIComponent(session.id)}`}
+                        className="hover:text-primary"
+                      >
+                        {session.position}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {dateFormatter.format(new Date(session.date))}
+                    </td>
                     <td className="px-6 py-4 text-muted-foreground">{session.duration}</td>
                     <td className="px-6 py-4 font-semibold">
                       <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${
-                        session.score >= 8.0 
+                        session.score >= 80
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
                           : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                       }`}>
-                        {session.score}/10
+                        {session.score}/100
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -261,6 +305,17 @@ export default function HomePage() {
                     </td>
                   </tr>
                 ))}
+                {!isDashboardLoading &&
+                  dashboard.recentSessions.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-10 text-center text-sm text-muted-foreground"
+                      >
+                        {t("home.emptyHistory")}
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>

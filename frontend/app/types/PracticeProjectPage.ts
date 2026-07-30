@@ -3,6 +3,7 @@ export interface PracticeResultQuestion {
   answer: string;
   feedback: string;
   score: number;
+  evidence?: string[];
 }
 
 export interface PracticeResultRatings {
@@ -11,13 +12,28 @@ export interface PracticeResultRatings {
   problemSolving: number;
   confidence: number;
   jdFit?: number;
+  composure?: number;
+  vocalDelivery?: number;
 }
 
 export interface PracticeResultData {
   score: number;
   duration: string;
+  durationSec?: number;
   feedback: string;
   ratings: PracticeResultRatings;
+  strengths?: string[];
+  weaknesses?: string[];
+  recommendations?: string[];
+  audioAnalysis?: {
+    confidence: number;
+    composure: number;
+    vocalDelivery: number;
+    dominantEmotion: string;
+    observations: string[];
+    provider: string;
+  };
+  provider?: string;
   questions: PracticeResultQuestion[];
   createdAt: string | Date;
 }
@@ -68,12 +84,6 @@ export interface PracticeUpdatePayload {
   voiceId?: string;
   difficulty?: string;
   questionCount?: number;
-  isCompletedRun?: boolean;
-  score?: number;
-  duration?: string;
-  feedback?: string;
-  ratings?: PracticeResultRatings;
-  questions?: PracticeResultQuestion[];
 }
 
 export interface CreatePracticeDialogProps {

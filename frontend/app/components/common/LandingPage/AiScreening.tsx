@@ -25,7 +25,7 @@ interface Candidate {
   }[];
 }
 
-const mockCandidates: Candidate[] = [
+const sampleCandidates: Candidate[] = [
   {
     id: "1",
     name: "Nguyễn Văn An",
@@ -96,7 +96,9 @@ export default function AiScreening() {
   const [selectedId, setSelectedId] = useState<string>("1");
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState<boolean>(false);
 
-  const selectedCandidate = mockCandidates.find((c) => c.id === selectedId) || mockCandidates[0];
+  const selectedCandidate =
+    sampleCandidates.find((candidate) => candidate.id === selectedId) ||
+    sampleCandidates[0];
   const getStatusLabel = (status: Candidate["status"]) => {
     if (status === "Passed") return t("landing.aiScreening.statusPassed");
     if (status === "Review") return t("landing.aiScreening.statusReview");
@@ -108,7 +110,7 @@ export default function AiScreening() {
       <div className="w-full mx-auto">
         {/* Layout Flex Container */}
         <div className="flex flex-col lg:flex-row lg:items-center gap-12 lg:gap-10 w-full">
-          {/* Left Column: HR Dashboard Mockup */}
+          {/* Left Column: interactive HR dashboard preview */}
           <div className="w-full lg:w-[768px] lg:flex-shrink-0 flex lg:justify-start justify-center order-2 lg:order-1">
             <div className="w-full rounded-3xl border border-white/[0.08] bg-zinc-900/40 backdrop-blur-md p-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col gap-6 relative overflow-hidden lg:h-[580px]">
               {/* Dashboard Header */}
@@ -129,7 +131,7 @@ export default function AiScreening() {
                 <div className={`lg:col-span-5 flex flex-col gap-2.5 lg:overflow-y-auto lg:pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isMobileDetailOpen ? 'hidden lg:flex' : 'flex'}`}>
                   <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1">{t("landing.aiScreening.candidateList")}</span>
                   <div className="flex flex-col gap-2.5">
-                    {mockCandidates.map((candidate) => {
+                    {sampleCandidates.map((candidate) => {
                       const isActive = candidate.id === selectedId;
                       return (
                         <button

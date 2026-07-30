@@ -6,6 +6,10 @@ export interface ISession extends Document {
   ipAddress: string;
   isActive: boolean;
   lastActiveAt: Date;
+  refreshTokenHash: string;
+  previousRefreshTokenHash: string;
+  previousRefreshValidUntil?: Date;
+  refreshExpiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }

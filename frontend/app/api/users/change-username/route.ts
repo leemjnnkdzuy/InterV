@@ -1,34 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
-import { verifyAccessToken } from "@/app/lib/Auth";
+import { authenticateRequest } from "@/app/lib/Auth";
+import {
+  enforceRateLimit,
+  readJsonBodyLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
-    }
-
-    const payload = verifyAccessToken(accessToken);
+    const payload = await authenticateRequest(request);
     if (!payload) {
       return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { newUsername, password } = body;
+    const body = (await readJsonBodyLimited(
+      request,
+      4 * 1024
+    )) as Record<string, unknown>;
+    const newUsername =
+      typeof body.newUsername === "string"
+        ? body.newUsername.toLowerCase().trim()
+        : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
-    if (!newUsername || !password) {
+    if (!/^[a-z0-9_]{3,30}$/.test(newUsername) || !password || password.length > 128) {
       return NextResponse.json(
         { success: false, message: "Vui lòng điền đầy đủ thông tin" },
         { status: 400 }
       );
     }
 
-    const normalizedNewUsername = newUsername.toLowerCase().trim();
-
     await connectDB();
-    const user = await User.findById(payload.userId);
+    await enforceRateLimit(
+      "change-username",
+      payload.userId,
+      5,
+      60 * 60_000
+    );
+    const user = await User.findById(payload.userId).select("+password");
     if (!user) {
       return NextResponse.json({ success: false, message: "Không tìm thấy người dùng" }, { status: 404 });
     }
@@ -40,14 +53,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify username availability again
-    if (normalizedNewUsername !== user.username) {
-      const existingUser = await User.findOne({ username: normalizedNewUsername });
+    if (newUsername !== user.username) {
+      const existingUser = await User.findOne({ username: newUsername })
+        .select("_id")
+        .lean();
       if (existingUser) {
         return NextResponse.json({ success: false, message: "Tên đăng nhập đã tồn tại" }, { status: 400 });
       }
     }
 
-    user.username = normalizedNewUsername;
+    user.username = newUsername;
     await user.save();
 
     return NextResponse.json({
@@ -63,8 +78,31 @@ export async function POST(request: NextRequest) {
         createdAt: user.createdAt,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Change username error:", error);
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { success: false, message: "Bạn đã đổi username quá nhiều lần" },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "Dữ liệu thay đổi username quá lớn" },
+        { status: 413 }
+      );
+    }
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Tên đăng nhập đã tồn tại" },
+        { status: 409 }
+      );
+    }
     return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

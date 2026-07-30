@@ -1,47 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "@/app/lib/Auth";
-import { getAiBackendHeaders, getAiBackendUrl } from "@/app/lib/AiBackend";
+import { authenticateRequest } from "@/app/lib/Auth";
+import { AiBackendError, aiBackend } from "@/app/lib/AiBackend";
+import {
+  enforceRateLimit,
+  isFileUpload,
+  readFormDataLimited,
+  RateLimitError,
+  rateLimitResponse,
+  RequestBodyTooLargeError,
+} from "@/app/lib/ServerSecurity";
+
+const MAX_JD_BYTES = 10 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken || !verifyAccessToken(accessToken)) {
+    const payload = await authenticateRequest(request);
+    if (!payload) {
       return NextResponse.json(
         { success: false, message: "Bạn cần đăng nhập để trích xuất JD" },
         { status: 401 }
       );
     }
 
-    const formData = await request.formData();
+    await enforceRateLimit("ai-jd-extract", payload.userId, 10, 10 * 60_000);
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > MAX_JD_BYTES + 128 * 1024) {
+      return NextResponse.json(
+        { success: false, message: "File JD vượt quá 10 MB" },
+        { status: 413 }
+      );
+    }
+    const formData = await readFormDataLimited(
+      request,
+      MAX_JD_BYTES + 128 * 1024
+    );
     const file = formData.get("file");
-    if (!(file instanceof File)) {
+    if (!isFileUpload(file)) {
       return NextResponse.json(
         { success: false, message: "Thiếu file JD" },
         { status: 400 }
       );
     }
-
-    const backendForm = new FormData();
-    backendForm.set("file", file);
-
-    const response = await fetch(getAiBackendUrl("/internal/jd/extract"), {
-      method: "POST",
-      headers: getAiBackendHeaders(),
-      body: backendForm,
-    });
-
-    if (!response.ok) {
-      const errorPayload = await response.json().catch(() => ({}));
+    if (file.size === 0 || file.size > MAX_JD_BYTES) {
       return NextResponse.json(
         {
           success: false,
-          message: errorPayload.detail || "Không thể trích xuất JD từ file",
+          message: file.size === 0 ? "File JD rỗng" : "File JD vượt quá 10 MB",
         },
-        { status: response.status }
+        { status: file.size === 0 ? 400 : 413 }
       );
     }
 
-    const data = await response.json();
+    const data = await aiBackend.extractJd({
+      content: Buffer.from(await file.arrayBuffer()),
+      filename: file.name,
+      contentType: file.type || "application/octet-stream",
+    });
     return NextResponse.json({
       success: true,
       markdown: data.markdown,
@@ -49,8 +63,26 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("POST /api/ai/jd/extract error:", error);
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { success: false, message: "Bạn đã tải lên quá nhiều JD" },
+        rateLimitResponse(error)
+      );
+    }
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { success: false, message: "File JD vượt quá 10 MB" },
+        { status: 413 }
+      );
+    }
     return NextResponse.json(
-      { success: false, message: "Lỗi trích xuất JD" },
+      {
+        success: false,
+        message:
+          error instanceof AiBackendError
+            ? error.message
+            : "Lỗi trích xuất JD",
+      },
       { status: 502 }
     );
   }

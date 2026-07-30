@@ -45,6 +45,17 @@ const creditLogSchema = new Schema<ICreditLog>(
   }
 );
 
+creditLogSchema.index(
+  { action: 1, referenceId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      action: "ADMIN_ADJUST",
+      referenceId: { $gt: "" },
+    },
+  }
+);
+
 if (mongoose.models.CreditLog) {
   delete mongoose.models.CreditLog;
 }

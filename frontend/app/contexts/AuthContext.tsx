@@ -32,41 +32,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router, t]);
 
   const fetchUser = useCallback(async () => {
-    const hasAuth = localStorage.getItem("interv_auth_status");
-    if (!hasAuth) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await api.get("/auth/me");
-      if (response.data.success) {
-        setUser(response.data.user);
+      const requestCurrentUser = () =>
+        fetch("/api/auth/me?soft=true", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+      let response = await requestCurrentUser();
+      let data = await response.json();
+      if (!data.success) {
+        const refreshResponse = await fetch("/api/auth/refresh?soft=true", {
+          method: "POST",
+          credentials: "include",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        const refreshData = await refreshResponse.json();
+        if (refreshData.success) {
+          response = await requestCurrentUser();
+          data = await response.json();
+        } else if (refreshData.sessionRevoked) {
+          handleSessionRevoked();
+          return;
+        }
+      }
+
+      if (response.ok && data.success) {
+        setUser(data.user);
+        localStorage.setItem("interv_auth_status", "true");
       } else {
         setUser(null);
         localStorage.removeItem("interv_auth_status");
       }
-    } catch (err: unknown) {
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        typeof err.response === "object" &&
-        err.response !== null &&
-        "data" in err.response &&
-        typeof err.response.data === "object" &&
-        err.response.data !== null &&
-        "sessionRevoked" in err.response.data &&
-        err.response.data.sessionRevoked
-      ) {
-        return;
-      }
+    } catch {
       setUser(null);
       localStorage.removeItem("interv_auth_status");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [handleSessionRevoked]);
 
   const login = useCallback(
     async (identifier: string, password: string, rememberMe = false) => {
@@ -78,9 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (response.data.success) {
-          setUser(response.data.user || null);
+          const loggedInUser = response.data.user || null;
+          setUser(loggedInUser);
           localStorage.setItem("interv_auth_status", "true");
-          return { success: true };
+          return { success: true, user: loggedInUser || undefined };
         } else {
           return {
             success: false,
