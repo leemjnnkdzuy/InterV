@@ -3,9 +3,17 @@
 import {Button} from "@/app/components/ui/button";
 import {AltArrowRight} from "@solar-icons/react";
 import {useLanguage} from "@/app/hooks/useLanguage";
+import {useRouter} from "next/navigation";
+import {useAuthContext} from "@/app/contexts/AuthContext";
 
 export default function Hero() {
 	const {t} = useLanguage();
+	const router = useRouter();
+	const {isAuthenticated} = useAuthContext();
+
+	const handleStartFree = () => {
+		router.push(isAuthenticated ? "/practice" : "/register");
+	};
 
 	return (
 		<section className='w-full min-h-[108svh] px-6 sm:px-12 md:px-36 pt-28 md:pt-32 lg:pt-36 pb-24 flex items-center justify-center relative z-10 overflow-hidden'>
@@ -36,7 +44,11 @@ export default function Hero() {
 					</h1>
 
 					<div className='relative mt-7 flex flex-col items-center gap-4 sm:mt-8'>
-						<Button className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] border-none text-zinc-950 font-bold px-6 py-4 h-auto text-sm shadow-[0_4px_28px_rgba(187,244,81,0.28)] flex items-center gap-2 group/btn transition-all duration-300 sm:px-7 sm:py-5'>
+						<Button
+							type='button'
+							onClick={handleStartFree}
+							className='rounded-full bg-[var(--chart-1)] hover:bg-[var(--chart-2)] border-none text-zinc-950 font-bold px-6 py-4 h-auto text-sm shadow-[0_4px_28px_rgba(187,244,81,0.28)] flex items-center gap-2 group/btn transition-all duration-300 sm:px-7 sm:py-5'
+						>
 							{t("landing.heroStartFree")}
 							<AltArrowRight className='w-4 h-4 text-zinc-700 group-hover/btn:translate-x-1 transition-transform' />
 						</Button>

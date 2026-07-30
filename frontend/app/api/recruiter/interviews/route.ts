@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 
 import { recordAdminAudit } from "@/app/lib/AdminAudit";
@@ -22,7 +23,7 @@ import {
 import RecruitmentCampaign from "@/app/models/RecruitmentCampaign";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["recruiter"]);
     if (!authorization.authorized) {
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["recruiter"]);
     if (!authorization.authorized) {
@@ -242,3 +243,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
+export const POST = withApiLogging(POSTHandler);

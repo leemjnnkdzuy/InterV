@@ -1,10 +1,17 @@
 import asyncio
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from app.config import get_settings
 from app.grpc_server import start_grpc_server
+from app.observability import (
+    elapsed_ms,
+    log_api_event,
+    request_context,
+    valid_request_id,
+)
 from app.services.cache import cache_service
 from app.services.events import event_publisher
 from app.services.audio_analysis import warmup_sensevoice
@@ -45,6 +52,29 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None,
 )
+
+
+@app.middleware("http")
+async def api_logging_middleware(request: Request, call_next):
+    started_at = time.perf_counter()
+    request_id = valid_request_id(request.headers.get("x-request-id"))
+    status_code = 500
+    try:
+        with request_context(request_id):
+            response = await call_next(request)
+        status_code = response.status_code
+        response.headers["X-Request-Id"] = request_id
+        return response
+    finally:
+        log_api_event(
+            event="http_request_completed",
+            request_id=request_id,
+            method=request.method[:12],
+            path=request.url.path[:500],
+            status_code=status_code,
+            duration_ms=elapsed_ms(started_at),
+            peer=request.client.host[:160] if request.client else "unknown",
+        )
 
 
 @app.get("/health")

@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import { authenticateRequest } from "@/app/lib/Auth";
@@ -5,7 +6,7 @@ import PracticeRun from "@/app/models/PracticeRun";
 import PracticeSession from "@/app/models/PracticeSession";
 import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
 
-export async function GET(
+async function GETHandler(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
 ) {
@@ -79,3 +80,5 @@ export async function GET(
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

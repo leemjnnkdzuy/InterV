@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
@@ -8,7 +9,7 @@ import {
   rateLimitResponse,
 } from "@/app/lib/ServerSecurity";
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -50,3 +51,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }
+
+export const GET = withApiLogging(GETHandler);

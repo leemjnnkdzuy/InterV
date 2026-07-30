@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
@@ -16,7 +17,7 @@ interface CompletedRun {
   createdAt: Date;
 }
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -97,3 +98,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

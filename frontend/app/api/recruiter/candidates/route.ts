@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 
 import { authorizeRequest } from "@/app/lib/Auth";
@@ -10,7 +11,7 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["recruiter"]);
     if (!authorization.authorized) {
@@ -144,3 +145,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

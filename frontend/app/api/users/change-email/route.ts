@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -21,7 +22,7 @@ import {
 
 class EmailChangeStateError extends Error {}
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -394,3 +395,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

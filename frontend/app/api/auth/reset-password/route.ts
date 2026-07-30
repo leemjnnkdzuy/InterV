@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import mongoose from "mongoose";
@@ -42,7 +43,7 @@ function setResetTokenCookie(
   });
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const body = (await readJsonBodyLimited(
       request,
@@ -336,3 +337,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

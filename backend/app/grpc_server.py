@@ -3,6 +3,7 @@ import asyncio
 import hmac
 import json
 import logging
+import time
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
@@ -14,6 +15,12 @@ from fastapi import HTTPException, UploadFile
 import interv_ai_pb2
 import interv_ai_pb2_grpc
 from app.config import get_settings
+from app.observability import (
+    elapsed_ms,
+    log_api_event,
+    request_context,
+    valid_request_id,
+)
 from app.schemas import (
     InterviewEvaluateRequest,
     InterviewFollowUpRequest,
@@ -47,6 +54,156 @@ logger = logging.getLogger(__name__)
 
 def _metadata(context: grpc.aio.ServicerContext) -> dict[str, str]:
     return {item.key.lower(): item.value for item in context.invocation_metadata()}
+
+
+def _grpc_status(
+    context: grpc.aio.ServicerContext,
+    failed: bool,
+) -> str:
+    code = context.code()
+    if code is None:
+        return "UNKNOWN" if failed else "OK"
+    return code.name
+
+
+def _grpc_request_id(context: grpc.aio.ServicerContext) -> str:
+    value = _metadata(context).get("x-request-id")
+    return valid_request_id(value if isinstance(value, str) else None)
+
+
+def _grpc_peer(context: grpc.aio.ServicerContext) -> str:
+    try:
+        return context.peer().strip()[:160]
+    except Exception:
+        return "unknown"
+
+
+class ApiLoggingInterceptor(grpc.aio.ServerInterceptor):
+    async def intercept_service(self, continuation, handler_call_details):
+        handler = await continuation(handler_call_details)
+        if handler is None:
+            return None
+        method = handler_call_details.method[:200]
+
+        if handler.unary_unary:
+            behavior = handler.unary_unary
+
+            async def unary_unary(request, context):
+                started_at = time.perf_counter()
+                request_id = _grpc_request_id(context)
+                failed = False
+                try:
+                    with request_context(request_id):
+                        return await behavior(request, context)
+                except BaseException:
+                    failed = True
+                    raise
+                finally:
+                    log_api_event(
+                        event="grpc_request_completed",
+                        request_id=request_id,
+                        method=method,
+                        status=_grpc_status(context, failed),
+                        duration_ms=elapsed_ms(started_at),
+                        peer=_grpc_peer(context),
+                    )
+
+            return grpc.unary_unary_rpc_method_handler(
+                unary_unary,
+                request_deserializer=handler.request_deserializer,
+                response_serializer=handler.response_serializer,
+            )
+
+        if handler.stream_unary:
+            behavior = handler.stream_unary
+
+            async def stream_unary(request_iterator, context):
+                started_at = time.perf_counter()
+                request_id = _grpc_request_id(context)
+                failed = False
+                try:
+                    with request_context(request_id):
+                        return await behavior(request_iterator, context)
+                except BaseException:
+                    failed = True
+                    raise
+                finally:
+                    log_api_event(
+                        event="grpc_request_completed",
+                        request_id=request_id,
+                        method=method,
+                        status=_grpc_status(context, failed),
+                        duration_ms=elapsed_ms(started_at),
+                        peer=_grpc_peer(context),
+                    )
+
+            return grpc.stream_unary_rpc_method_handler(
+                stream_unary,
+                request_deserializer=handler.request_deserializer,
+                response_serializer=handler.response_serializer,
+            )
+
+        if handler.unary_stream:
+            behavior = handler.unary_stream
+
+            async def unary_stream(request, context):
+                started_at = time.perf_counter()
+                request_id = _grpc_request_id(context)
+                failed = False
+                try:
+                    with request_context(request_id):
+                        async for response in behavior(request, context):
+                            yield response
+                except BaseException:
+                    failed = True
+                    raise
+                finally:
+                    log_api_event(
+                        event="grpc_request_completed",
+                        request_id=request_id,
+                        method=method,
+                        status=_grpc_status(context, failed),
+                        duration_ms=elapsed_ms(started_at),
+                        peer=_grpc_peer(context),
+                    )
+
+            return grpc.unary_stream_rpc_method_handler(
+                unary_stream,
+                request_deserializer=handler.request_deserializer,
+                response_serializer=handler.response_serializer,
+            )
+
+        if handler.stream_stream:
+            behavior = handler.stream_stream
+
+            async def stream_stream(request_iterator, context):
+                started_at = time.perf_counter()
+                request_id = _grpc_request_id(context)
+                failed = False
+                try:
+                    with request_context(request_id):
+                        async for response in behavior(request_iterator, context):
+                            yield response
+                except BaseException:
+                    failed = True
+                    raise
+                finally:
+                    log_api_event(
+                        event="grpc_request_completed",
+                        request_id=request_id,
+                        method=method,
+                        status=_grpc_status(context, failed),
+                        duration_ms=elapsed_ms(started_at),
+                        peer=_grpc_peer(context),
+                    )
+
+            return grpc.stream_stream_rpc_method_handler(
+                stream_stream,
+                request_deserializer=handler.request_deserializer,
+                response_serializer=handler.response_serializer,
+            )
+
+        return handler
 
 
 async def _authorize(context: grpc.aio.ServicerContext) -> None:
@@ -694,6 +851,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
 async def start_grpc_server() -> grpc.aio.Server:
     settings = get_settings()
     server = grpc.aio.server(
+        interceptors=[ApiLoggingInterceptor()],
         options=[
             ("grpc.max_receive_message_length", MAX_GRPC_MESSAGE_BYTES),
             ("grpc.max_send_message_length", MAX_GRPC_MESSAGE_BYTES),

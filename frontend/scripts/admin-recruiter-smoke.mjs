@@ -15,6 +15,13 @@ const mongoUri = process.env.MONGODB_URI?.trim();
 if (!mongoUri) {
   throw new Error("MONGODB_URI is required");
 }
+const eventMongoUri = process.env.MONGODB_URI_EVENT?.trim();
+if (!eventMongoUri) {
+  throw new Error("MONGODB_URI_EVENT is required");
+}
+const useCsrfFallback =
+  process.env.INTERV_CSRF_FALLBACK?.trim().toLowerCase() === "true";
+const observedRequestIds = new Set();
 
 function assert(condition, message) {
   if (!condition) {
@@ -37,11 +44,13 @@ async function request(path, options = {}) {
   const headers = {
     ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(options.method && options.method !== "GET"
-      ? {
-          Origin: baseUrl,
-          "Sec-Fetch-Site": "same-origin",
-          "X-Requested-With": "XMLHttpRequest",
-        }
+      ? useCsrfFallback
+        ? { "X-Requested-With": "XMLHttpRequest" }
+        : {
+            Origin: baseUrl,
+            "Sec-Fetch-Site": "same-origin",
+            "X-Requested-With": "XMLHttpRequest",
+          }
       : {}),
     ...(options.cookie ? { Cookie: options.cookie } : {}),
     ...options.headers,
@@ -53,6 +62,13 @@ async function request(path, options = {}) {
     redirect: options.redirect || "manual",
   });
   const contentType = response.headers.get("content-type") || "";
+  const requestId = response.headers.get("x-request-id");
+  if (
+    requestId &&
+    /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(requestId)
+  ) {
+    observedRequestIds.add(requestId);
+  }
   const payload = contentType.includes("application/json")
     ? await response.json()
     : await response.text();
@@ -129,8 +145,16 @@ const accounts = {
 };
 
 await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10_000 });
+const eventConnection = await mongoose
+  .createConnection(eventMongoUri, {
+    dbName: process.env.MONGODB_EVENT_DB_NAME || "interv-events",
+    serverSelectionTimeoutMS: 10_000,
+  })
+  .asPromise();
 const db = mongoose.connection.db;
 if (!db) throw new Error("MongoDB connection unavailable");
+const eventDb = eventConnection.db;
+if (!eventDb) throw new Error("Event MongoDB connection unavailable");
 const users = db.collection("users");
 const sessions = db.collection("sessions");
 const campaigns = db.collection("recruitmentcampaigns");
@@ -140,6 +164,7 @@ const auditLogs = db.collection("adminauditlogs");
 const creditLogs = db.collection("creditlogs");
 const transactions = db.collection("transactions");
 const aiUsageEvents = db.collection("aiusageevents");
+const apiRequestLogs = eventDb.collection("apirequestlogs");
 
 let userIds = [];
 let campaignId;
@@ -218,6 +243,7 @@ try {
       "/admin/recruitment",
       "/admin/ai",
       "/admin/payments",
+      "/admin/api-logs",
       "/admin/audit",
     ].map((path) => request(path, { cookie: adminCookie }))
   );
@@ -257,6 +283,13 @@ try {
     cookie: adminCookie,
   });
   assert(adminOverview.response.status === 200, "admin overview API succeeds");
+  const candidateApiLogs = await request("/api/admin/api-logs?days=7", {
+    cookie: candidateCookie,
+  });
+  assert(
+    candidateApiLogs.response.status === 403,
+    "candidate API log management denied"
+  );
 
   const candidateCreditsBeforeFinanceTests = await users.findOne(
     { _id: byEmail.get(accounts.candidate.email) },
@@ -379,6 +412,27 @@ try {
     unchangedAfterCrossOrigin?.credits ===
       candidateCreditsBeforeFinanceTests?.credits,
     "blocked credit adjustment has no side effect"
+  );
+  const blockedCreditRequestId =
+    crossOriginCreditAdjustment.response.headers.get("x-request-id");
+  const blockedCreditLog = await waitFor(() =>
+    apiRequestLogs.findOne({ requestId: blockedCreditRequestId })
+  );
+  assert(
+    blockedCreditLog?.routeGroup === "security" &&
+      blockedCreditLog?.path === "/api/admin/credits" &&
+      blockedCreditLog?.statusCode === 403,
+    "blocked cross-origin request is recorded as a security API log"
+  );
+  const serializedBlockedCreditLog = JSON.stringify(blockedCreditLog);
+  assert(
+    !serializedBlockedCreditLog.includes(
+      "Cross-origin request must never change a balance"
+    ) &&
+      !Object.hasOwn(blockedCreditLog || {}, "body") &&
+      !Object.hasOwn(blockedCreditLog || {}, "requestBody") &&
+      !Object.hasOwn(blockedCreditLog || {}, "responseBody"),
+    "API log never stores request or response bodies"
   );
 
   const creditAdjustmentKey = `credit-${suffix}-plus`;
@@ -815,6 +869,35 @@ try {
     audit.response.status === 200 && audit.payload.pagination.total >= 1,
     "audit log contains campaign action"
   );
+  const adminApiLogs = await request("/api/admin/api-logs?days=7", {
+    cookie: adminCookie,
+  });
+  assert(
+    adminApiLogs.response.status === 200 &&
+      adminApiLogs.payload.settings?.retentionDays === 7 &&
+      adminApiLogs.payload.metrics?.requests >= 1,
+    "admin API log route returns metrics with fixed seven-day retention"
+  );
+  const adminApiLogRequestId =
+    adminApiLogs.response.headers.get("x-request-id");
+  const persistedAdminApiLog = await waitFor(() =>
+    apiRequestLogs.findOne({ requestId: adminApiLogRequestId })
+  );
+  assert(
+    persistedAdminApiLog?.actorId?.toString() ===
+      byEmail.get(accounts.admin.email).toString(),
+    "signed admin actor is correlated without storing a token"
+  );
+  const ttlIndexes = await apiRequestLogs.indexes();
+  const ttlIndex = ttlIndexes.find(
+    (index) =>
+      index.key?.createdAt === 1 &&
+      index.expireAfterSeconds !== undefined
+  );
+  assert(
+    ttlIndex?.expireAfterSeconds === 7 * 24 * 60 * 60,
+    "API logs have a fixed seven-day MongoDB TTL index"
+  );
   const schedule = await request("/api/recruiter/schedule", {
     cookie: recruiterCookie,
   });
@@ -885,9 +968,13 @@ try {
       paymentManagement: true,
       creditAdjustmentAtomic: true,
       creditAdjustmentIdempotent: true,
+      apiLogManagement: true,
+      apiLogSecurityRedaction: true,
+      apiLogTtlDays: 7,
     })
   );
 } finally {
+  await new Promise((resolve) => setTimeout(resolve, 1_000));
   const scopedUsers = await users
     .find({ username: { $regex: `^${prefix}` } })
     .project({ _id: 1, email: 1, role: 1 })
@@ -960,6 +1047,9 @@ try {
       .digest("hex")
   );
   await Promise.all([
+    apiRequestLogs.deleteMany({
+      requestId: { $in: Array.from(observedRequestIds) },
+    }),
     sessions.deleteMany({ userId: { $in: scopedIds } }),
     invitations.deleteMany({
       $or: [
@@ -995,5 +1085,6 @@ try {
     }),
   ]);
   await users.deleteMany({ _id: { $in: scopedIds } });
+  await eventConnection.close();
   await mongoose.disconnect();
 }

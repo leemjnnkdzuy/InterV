@@ -115,6 +115,14 @@ const statusStyles: Record<string, string> = {
     "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
   FAILED:
     "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  SUCCESS:
+    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  CLIENT_ERROR:
+    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  SERVER_ERROR:
+    "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  UNHANDLED_ERROR:
+    "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
   CLOSED: "border-border bg-muted text-muted-foreground",
   ARCHIVED: "border-border bg-muted text-muted-foreground",
   DRAFT:

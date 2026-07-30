@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 
 import connectDB from "@/app/lib/ConnectDB";
@@ -35,7 +36,7 @@ function unauthenticatedResponse(
   return response;
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const soft = request.nextUrl.searchParams.get("soft") === "true";
     const unauthenticatedStatus = soft ? 200 : 401;
@@ -169,3 +170,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

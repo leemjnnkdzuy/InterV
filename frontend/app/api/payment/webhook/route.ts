@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import type { Webhook } from "@payos/node";
 
@@ -54,7 +55,7 @@ function isPayOSWebhookData(value: unknown): value is PayOSWebhookData {
   );
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const body = await readJsonBodyLimited(request, 64 * 1024);
     if (!isWebhookEnvelope(body)) {
@@ -126,3 +127,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

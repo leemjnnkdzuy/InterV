@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import { authenticateRequest } from "@/app/lib/Auth";
@@ -9,7 +10,7 @@ import {
   rateLimitResponse,
 } from "@/app/lib/ServerSecurity";
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
 ) {
@@ -78,3 +79,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

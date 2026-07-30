@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-const CSRF_EXEMPT_PATHS = new Set(["/api/payment/webhook"]);
+const CSRF_EXEMPT_PATHS = new Set([
+  "/api/payment/webhook",
+  "/api/security/csrf-blocked",
+]);
 
 function allowedOrigins(request: NextRequest): Set<string> {
   const values = new Set<string>();
@@ -75,8 +78,10 @@ function contentSecurityPolicy(nonce: string): string {
 function applySecurityHeaders(
   response: NextResponse,
   csp: string,
-  isApi: boolean
+  isApi: boolean,
+  requestId: string
 ) {
+  response.headers.set("X-Request-Id", requestId);
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -108,27 +113,38 @@ function applySecurityHeaders(
 
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(randomUUID()).toString("base64");
+  const requestId = randomUUID();
   const csp = contentSecurityPolicy(nonce);
   const isApi = request.nextUrl.pathname.startsWith("/api/");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete("x-interv-original-path");
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  requestHeaders.set("x-interv-request-id", requestId);
+  requestHeaders.set("x-request-id", requestId);
 
   if (!csrfAllowed(request)) {
+    requestHeaders.set(
+      "x-interv-original-path",
+      request.nextUrl.pathname.slice(0, 500)
+    );
+    const blockedUrl = request.nextUrl.clone();
+    blockedUrl.pathname = "/api/security/csrf-blocked";
+    blockedUrl.search = "";
     return applySecurityHeaders(
-      NextResponse.json(
-        { success: false, message: "Nguồn yêu cầu không hợp lệ" },
-        { status: 403 }
-      ),
+      NextResponse.rewrite(blockedUrl, {
+        request: { headers: requestHeaders },
+      }),
       csp,
-      isApi
+      isApi,
+      requestId
     );
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy", csp);
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-  return applySecurityHeaders(response, csp, isApi);
+  return applySecurityHeaders(response, csp, isApi, requestId);
 }
 
 export const config = {

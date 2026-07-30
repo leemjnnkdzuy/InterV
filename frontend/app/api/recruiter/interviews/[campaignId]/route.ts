@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -28,7 +29,7 @@ async function ownedCampaign(campaignId: string, recruiterId: string) {
   });
 }
 
-export async function GET(
+async function GETHandler(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
@@ -149,7 +150,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function PATCHHandler(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
@@ -393,7 +394,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function DELETEHandler(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
@@ -404,3 +405,7 @@ export async function DELETE(
   });
   return PATCH(forwardedRequest, { params });
 }
+
+export const GET = withApiLogging(GETHandler);
+export const PATCH = withApiLogging(PATCHHandler);
+export const DELETE = withApiLogging(DELETEHandler);

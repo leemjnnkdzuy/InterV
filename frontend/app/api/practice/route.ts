@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import type { Types } from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
@@ -32,7 +33,7 @@ interface LeanPracticeSession {
   updatedAt: Date;
 }
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -209,3 +210,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
+export const POST = withApiLogging(POSTHandler);

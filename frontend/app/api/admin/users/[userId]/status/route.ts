@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -14,7 +15,7 @@ import {
 import Session from "@/app/models/Session";
 import User from "@/app/models/User";
 
-export async function PATCH(
+async function PATCHHandler(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
@@ -151,3 +152,5 @@ export async function PATCH(
     );
   }
 }
+
+export const PATCH = withApiLogging(PATCHHandler);

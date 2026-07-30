@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import PracticeSession from "@/app/models/PracticeSession";
@@ -14,7 +15,7 @@ import {
 
 const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
-export async function GET(
+async function GETHandler(
   request: NextRequest,
   { params }: { params: Promise<{ _id: string }> }
 ) {
@@ -102,7 +103,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+async function PUTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ _id: string }> }
 ) {
@@ -265,7 +266,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+async function DELETEHandler(
   request: NextRequest,
   { params }: { params: Promise<{ _id: string }> }
 ) {
@@ -329,3 +330,7 @@ export async function DELETE(
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
+export const PUT = withApiLogging(PUTHandler);
+export const DELETE = withApiLogging(DELETEHandler);

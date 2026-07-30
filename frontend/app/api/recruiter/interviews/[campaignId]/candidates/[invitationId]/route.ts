@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -15,7 +16,7 @@ import {
 import RecruitmentCampaign from "@/app/models/RecruitmentCampaign";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
 
-export async function PATCH(
+async function PATCHHandler(
   request: NextRequest,
   {
     params,
@@ -192,3 +193,5 @@ export async function PATCH(
     );
   }
 }
+
+export const PATCH = withApiLogging(PATCHHandler);

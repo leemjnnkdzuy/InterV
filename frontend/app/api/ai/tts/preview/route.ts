@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/app/lib/Auth";
 import { AiBackendError, aiBackend } from "@/app/lib/AiBackend";
@@ -11,7 +12,7 @@ import {
 
 const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -76,3 +77,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

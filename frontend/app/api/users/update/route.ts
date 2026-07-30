@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 
 import connectDB from "@/app/lib/ConnectDB";
@@ -67,7 +68,7 @@ function normalizeSocialLinks(value: unknown): ISocialLink[] | null {
   return links;
 }
 
-export async function PUT(request: NextRequest) {
+async function PUTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -168,3 +169,5 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const PUT = withApiLogging(PUTHandler);

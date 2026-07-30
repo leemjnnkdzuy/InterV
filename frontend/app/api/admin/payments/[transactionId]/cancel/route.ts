@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,7 +18,7 @@ import {
 } from "@/app/lib/ServerSecurity";
 import Transaction from "@/app/models/Transaction";
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ transactionId: string }> }
 ) {
@@ -125,3 +126,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

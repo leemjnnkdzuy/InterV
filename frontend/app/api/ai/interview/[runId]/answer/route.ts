@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 
 import connectDB from "@/app/lib/ConnectDB";
@@ -47,7 +48,7 @@ function isSupportedAudio(buffer: Buffer, contentType: string): boolean {
   return false;
 }
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
 ) {
@@ -331,3 +332,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

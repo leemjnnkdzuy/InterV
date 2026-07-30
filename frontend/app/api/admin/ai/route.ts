@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 
 import { recordAdminAudit } from "@/app/lib/AdminAudit";
@@ -95,7 +96,7 @@ function populatedUser(value: unknown) {
   };
 }
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["admin"]);
     if (!authorization.authorized) {
@@ -384,7 +385,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+async function PATCHHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["admin"]);
     if (!authorization.authorized) {
@@ -482,3 +483,6 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
+export const PATCH = withApiLogging(PATCHHandler);

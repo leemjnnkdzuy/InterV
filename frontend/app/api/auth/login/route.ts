@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import type { Types } from "mongoose";
 import bcrypt from "bcryptjs";
@@ -31,7 +32,7 @@ interface SessionSummary {
 
 const dummyPasswordHash = bcrypt.hash("interv-invalid-login-sentinel", 12);
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const body = (await readJsonBodyLimited(
       request,
@@ -204,3 +205,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

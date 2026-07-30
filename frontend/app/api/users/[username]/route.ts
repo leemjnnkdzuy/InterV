@@ -1,8 +1,9 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 
-export async function GET(
+async function GETHandler(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
@@ -56,3 +57,5 @@ export async function GET(
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

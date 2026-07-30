@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/app/lib/Auth";
 import { AiBackendError, aiBackend } from "@/app/lib/AiBackend";
@@ -12,7 +13,7 @@ import {
 
 const MAX_JD_BYTES = 10 * 1024 * 1024;
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -87,3 +88,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

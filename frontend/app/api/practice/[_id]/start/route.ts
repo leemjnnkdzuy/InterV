@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 import { createHash, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
@@ -82,7 +83,7 @@ async function firstQuestionAudio(
   };
 }
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ _id: string }> }
 ) {
@@ -723,3 +724,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import Session from "@/app/models/Session";
@@ -7,7 +8,7 @@ import {
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+async function DELETEHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
     if (!payload) {
@@ -148,3 +149,6 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
+export const DELETE = withApiLogging(DELETEHandler);

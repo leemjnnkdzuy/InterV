@@ -1,9 +1,10 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import { authenticateRequest } from "@/app/lib/Auth";
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const soft = request.nextUrl.searchParams.get("soft") === "true";
     const unauthenticatedStatus = soft ? 200 : 401;
@@ -61,3 +62,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

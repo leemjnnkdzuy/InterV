@@ -12,6 +12,7 @@ Browser
 Next.js :3000
   |-- gRPC + x-internal-api-key --> Python AI backend :50051
   |-- MongoDB --> users, sessions, runs, binary audio, results, ledgers
+  |-- Event MongoDB --> API metadata logs (TTL 7 ngày)
   |-- HTTPS --> PayOS
 
 Python :3001 (health) / :50051 (gRPC)
@@ -53,6 +54,10 @@ Copy-Item frontend\.env.example frontend\.env
 ```
 
 `AI_BACKEND_INTERNAL_KEY` phải giống nhau ở hai file và nên là chuỗi ngẫu nhiên dài. Không đưa `DEEPSEEK_API_KEY`, `ASSEMBLY_AI_API_KEY`, khóa PayOS hoặc internal key ra biến `NEXT_PUBLIC_*`.
+
+`MONGODB_URI_EVENT` trong `frontend/.env` phải trỏ đến cluster log riêng.
+Collection `apirequestlogs` dùng TTL index trên `createdAt` và tự xóa sau 7 ngày;
+thời hạn này được khóa trong schema, không thể kéo dài từ dashboard.
 
 Production phải đặt `NEXT_PUBLIC_APP_URL` là origin HTTPS thật. Ba biến PayOS nằm ở
 `frontend/.env`; đăng ký webhook HTTPS là
@@ -97,6 +102,12 @@ Workspace admin có hai khu vực riêng:
 - `/admin/payments`: theo dõi doanh thu/conversion, trạng thái nội bộ và trạng thái
   PayOS, đối soát hoặc hủy giao dịch chưa thanh toán, xem sổ credit và điều chỉnh
   credit người dùng.
+- `/admin/api-logs`: theo dõi request, lỗi, p95 latency, tuyến chậm, correlation ID
+  và cấu hình ngưỡng cảnh báo. API quản trị tương ứng là `/api/admin/api-logs`.
+
+API log chỉ chứa method, đường dẫn đã làm sạch, tên query key, status, latency,
+request ID, actor ID, IP và user agent. Hệ thống không lưu body, query value,
+cookie, token, authorization header, stack trace hoặc nội dung lỗi từ provider.
 
 API key DeepSeek chỉ nằm trong Python backend. `GetDeepSeekBalance` chỉ trả số dư,
 currency và tên model đã làm sạch; frontend không nhận credential. Mỗi lần gọi model

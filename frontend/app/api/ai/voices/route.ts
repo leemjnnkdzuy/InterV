@@ -1,10 +1,11 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/app/lib/Auth";
 import { aiBackend } from "@/app/lib/AiBackend";
 
 const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     if (!(await authenticateRequest(request))) {
       return NextResponse.json(
@@ -34,3 +35,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);

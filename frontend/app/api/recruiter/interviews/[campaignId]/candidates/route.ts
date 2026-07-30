@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -17,7 +18,7 @@ import {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
@@ -146,3 +147,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

@@ -1,9 +1,10 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import Session from "@/app/models/Session";
 import { verifyAccessToken, cookieOptions } from "@/app/lib/Auth";
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   try {
     const accessToken = request.cookies.get("access_token")?.value;
 
@@ -35,3 +36,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

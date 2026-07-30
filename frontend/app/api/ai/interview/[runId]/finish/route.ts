@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { after, NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/app/lib/ConnectDB";
@@ -81,7 +82,7 @@ function toAudioBuffer(value: unknown): Buffer {
   return Buffer.alloc(0);
 }
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
 ) {
@@ -500,3 +501,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApiLogging(POSTHandler);

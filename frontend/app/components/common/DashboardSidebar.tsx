@@ -12,6 +12,7 @@ import {
   History,
   LogOut,
   Plus,
+  ScrollText,
   ShieldCheck,
   WalletCards,
   UserRoundCog,
@@ -70,6 +71,11 @@ const adminItems = [
     label: "Thanh toán & credit",
     href: "/admin/payments",
     icon: WalletCards,
+  },
+  {
+    label: "Nhật ký API",
+    href: "/admin/api-logs",
+    icon: ScrollText,
   },
   {
     label: "Nhật ký quản trị",

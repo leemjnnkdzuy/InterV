@@ -5,6 +5,8 @@ import path from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 
+import { getApiRequestContext } from "@/app/lib/RequestContext";
+
 const AI_BACKEND_GRPC_URL =
   process.env.AI_BACKEND_GRPC_URL || "localhost:50051";
 const MAX_GRPC_MESSAGE_BYTES = 32 * 1024 * 1024;
@@ -414,6 +416,10 @@ function getClient(): IntervAiClient {
 function getMetadata(): grpc.Metadata {
   const metadata = new grpc.Metadata();
   metadata.set("x-internal-api-key", requireInternalKey());
+  const requestId = getApiRequestContext()?.requestId;
+  if (requestId) {
+    metadata.set("x-request-id", requestId);
+  }
   return metadata;
 }
 

@@ -1,3 +1,4 @@
+import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 
 import { authorizeRequest } from "@/app/lib/Auth";
@@ -5,7 +6,7 @@ import connectDB from "@/app/lib/ConnectDB";
 import RecruitmentCampaign from "@/app/models/RecruitmentCampaign";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   try {
     const authorization = await authorizeRequest(request, ["recruiter"]);
     if (!authorization.authorized) {
@@ -106,3 +107,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withApiLogging(GETHandler);
