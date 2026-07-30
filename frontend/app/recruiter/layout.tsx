@@ -12,7 +12,7 @@ export default async function RecruiterRouteLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login?next=/recruiter");
+    redirect("/login");
   }
   if (user.role !== "recruiter") {
     redirect(roleHomePath(user.role));

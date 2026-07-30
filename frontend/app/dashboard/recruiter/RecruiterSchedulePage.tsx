@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Clock3,
+  CalendarDate as CalendarDays,
+  AltArrowLeft as ChevronLeft,
+  AltArrowRight as ChevronRight,
+  ClockSquare as Clock3,
   Flag,
-} from "lucide-react";
+} from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
 import {

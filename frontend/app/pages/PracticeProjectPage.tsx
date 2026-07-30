@@ -20,7 +20,6 @@ import ResultPracticeDrawer from "@/app/components/common/Drawer/ResultPracticeD
 import { practiceService } from "@/app/services";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { translateIndustry } from "@/app/lib/Localization";
-import SilkBackground from "@/app/components/common/SilkBackground";
 import type {
   PracticeMutationResponse,
   PracticeProjectSession,
@@ -190,8 +189,7 @@ export default function PracticeProjectPage() {
   };
 
   return (
-    <div className="dark relative min-h-[calc(100vh-4rem)] -m-6 lg:-m-8 px-6 py-6 lg:px-8 lg:py-8 overflow-hidden bg-background">
-      <SilkBackground fadeBottom bottomColor="var(--background)" />
+    <div className="dark relative -m-6 min-h-screen overflow-hidden bg-transparent px-6 py-6 lg:-m-8 lg:px-8 lg:py-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"

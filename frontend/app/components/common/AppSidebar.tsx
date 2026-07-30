@@ -43,6 +43,7 @@ import {
   WalletMoney,
   HomeAngle,
   PlayCircle,
+  CalendarMark,
   History,
   CardRecive,
 } from "@solar-icons/react";
@@ -149,6 +150,13 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
             subtitle: t("profile.backToHome"),
             icon: HomeAngle,
             url: "/",
+          },
+          {
+            id: "interviews",
+            title: t("sidebar.interviews"),
+            subtitle: t("sidebar.interviewsSub"),
+            url: "/interviews",
+            icon: CalendarMark,
           },
           {
             id: "practice",

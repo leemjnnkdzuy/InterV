@@ -3,27 +3,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BriefcaseBusiness,
-  CalendarDays,
-  Check,
+  Bag as BriefcaseBusiness,
+  CalendarDate as CalendarDays,
+  CheckCircle as Check,
   FileText,
-  FileUp,
-  LoaderCircle,
-  Mail,
-  Plus,
-  Search,
-  Settings2,
-  Trash2,
-  Users,
-  Volume2,
-} from "lucide-react";
+  FileDownload as FileUp,
+  Refresh as LoaderCircle,
+  Letter as Mail,
+  AddCircle as Plus,
+  Magnifier as Search,
+  TuningSquare as Settings2,
+  TrashBin2 as Trash2,
+  UsersGroupRounded as Users,
+  VolumeLoud as Volume2,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { aiService } from "@/app/services/AiService";
-import { DashboardPageHeader } from "@/app/dashboard/components/DashboardPrimitives";
+import {
+  DashboardPageHeader,
+  DashboardSelect,
+} from "@/app/dashboard/components/DashboardPrimitives";
 import {
   DashboardApiError,
   dashboardRequest,
@@ -329,32 +332,32 @@ export default function CreateRecruitmentInterviewPage() {
                 <span className="text-xs font-bold text-foreground">
                   Loại hợp đồng
                 </span>
-                <select
+                <DashboardSelect
                   value={form.employmentType}
-                  onChange={(event) =>
-                    update("employmentType", event.target.value)
-                  }
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="FULL_TIME">Toàn thời gian</option>
-                  <option value="PART_TIME">Bán thời gian</option>
-                  <option value="CONTRACT">Hợp đồng</option>
-                  <option value="INTERNSHIP">Thực tập</option>
-                </select>
+                  onValueChange={(value) => update("employmentType", value)}
+                  ariaLabel="Loại hợp đồng"
+                  options={[
+                    { value: "FULL_TIME", label: "Toàn thời gian" },
+                    { value: "PART_TIME", label: "Bán thời gian" },
+                    { value: "CONTRACT", label: "Hợp đồng" },
+                    { value: "INTERNSHIP", label: "Thực tập" },
+                  ]}
+                />
               </label>
               <label className="space-y-1.5">
                 <span className="text-xs font-bold text-foreground">
                   Hình thức làm việc
                 </span>
-                <select
+                <DashboardSelect
                   value={form.workMode}
-                  onChange={(event) => update("workMode", event.target.value)}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="ONSITE">Tại văn phòng</option>
-                  <option value="HYBRID">Kết hợp</option>
-                  <option value="REMOTE">Từ xa</option>
-                </select>
+                  onValueChange={(value) => update("workMode", value)}
+                  ariaLabel="Hình thức làm việc"
+                  options={[
+                    { value: "ONSITE", label: "Tại văn phòng" },
+                    { value: "HYBRID", label: "Kết hợp" },
+                    { value: "REMOTE", label: "Từ xa" },
+                  ]}
+                />
               </label>
             </div>
           </section>
@@ -435,70 +438,72 @@ export default function CreateRecruitmentInterviewPage() {
             <div className="grid gap-4 p-4 md:grid-cols-2">
               <label className="space-y-1.5">
                 <span className="text-xs font-bold">Cấp độ</span>
-                <select
+                <DashboardSelect
                   value={form.difficulty}
-                  onChange={(event) =>
-                    update("difficulty", event.target.value)
-                  }
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="Fresher">Fresher</option>
-                  <option value="Junior">Junior</option>
-                  <option value="Middle">Middle</option>
-                  <option value="Senior">Senior</option>
-                </select>
+                  onValueChange={(value) => update("difficulty", value)}
+                  ariaLabel="Cấp độ"
+                  options={[
+                    { value: "Fresher", label: "Fresher" },
+                    { value: "Junior", label: "Junior" },
+                    { value: "Middle", label: "Middle" },
+                    { value: "Senior", label: "Senior" },
+                  ]}
+                />
               </label>
               <label className="space-y-1.5">
                 <span className="text-xs font-bold">Số câu hỏi</span>
-                <select
-                  value={form.questionCount}
-                  onChange={(event) =>
-                    update("questionCount", Number(event.target.value))
+                <DashboardSelect
+                  value={String(form.questionCount)}
+                  onValueChange={(value) =>
+                    update("questionCount", Number(value))
                   }
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  {[5, 6, 7, 8, 10, 12, 15, 20, 25].map((count) => (
-                    <option key={count} value={count}>
-                      {count} câu
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel="Số câu hỏi"
+                  options={[5, 6, 7, 8, 10, 12, 15, 20, 25].map((count) => ({
+                    value: String(count),
+                    label: `${count} câu`,
+                  }))}
+                />
               </label>
               <label className="space-y-1.5">
                 <span className="text-xs font-bold">Ngôn ngữ</span>
-                <select
+                <DashboardSelect
                   value={form.language}
-                  onChange={(event) => update("language", event.target.value)}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="vi-VN">Tiếng Việt</option>
-                  <option value="en-US">English</option>
-                  <option value="zh-CN">中文</option>
-                </select>
+                  onValueChange={(value) => update("language", value)}
+                  ariaLabel="Ngôn ngữ"
+                  options={[
+                    { value: "vi-VN", label: "Tiếng Việt" },
+                    { value: "en-US", label: "English" },
+                    { value: "zh-CN", label: "中文" },
+                  ]}
+                />
               </label>
               <label className="space-y-1.5">
                 <span className="flex items-center gap-1.5 text-xs font-bold">
                   <Volume2 className="size-3.5" />
                   Giọng phỏng vấn
                 </span>
-                <select
+                <DashboardSelect
                   value={form.voiceId}
-                  onChange={(event) => update("voiceId", event.target.value)}
                   disabled={loadingVoices}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
-                >
-                  {voices.length === 0 && (
-                    <option value={form.voiceId}>
-                      {loadingVoices ? "Đang tải giọng..." : form.voiceId}
-                    </option>
-                  )}
-                  {voices.map((voice) => (
-                    <option key={voice.id} value={voice.id}>
-                      {voice.name}
-                      {voice.gender ? ` (${voice.gender})` : ""}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(value) => update("voiceId", value)}
+                  ariaLabel="Giọng phỏng vấn"
+                  options={
+                    voices.length === 0
+                      ? [
+                          {
+                            value: form.voiceId,
+                            label: loadingVoices
+                              ? "Đang tải giọng..."
+                              : form.voiceId,
+                          },
+                        ]
+                      : voices.map((voice) => ({
+                          value: voice.id,
+                          label: `${voice.name}${voice.gender ? ` (${voice.gender})` : ""}`,
+                        }))
+                  }
+                  triggerClassName="disabled:opacity-60"
+                />
               </label>
             </div>
           </section>
@@ -529,17 +534,18 @@ export default function CreateRecruitmentInterviewPage() {
               </label>
               <label className="space-y-1.5">
                 <span className="text-xs font-bold">Số lượt tối đa</span>
-                <select
-                  value={form.maxAttempts}
-                  onChange={(event) =>
-                    update("maxAttempts", Number(event.target.value))
+                <DashboardSelect
+                  value={String(form.maxAttempts)}
+                  onValueChange={(value) =>
+                    update("maxAttempts", Number(value))
                   }
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value={1}>1 lượt</option>
-                  <option value={2}>2 lượt</option>
-                  <option value={3}>3 lượt</option>
-                </select>
+                  ariaLabel="Số lượt tối đa"
+                  options={[
+                    { value: "1", label: "1 lượt" },
+                    { value: "2", label: "2 lượt" },
+                    { value: "3", label: "3 lượt" },
+                  ]}
+                />
               </label>
             </div>
           </section>

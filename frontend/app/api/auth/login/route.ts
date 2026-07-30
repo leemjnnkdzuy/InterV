@@ -168,6 +168,7 @@ async function POSTHandler(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       message: "Đăng nhập thành công",
+      role: userData.role,
       user: userData,
     });
 

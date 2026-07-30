@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Eye, History, Trophy, UserCheck } from "lucide-react";
+import { CupStar as Trophy, Eye, History, UserCheck } from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
 import {

@@ -12,7 +12,7 @@ export default async function AdminRouteLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login?next=/admin");
+    redirect("/login");
   }
   if (user.role !== "admin") {
     redirect(roleHomePath(user.role));

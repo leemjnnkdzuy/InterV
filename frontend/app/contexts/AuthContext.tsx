@@ -14,6 +14,7 @@ import { getErrorMessage } from "@/app/lib/Utils";
 import { toast } from "sonner";
 import AppLoadingScreen from "@/app/components/common/AppLoadingScreen";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import { normalizeAppRole } from "@/app/lib/RoleRouting";
 import type { User, AuthContextType } from "@/app/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,10 +84,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (response.data.success) {
-          const loggedInUser = response.data.user || null;
+          if (!response.data.user) {
+            return {
+              success: false,
+              message: t("auth.loginFailed"),
+            };
+          }
+          const loggedInUser: User = {
+            ...response.data.user,
+            role: normalizeAppRole(
+              response.data.role ?? response.data.user.role
+            ),
+          };
           setUser(loggedInUser);
           localStorage.setItem("interv_auth_status", "true");
-          return { success: true, user: loggedInUser || undefined };
+          return { success: true, user: loggedInUser };
         } else {
           return {
             success: false,

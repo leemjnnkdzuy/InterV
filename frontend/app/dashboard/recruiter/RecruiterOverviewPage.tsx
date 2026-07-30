@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BriefcaseBusiness,
-  CalendarClock,
-  CheckCircle2,
-  MailWarning,
+  Bag as BriefcaseBusiness,
+  CalendarMark as CalendarClock,
+  CheckCircle as CheckCircle2,
+  LetterUnread as MailWarning,
   PlayCircle,
-  Plus,
-  Users,
-} from "lucide-react";
+  AddCircle as Plus,
+  UsersGroupRounded as Users,
+} from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
 import {

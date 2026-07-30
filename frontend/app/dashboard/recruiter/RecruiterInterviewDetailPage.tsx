@@ -3,20 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
-  CalendarClock,
-  CheckCircle2,
+  CalendarMark as CalendarClock,
+  CheckCircle as CheckCircle2,
   Clipboard,
   Eye,
-  MailPlus,
-  MailWarning,
+  LetterUnread as MailPlus,
+  LetterUnread as MailWarning,
   PauseCircle,
   PlayCircle,
-  RefreshCw,
-  Send,
+  Refresh as RefreshCw,
+  SendSquare as Send,
   UserPlus,
-  Users,
-  XCircle,
-} from "lucide-react";
+  UsersGroupRounded as Users,
+  CloseCircle as XCircle,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";

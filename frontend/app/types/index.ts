@@ -30,6 +30,7 @@ export * from "./Password";
 export * from "./SidebarLayout";
 export * from "./HomeDashboard";
 export * from "./Recruitment";
+export * from "./UserInterview";
 export * from "./ApiLog";
 
 

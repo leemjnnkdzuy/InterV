@@ -2,19 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  BriefcaseBusiness,
-  CheckCircle2,
-  MailWarning,
+  Bag as BriefcaseBusiness,
+  CheckCircle as CheckCircle2,
+  LetterUnread as MailWarning,
   PlayCircle,
-  RefreshCw,
-  Users,
-} from "lucide-react";
+  Refresh as RefreshCw,
+  UsersGroupRounded as Users,
+} from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
 import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   MetricCard,
   PaginationControls,
@@ -109,21 +110,22 @@ export default function AdminRecruitmentPage() {
         description="Theo dõi chiến dịch, tiến độ ứng viên và lỗi gửi thư trên toàn hệ thống."
         actions={
           <>
-            <select
+            <DashboardSelect
               value={status}
-              onChange={(event) => {
-                setStatus(event.target.value);
+              onValueChange={(value) => {
+                setStatus(value);
                 setPage(1);
               }}
-              aria-label="Lọc trạng thái chiến dịch"
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="all">Mọi trạng thái</option>
-              <option value="ACTIVE">Đang mở</option>
-              <option value="CLOSED">Đã đóng</option>
-              <option value="ARCHIVED">Lưu trữ</option>
-              <option value="DRAFT">Bản nháp</option>
-            </select>
+              ariaLabel="Lọc trạng thái chiến dịch"
+              triggerClassName="h-9"
+              options={[
+                { value: "all", label: "Mọi trạng thái" },
+                { value: "ACTIVE", label: "Đang mở" },
+                { value: "CLOSED", label: "Đã đóng" },
+                { value: "ARCHIVED", label: "Lưu trữ" },
+                { value: "DRAFT", label: "Bản nháp" },
+              ]}
+            />
             <Button
               type="button"
               variant="outline"

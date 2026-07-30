@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  Activity,
-  BriefcaseBusiness,
-  CheckCircle2,
+  ChartSquare as Activity,
+  Bag as BriefcaseBusiness,
+  CheckCircle as CheckCircle2,
   ShieldCheck,
   UserCheck,
-  Users,
-} from "lucide-react";
+  UsersGroupRounded as Users,
+} from "@solar-icons/react";
 
 import {
   DashboardError,

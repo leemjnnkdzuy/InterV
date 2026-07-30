@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Activity,
-  Bot,
-  BrainCircuit,
-  Clock3,
-  Coins,
-  DatabaseZap,
-  RefreshCw,
-  Save,
-  Settings2,
-  TriangleAlert,
-} from "lucide-react";
+  ChartSquare as Activity,
+  CodeScan as Bot,
+  Cpu as BrainCircuit,
+  ClockSquare as Clock3,
+  DollarMinimalistic as Coins,
+  Database as DatabaseZap,
+  Refresh as RefreshCw,
+  Diskette as Save,
+  TuningSquare as Settings2,
+  DangerTriangle as TriangleAlert,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
@@ -29,6 +29,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   MetricCard,
   PaginationControls,
@@ -525,33 +526,35 @@ export default function AdminAiPage() {
             Nhật ký DeepSeek
           </h3>
           <div className="grid grid-cols-2 gap-2">
-            <select
+            <DashboardSelect
               value={operation}
-              onChange={(event) => {
-                setOperation(event.target.value);
+              onValueChange={(value) => {
+                setOperation(value);
                 setPage(1);
               }}
-              aria-label="Lọc tác vụ AI"
-              className="h-9 rounded-md border border-input bg-background px-3 text-xs"
-            >
-              <option value="">Mọi tác vụ</option>
-              <option value="interview_start">Khởi tạo</option>
-              <option value="interview_follow_up">Câu hỏi tiếp</option>
-              <option value="interview_evaluate">Chấm điểm</option>
-            </select>
-            <select
+              ariaLabel="Lọc tác vụ AI"
+              triggerClassName="h-9 min-w-36 text-xs"
+              options={[
+                { value: "", label: "Mọi tác vụ" },
+                { value: "interview_start", label: "Khởi tạo" },
+                { value: "interview_follow_up", label: "Câu hỏi tiếp" },
+                { value: "interview_evaluate", label: "Chấm điểm" },
+              ]}
+            />
+            <DashboardSelect
               value={status}
-              onChange={(event) => {
-                setStatus(event.target.value);
+              onValueChange={(value) => {
+                setStatus(value);
                 setPage(1);
               }}
-              aria-label="Lọc trạng thái AI"
-              className="h-9 rounded-md border border-input bg-background px-3 text-xs"
-            >
-              <option value="">Mọi trạng thái</option>
-              <option value="SUCCESS">Thành công</option>
-              <option value="FAILED">Thất bại</option>
-            </select>
+              ariaLabel="Lọc trạng thái AI"
+              triggerClassName="h-9 min-w-36 text-xs"
+              options={[
+                { value: "", label: "Mọi trạng thái" },
+                { value: "SUCCESS", label: "Thành công" },
+                { value: "FAILED", label: "Thất bại" },
+              ]}
+            />
           </div>
         </div>
         <div className="overflow-x-auto">

@@ -4,12 +4,12 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Lock,
-  RefreshCw,
-  Search,
+  Magnifier as Search,
+  Refresh as RefreshCw,
   ShieldCheck,
-  Unlock,
-  UserRoundCog,
-} from "lucide-react";
+  LockUnlocked as Unlock,
+  User,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
@@ -26,6 +26,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   PaginationControls,
   StatusBadge,
@@ -210,33 +211,33 @@ export default function AdminUsersPage() {
             />
           </div>
           <div className="grid grid-cols-2 gap-2 lg:flex">
-            <select
+            <DashboardSelect
               value={role}
-              onChange={(event) => {
-                setRole(event.target.value);
+              onValueChange={(value) => {
+                setRole(value);
                 setPage(1);
               }}
-              aria-label="Lọc vai trò"
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="all">Mọi vai trò</option>
-              <option value="user">Ứng viên</option>
-              <option value="recruiter">Nhà tuyển dụng</option>
-              <option value="admin">Quản trị viên</option>
-            </select>
-            <select
+              ariaLabel="Lọc vai trò"
+              options={[
+                { value: "all", label: "Mọi vai trò" },
+                { value: "user", label: "Ứng viên" },
+                { value: "recruiter", label: "Nhà tuyển dụng" },
+                { value: "admin", label: "Quản trị viên" },
+              ]}
+            />
+            <DashboardSelect
               value={status}
-              onChange={(event) => {
-                setStatus(event.target.value);
+              onValueChange={(value) => {
+                setStatus(value);
                 setPage(1);
               }}
-              aria-label="Lọc trạng thái"
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="all">Mọi trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="inactive">Đã khóa</option>
-            </select>
+              ariaLabel="Lọc trạng thái"
+              options={[
+                { value: "all", label: "Mọi trạng thái" },
+                { value: "active", label: "Đang hoạt động" },
+                { value: "inactive", label: "Đã khóa" },
+              ]}
+            />
           </div>
         </div>
 
@@ -295,23 +296,24 @@ export default function AdminUsersPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <select
+                          <DashboardSelect
                             value={managedUser.role}
                             disabled={isSelf}
-                            onChange={(event) =>
+                            onValueChange={(value) =>
                               setPending({
                                 kind: "role",
                                 user: managedUser,
-                                role: event.target.value as AppRole,
+                                role: value as AppRole,
                               })
                             }
-                            aria-label={`Vai trò của ${managedUser.username}`}
-                            className="h-9 rounded-md border border-input bg-background px-2 text-xs font-semibold disabled:opacity-60"
-                          >
-                            <option value="user">Ứng viên</option>
-                            <option value="recruiter">Nhà tuyển dụng</option>
-                            <option value="admin">Quản trị viên</option>
-                          </select>
+                            ariaLabel={`Vai trò của ${managedUser.username}`}
+                            options={[
+                              { value: "user", label: "Ứng viên" },
+                              { value: "recruiter", label: "Nhà tuyển dụng" },
+                              { value: "admin", label: "Quản trị viên" },
+                            ]}
+                            triggerClassName="h-9 min-w-36 text-xs disabled:opacity-60"
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge
@@ -378,7 +380,7 @@ export default function AdminUsersPage() {
         <DialogContent className="rounded-lg sm:max-w-md">
           <DialogHeader>
             <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary">
-              <UserRoundCog className="size-5" />
+              <User className="size-5" />
             </div>
             <DialogTitle className="text-base font-extrabold">
               {pending?.kind === "role"

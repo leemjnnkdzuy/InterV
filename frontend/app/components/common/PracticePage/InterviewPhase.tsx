@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import {
   ClockCircle,
   Exit,
-  Keyboard,
   MedalStar,
   Microphone,
   Restart,
@@ -15,7 +14,6 @@ import {
   StopCircle,
 } from "@solar-icons/react";
 import { aiService, practiceService } from "@/app/services";
-import { Textarea } from "@/app/components/ui/textarea";
 import { Spinner } from "@/app/components/ui/spinner";
 import logoSrc from "@/app/assets/logo.svg";
 import { useLanguage } from "@/app/hooks/useLanguage";
@@ -61,7 +59,6 @@ export default function InterviewPhase({
   const [answer, setAnswer] = useState("");
   const [recordingResult, setRecordingResult] =
     useState<RealtimeRecordingResult | null>(null);
-  const [isManualInputOpen, setIsManualInputOpen] = useState(false);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [finishLog, setFinishLog] = useState<string[]>([]);
   const [failureMessage, setFailureMessage] = useState("");
@@ -103,13 +100,6 @@ export default function InterviewPhase({
   } = useRealtimeInterviewRecorder(runId);
 
   const currentQuestion = questions[currentStep];
-  const isBusy =
-    stage === "preparing" ||
-    stage === "speaking" ||
-    stage === "connecting" ||
-    stage === "submitting" ||
-    stage === "finishing";
-
   const getQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
       const key = audioKey(question);
@@ -162,7 +152,6 @@ export default function InterviewPhase({
       }
       setAnswer("");
       setRecordingResult(null);
-      setIsManualInputOpen(false);
       setFailureMessage("");
       setStage("preparing");
 
@@ -229,20 +218,13 @@ export default function InterviewPhase({
   ]);
 
   const stopCurrentRecording = useCallback(
-    async (openManualInput = false) => {
-      if (stage !== "recording" && stage !== "connecting") {
-        if (openManualInput) {
-          setIsManualInputOpen(true);
-          setStage("reviewing");
-        }
-        return;
-      }
+    async () => {
+      if (stage !== "recording" && stage !== "connecting") return;
 
       setStage("connecting");
       const result = await stopRecording();
       if (!result) {
         setStage("reviewing");
-        setIsManualInputOpen(openManualInput);
         return;
       }
 
@@ -267,7 +249,6 @@ export default function InterviewPhase({
         transcriptionProvider: provider,
       });
       setAnswer(transcript);
-      setIsManualInputOpen(openManualInput || !transcript);
       setStage("reviewing");
       if (currentStep + 1 < questionCount) {
         void prepareRecording().catch(() => undefined);
@@ -401,7 +382,6 @@ export default function InterviewPhase({
   const reRecord = useCallback(async () => {
     setAnswer("");
     setRecordingResult(null);
-    setIsManualInputOpen(false);
     setStage("connecting");
     try {
       await startRecording();
@@ -471,17 +451,6 @@ export default function InterviewPhase({
               })}
             </span>
           </div>
-
-          <button
-            type="button"
-            onClick={() => void stopCurrentRecording(true)}
-            disabled={isBusy && stage !== "connecting"}
-            className="text-muted-foreground transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label={t("interview.keyboardInput")}
-            title={t("interview.keyboardInput")}
-          >
-            <Keyboard className="h-5 w-5" weight="BoldDuotone" />
-          </button>
 
           <button
             type="button"
@@ -580,30 +549,11 @@ export default function InterviewPhase({
                 <p className="text-[10px] font-black uppercase text-muted-foreground">
                   {t("interview.answerTranscript")}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setIsManualInputOpen((previous) => !previous)}
-                  className="text-xs font-semibold text-primary hover:text-primary/80"
-                >
-                  {isManualInputOpen
-                    ? t("interview.close")
-                    : t("interview.editAnswer")}
-                </button>
               </div>
 
-              {isManualInputOpen ? (
-                <Textarea
-                  autoFocus
-                  placeholder={t("interview.answerPlaceholder")}
-                  value={answer}
-                  onChange={(event) => setAnswer(event.target.value)}
-                  className="min-h-28 resize-none rounded-lg border-border bg-background text-sm leading-relaxed"
-                />
-              ) : (
-                <p className="select-text text-sm leading-relaxed text-foreground/90 md:text-base">
-                  {answer || t("interview.answerPlaceholder")}
-                </p>
-              )}
+              <p className="select-text text-sm leading-relaxed text-foreground/90 md:text-base">
+                {answer || t("interview.answerPlaceholder")}
+              </p>
 
               <div className="mt-5 flex items-center justify-center gap-3">
                 <button

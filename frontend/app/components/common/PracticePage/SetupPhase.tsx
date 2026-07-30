@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BriefcaseBusiness, Languages, LockKeyhole, Volume2 } from "lucide-react";
+import { BriefcaseBusiness, Languages, LockKeyhole, Volume2, VolumeX } from "lucide-react";
 import { aiService, practiceService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
 import { INDUSTRIES } from "@/app/contants";
@@ -14,6 +14,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Card } from "@/app/components/ui/card";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { translateIndustry } from "@/app/lib/Localization";
+import { playInterviewAudio, stopInterviewAudio } from "@/app/lib/InterviewAudio";
 import type { InterviewVoice, SetupPhaseProps } from "@/app/types";
 import {
   Select,
@@ -43,6 +44,11 @@ const DEFAULT_VOICE_BY_LANGUAGE: Record<string, string> = {
   "vi-VN": "vi-VN-HoaiMyNeural",
   "en-US": "en-US-JennyNeural",
   "zh-CN": "zh-CN-XiaoxiaoNeural",
+};
+
+type VoicePreviewAudio = {
+  audioBase64: string;
+  contentType: string;
 };
 
 export default function SetupPhase({
@@ -85,7 +91,14 @@ export default function SetupPhase({
   const [voices, setVoices] = useState<InterviewVoice[]>([]);
   const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [isPreviewingVoice, setIsPreviewingVoice] = useState(false);
+  const [isVoicePreviewPlaying, setIsVoicePreviewPlaying] = useState(false);
+  const [preparedVoicePreviewKey, setPreparedVoicePreviewKey] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const voicePreviewGenerationRef = useRef(0);
+  const voicePreviewCacheRef = useRef(new Map<string, VoicePreviewAudio>());
+  const voicePreviewRequestRef = useRef(
+    new Map<string, Promise<VoicePreviewAudio>>()
+  );
 
   const quote = useMemo(
     () =>
@@ -118,7 +131,11 @@ export default function SetupPhase({
     sample: t(item.sampleKey),
   }));
   const selectedLanguage = languageOptions.find((item) => item.id === language) || languageOptions[0];
+  const selectedLanguageSample = selectedLanguage.sample;
   const numberLocale = uiLanguage === "zh" ? "zh-CN" : uiLanguage === "en" ? "en-US" : "vi-VN";
+  const voicePreviewKey = `${language}:${voiceId}:${selectedLanguageSample}`;
+  const isCurrentVoicePreviewReady =
+    Boolean(voiceId) && preparedVoicePreviewKey === voicePreviewKey;
 
   const getVoiceGenderLabel = (gender?: string) => {
     if (!gender) return "";
@@ -181,6 +198,77 @@ export default function SetupPhase({
       setDifficulty(difficulties[0]?.id || "Junior");
     }
   }, [difficulty, industry, setDifficulty]);
+
+  const stopVoicePreview = useCallback(() => {
+    voicePreviewGenerationRef.current += 1;
+    stopInterviewAudio();
+    setIsPreviewingVoice(false);
+    setIsVoicePreviewPlaying(false);
+  }, []);
+
+  useEffect(() => () => stopInterviewAudio(), []);
+
+  useEffect(() => {
+    if (isLoadingVoices || !voiceId) return;
+    let cancelled = false;
+    const key = `${language}:${voiceId}:${selectedLanguageSample}`;
+    const cached = voicePreviewCacheRef.current.get(key);
+
+    if (cached) {
+      setPreparedVoicePreviewKey(key);
+      setIsPreviewingVoice(false);
+      return;
+    }
+
+    setPreparedVoicePreviewKey("");
+    setIsPreviewingVoice(true);
+
+    const existingRequest = voicePreviewRequestRef.current.get(key);
+    const request =
+      existingRequest ??
+      aiService
+        .previewTts({
+          text: selectedLanguageSample,
+          language,
+          voiceId,
+        })
+        .then((data) => {
+          if (!data.audioBase64) {
+            throw new Error(data.message || t("practiceSetup.ttsNoAudio"));
+          }
+          const audio = {
+            audioBase64: data.audioBase64,
+            contentType: data.contentType,
+          };
+          voicePreviewCacheRef.current.set(key, audio);
+          return audio;
+        })
+        .finally(() => {
+          voicePreviewRequestRef.current.delete(key);
+        });
+
+    if (!existingRequest) {
+      voicePreviewRequestRef.current.set(key, request);
+    }
+
+    void request
+      .then(() => {
+        if (cancelled) return;
+        setPreparedVoicePreviewKey(key);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error(error);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsPreviewingVoice(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoadingVoices, language, selectedLanguageSample, t, voiceId]);
 
   const handleSaveTitle = async () => {
     if (!title.trim()) {
@@ -304,32 +392,39 @@ export default function SetupPhase({
     setUploadProgress(0);
   };
 
+  const handleLanguageChange = (nextLanguage: string) => {
+    stopVoicePreview();
+    setLanguage(nextLanguage);
+  };
+
+  const handleVoiceChange = (nextVoiceId: string) => {
+    stopVoicePreview();
+    setVoiceId(nextVoiceId);
+  };
+
   const handlePreviewVoice = async () => {
-    if (!voiceId) {
-      toast.error(t("practiceSetup.voiceRequired"));
+    if (isVoicePreviewPlaying) {
+      stopVoicePreview();
       return;
     }
 
+    const previewAudio = voicePreviewCacheRef.current.get(voicePreviewKey);
+    if (!previewAudio) {
+      toast.error(t("practiceSetup.preparingVoice"));
+      return;
+    }
+
+    const generation = ++voicePreviewGenerationRef.current;
     try {
-      setIsPreviewingVoice(true);
-      const data = await aiService.previewTts({
-        text: selectedLanguage.sample,
-        language,
-        voiceId,
-      });
-
-      if (!data.audioBase64) {
-        toast.error(data.message || t("practiceSetup.ttsNoAudio"));
-        return;
-      }
-
-      const audio = new Audio(`data:${data.contentType};base64,${data.audioBase64}`);
-      await audio.play();
+      setIsVoicePreviewPlaying(true);
+      await playInterviewAudio(previewAudio.audioBase64, previewAudio.contentType);
+      if (generation !== voicePreviewGenerationRef.current) return;
+      setIsVoicePreviewPlaying(false);
     } catch (error) {
+      if (generation !== voicePreviewGenerationRef.current) return;
       console.error(error);
+      setIsVoicePreviewPlaying(false);
       toast.error(getErrorMessage(error, t("practiceSetup.ttsPreviewFailed")));
-    } finally {
-      setIsPreviewingVoice(false);
     }
   };
 
@@ -676,9 +771,12 @@ export default function SetupPhase({
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.interviewLanguage")}</label>
-                  <Select value={language} onValueChange={setLanguage} disabled={recruitmentMode}>
-                    <SelectTrigger className="rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4">
-                      <SelectValue placeholder={t("practiceSetup.languagePlaceholder")} />
+                  <Select value={language} onValueChange={handleLanguageChange} disabled={recruitmentMode}>
+                    <SelectTrigger className="min-w-0 overflow-hidden rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4 [&_[data-slot=select-value]]:block [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:max-w-full [&_[data-slot=select-value]]:truncate">
+                      <SelectValue
+                        placeholder={t("practiceSetup.languagePlaceholder")}
+                        className="block min-w-0 max-w-full truncate"
+                      />
                     </SelectTrigger>
                     <SelectContent className="bg-card border border-border/10 rounded-2xl shadow-lg">
                       {languageOptions.map((item) => (
@@ -692,32 +790,49 @@ export default function SetupPhase({
 
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("practiceSetup.interviewVoice")}</label>
-                  <div className="flex gap-2">
-                    <Select value={voiceId} onValueChange={setVoiceId} disabled={isLoadingVoices || recruitmentMode}>
-                      <SelectTrigger className="rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4">
-                        <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 gap-2">
+                    <div className="min-w-0 flex-1">
+                      <Select value={voiceId} onValueChange={handleVoiceChange} disabled={isLoadingVoices || recruitmentMode}>
+                        <SelectTrigger className="min-w-0 overflow-hidden rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4 [&_[data-slot=select-value]]:block [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:max-w-full [&_[data-slot=select-value]]:truncate">
+                          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
                           {isLoadingVoices && <Spinner className="w-3.5 h-3.5 text-primary" />}
-                          <SelectValue placeholder={t("practiceSetup.voicePlaceholder")} />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent className="bg-card border border-border/10 rounded-2xl shadow-lg">
-                        {voices.map((voice) => (
-                          <SelectItem key={voice.id} value={voice.id} className="cursor-pointer rounded-xl text-xs">
-                            {voice.name} {voice.gender ? `(${getVoiceGenderLabel(voice.gender)})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                            <SelectValue
+                              placeholder={t("practiceSetup.voicePlaceholder")}
+                              className="block min-w-0 max-w-full truncate"
+                            />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border border-border/10 rounded-2xl shadow-lg">
+                          {voices.map((voice) => (
+                            <SelectItem key={voice.id} value={voice.id} className="cursor-pointer rounded-xl text-xs">
+                              {voice.name} {voice.gender ? `(${getVoiceGenderLabel(voice.gender)})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => void handlePreviewVoice()}
-                      disabled={isPreviewingVoice || isLoadingVoices || !voiceId}
-                      className="!h-[42px] !min-h-[42px] !w-[48px] shrink-0 rounded-2xl p-0 cursor-pointer"
-                      title={t("practiceSetup.previewVoice")}
+                      disabled={isLoadingVoices || !isCurrentVoicePreviewReady}
+                      className="!h-9 !w-9 !min-h-0 shrink-0 rounded-full p-0 cursor-pointer"
+                      title={
+                        isVoicePreviewPlaying
+                          ? t("practiceSetup.stopPreviewVoice")
+                          : isCurrentVoicePreviewReady
+                          ? t("practiceSetup.previewVoice")
+                          : t("practiceSetup.preparingVoice")
+                      }
                     >
-                      {isPreviewingVoice ? <Spinner className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      {(isPreviewingVoice || isLoadingVoices) && !isVoicePreviewPlaying ? (
+                        <Spinner className="w-4 h-4" />
+                      ) : isVoicePreviewPlaying ? (
+                        <VolumeX className="w-4 h-4" />
+                      ) : (
+                        <Volume2 className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

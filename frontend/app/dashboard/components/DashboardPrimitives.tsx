@@ -2,15 +2,24 @@
 
 import type { ComponentType, ReactNode } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
+  AltArrowLeft as ChevronLeft,
+  AltArrowRight as ChevronRight,
   Inbox,
-  LoaderCircle,
-  RefreshCw,
-} from "lucide-react";
+  Refresh as LoaderCircle,
+  Refresh as RefreshCw,
+} from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { cn } from "@/app/lib/Utils";
+
+const EMPTY_SELECT_VALUE = "__dashboard_select_empty__";
 
 export function DashboardPageHeader({
   eyebrow,
@@ -57,7 +66,7 @@ export function MetricCard({
   label: string;
   value: string | number;
   detail?: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string; weight?: "Linear" | "Outline" | "Bold" | "BoldDuotone" | "LineDuotone" | "Broken" }>;
   tone?: "lime" | "cyan" | "amber" | "rose" | "violet" | "neutral";
 }) {
   const tones = {
@@ -83,7 +92,7 @@ export function MetricCard({
             tones[tone]
           )}
         >
-          <Icon className="size-4.5" />
+          <Icon weight="BoldDuotone" className="size-4.5" />
         </span>
       </div>
       {detail && (
@@ -152,11 +161,62 @@ export function StatusBadge({
   );
 }
 
+export function DashboardSelect({
+  value,
+  onValueChange,
+  options,
+  ariaLabel,
+  placeholder,
+  disabled,
+  className,
+  triggerClassName,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  ariaLabel: string;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  triggerClassName?: string;
+}) {
+  const encodeValue = (itemValue: string) =>
+    itemValue === "" ? EMPTY_SELECT_VALUE : itemValue;
+
+  return (
+    <Select
+      value={encodeValue(value)}
+      onValueChange={(nextValue) =>
+        onValueChange(nextValue === EMPTY_SELECT_VALUE ? "" : nextValue)
+      }
+      disabled={disabled}
+    >
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className={cn(
+          "h-10 w-full min-w-36 rounded-2xl border-border/30 bg-input/60 px-3 text-sm font-semibold shadow-sm backdrop-blur-md",
+          triggerClassName,
+          className
+        )}
+      >
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent position="popper" className="rounded-2xl border border-border/20 bg-popover/95 backdrop-blur-xl">
+        {options.map((option) => (
+          <SelectItem key={option.value || EMPTY_SELECT_VALUE} value={encodeValue(option.value)}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function DashboardLoading({ label = "Đang tải dữ liệu" }: { label?: string }) {
   return (
     <div className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-border/70">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <LoaderCircle className="size-4 animate-spin" />
+        <LoaderCircle weight="BoldDuotone" className="size-4 animate-spin" />
         {label}
       </div>
     </div>
@@ -180,7 +240,7 @@ export function DashboardError({
         onClick={onRetry}
         className="mt-4"
       >
-        <RefreshCw className="size-4" />
+        <RefreshCw weight="BoldDuotone" className="size-4" />
         Tải lại
       </Button>
     </div>
@@ -198,7 +258,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed border-border/70 px-6 text-center">
-      <Inbox className="size-8 text-muted-foreground/60" />
+      <Inbox weight="BoldDuotone" className="size-8 text-muted-foreground/60" />
       <p className="mt-3 text-sm font-bold text-foreground">{title}</p>
       {description && (
         <p className="mt-1 max-w-lg text-xs leading-5 text-muted-foreground">
@@ -237,7 +297,7 @@ export function PaginationControls({
           onClick={() => onPageChange(page - 1)}
           className="size-8"
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft weight="BoldDuotone" className="size-4" />
         </Button>
         <span className="min-w-24 text-center text-xs font-semibold text-foreground">
           Trang {page} / {Math.max(1, totalPages)}
@@ -252,7 +312,7 @@ export function PaginationControls({
           onClick={() => onPageChange(page + 1)}
           className="size-8"
         >
-          <ChevronRight className="size-4" />
+          <ChevronRight weight="BoldDuotone" className="size-4" />
         </Button>
       </div>
     </div>

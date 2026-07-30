@@ -75,7 +75,7 @@ async function request(path, options = {}) {
   return { response, payload };
 }
 
-async function login(email, password) {
+async function login(email, password, expectedRole) {
   const result = await request("/api/auth/login", {
     method: "POST",
     body: { identifier: email, password, rememberMe: false },
@@ -85,6 +85,11 @@ async function login(email, password) {
     `login ${email} status=${result.response.status} payload=${JSON.stringify(
       result.payload
     ).slice(0, 240)}`
+  );
+  assert(
+    result.payload.role === expectedRole &&
+      result.payload.user?.role === expectedRole,
+    `login ${email} returns role=${expectedRole}`
   );
   return cookieHeader(result.response);
 }
@@ -202,17 +207,22 @@ try {
     promotableCookie,
   ] =
     await Promise.all([
-      login(accounts.admin.email, password),
-      login(accounts.recruiter.email, password),
-      login(accounts.candidate.email, password),
-      login(accounts.secondCandidate.email, password),
-      login(accounts.promotable.email, password),
+      login(accounts.admin.email, password, "admin"),
+      login(accounts.recruiter.email, password, "recruiter"),
+      login(accounts.candidate.email, password, "user"),
+      login(accounts.secondCandidate.email, password, "user"),
+      login(accounts.promotable.email, password, "user"),
     ]);
 
   const anonymousAdminPage = await request("/admin");
   assert(
-    redirectsTo(anonymousAdminPage, "/login?next=/admin"),
+    redirectsTo(anonymousAdminPage, "/login"),
     "anonymous admin page redirects"
+  );
+  const anonymousRecruiterPage = await request("/recruiter");
+  assert(
+    redirectsTo(anonymousRecruiterPage, "/login"),
+    "anonymous recruiter page redirects"
   );
 
   const candidateAdminPage = await request("/admin", {
@@ -539,7 +549,8 @@ try {
   assert(revokedSession.response.status === 401, "role change revokes sessions");
   const promotedRecruiterCookie = await login(
     accounts.promotable.email,
-    password
+    password,
+    "recruiter"
   );
 
   const endsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);

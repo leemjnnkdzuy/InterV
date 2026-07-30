@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { Eye, Magnifier as Search, Refresh as RefreshCw, ShieldCheck } from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   PaginationControls,
   StatusBadge,
@@ -125,22 +126,21 @@ export default function AdminAuditPage() {
               className="h-10 pl-9"
             />
           </div>
-          <select
+          <DashboardSelect
             value={action}
-            onChange={(event) => {
-              setAction(event.target.value);
+            onValueChange={(value) => {
+              setAction(value);
               setPage(1);
             }}
-            aria-label="Lọc loại hành động"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="">Mọi hành động</option>
-            {data?.actions.map((item) => (
-              <option key={item} value={item}>
-                {actionLabel(item)}
-              </option>
-            ))}
-          </select>
+            ariaLabel="Lọc loại hành động"
+            options={[
+              { value: "", label: "Mọi hành động" },
+              ...(data?.actions.map((item) => ({
+                value: item,
+                label: actionLabel(item),
+              })) || []),
+            ]}
+          />
         </div>
 
         {!data && !error ? (

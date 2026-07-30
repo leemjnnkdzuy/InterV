@@ -10,6 +10,7 @@
 		"check:api-logging": "node scripts/check-api-logging.mjs",
 		"test:e2e-smoke": "node scripts/e2e-smoke.mjs",
 		"test:recruitment-e2e": "node scripts/e2e-smoke.mjs --mode=recruitment",
+		"test:candidate-interviews": "node scripts/candidate-interviews-smoke.mjs",
 		"test:admin-recruiter": "node scripts/admin-recruiter-smoke.mjs",
 		"security:rotate-secrets": "node scripts/rotate-secrets.mjs",
 		"admin:set-role": "node scripts/set-user-role.mjs"

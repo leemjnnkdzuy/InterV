@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  CheckCircle2,
+  CheckCircle as CheckCircle2,
   Clipboard,
-  Search,
-  UserRoundCheck,
-  Users,
-} from "lucide-react";
+  Magnifier as Search,
+  UserCheckRounded as UserRoundCheck,
+  UsersGroupRounded as Users,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
@@ -18,6 +18,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   EmptyState,
   formatDashboardDate,
   MetricCard,
@@ -156,22 +157,21 @@ export default function RecruiterCandidatesPage() {
               className="h-10 pl-9"
             />
           </div>
-          <select
+          <DashboardSelect
             value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
+            onValueChange={(value) => {
+              setStatus(value);
               setPage(1);
             }}
-            aria-label="Lọc trạng thái ứng viên"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="all">Mọi trạng thái</option>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            ariaLabel="Lọc trạng thái ứng viên"
+            options={[
+              { value: "all", label: "Mọi trạng thái" },
+              ...Object.entries(statusLabels).map(([value, label]) => ({
+                value,
+                label,
+              })),
+            ]}
+          />
         </div>
 
         {!data && !error ? (

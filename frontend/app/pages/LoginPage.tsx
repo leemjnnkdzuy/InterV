@@ -6,7 +6,6 @@ import { Input } from "@/app/components/ui/input";
 import { Eye, EyeClosed, Home } from "@solar-icons/react";
 import { Spinner } from "@/app/components/ui/spinner";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
@@ -16,15 +15,14 @@ import { roleHomePath } from "@/app/lib/RoleRouting";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login, user, isAuthenticated, loading } = useAuthContext();
   const { t } = useLanguage();
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.replace(roleHomePath(user?.role));
+      window.location.replace(roleHomePath(user?.role));
     }
-  }, [isAuthenticated, loading, router, user?.role]);
+  }, [isAuthenticated, loading, user?.role]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -43,23 +41,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const res = await login(identifier, password, remember);
-      if (res.success) {
-        const role = res.user?.role || "user";
-        const requestedPath = searchParams.get("next");
-        const isSafeInternalPath =
-          requestedPath?.startsWith("/") &&
-          !requestedPath.startsWith("//") &&
-          ((role === "admin" && requestedPath.startsWith("/admin")) ||
-            (role === "recruiter" &&
-              requestedPath.startsWith("/recruiter")) ||
-            (role === "user" &&
-              !requestedPath.startsWith("/admin") &&
-              !requestedPath.startsWith("/recruiter")));
-        router.replace(
-          isSafeInternalPath && requestedPath
-            ? requestedPath
-            : roleHomePath(role)
-        );
+      if (res.success && res.user) {
+        window.location.replace(roleHomePath(res.user.role));
+        return;
       } else {
         toast.error(res.message || t("auth.invalidLogin"));
       }

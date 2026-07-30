@@ -8,20 +8,20 @@ import {
   useState,
 } from "react";
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
+  RoundArrowDown as ArrowDownCircle,
+  RoundArrowUp as ArrowUpCircle,
   Banknote,
-  CircleDollarSign,
-  Coins,
-  CreditCard,
-  ExternalLink,
+  Dollar as CircleDollarSign,
+  DollarMinimalistic as Coins,
+  Card as CreditCard,
+  SquareArrowRightUp as ExternalLink,
   History,
-  RefreshCw,
-  Search,
-  UserRoundSearch,
-  WalletCards,
-  X,
-} from "lucide-react";
+  Refresh as RefreshCw,
+  Magnifier as Search,
+  UserId as UserRoundSearch,
+  WalletMoney as WalletCards,
+  CloseCircle as X,
+} from "@solar-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
@@ -45,6 +45,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   MetricCard,
   PaginationControls,
@@ -504,20 +505,20 @@ export default function AdminPaymentsPage() {
                   className="h-10 pl-9"
                 />
               </div>
-              <select
+              <DashboardSelect
                 value={paymentStatus}
-                onChange={(event) => {
-                  setPaymentStatus(event.target.value);
+                onValueChange={(value) => {
+                  setPaymentStatus(value);
                   setPaymentPage(1);
                 }}
-                aria-label="Lọc trạng thái thanh toán"
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">Mọi trạng thái</option>
-                <option value="PENDING">Đang chờ</option>
-                <option value="PAID">Đã thanh toán</option>
-                <option value="CANCELLED">Đã hủy</option>
-              </select>
+                ariaLabel="Lọc trạng thái thanh toán"
+                options={[
+                  { value: "", label: "Mọi trạng thái" },
+                  { value: "PENDING", label: "Đang chờ" },
+                  { value: "PAID", label: "Đã thanh toán" },
+                  { value: "CANCELLED", label: "Đã hủy" },
+                ]}
+              />
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1180px] text-left">
@@ -676,22 +677,21 @@ export default function AdminPaymentsPage() {
                   className="h-10 pl-9"
                 />
               </div>
-              <select
+              <DashboardSelect
                 value={creditAction}
-                onChange={(event) => {
-                  setCreditAction(event.target.value);
+                onValueChange={(value) => {
+                  setCreditAction(value);
                   setCreditPage(1);
                 }}
-                aria-label="Lọc loại credit"
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">Mọi biến động</option>
-                {Object.entries(actionLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Lọc loại credit"
+                options={[
+                  { value: "", label: "Mọi biến động" },
+                  ...Object.entries(actionLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left">

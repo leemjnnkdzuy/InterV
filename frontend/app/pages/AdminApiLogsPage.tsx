@@ -28,6 +28,7 @@ import {
   DashboardError,
   DashboardLoading,
   DashboardPageHeader,
+  DashboardSelect,
   formatDashboardDate,
   MetricCard,
   PaginationControls,
@@ -461,78 +462,76 @@ export default function AdminApiLogsPage() {
               className="h-10 pl-9"
             />
           </div>
-          <select
+          <DashboardSelect
             value={days}
-            onChange={(event) => {
-              setDays(event.target.value);
+            onValueChange={(value) => {
+              setDays(value);
               setPage(1);
             }}
-            aria-label="Khoảng thời gian"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="1">24 giờ</option>
-            <option value="7">7 ngày</option>
-          </select>
-          <select
+            ariaLabel="Khoảng thời gian"
+            options={[
+              { value: "1", label: "24 giờ" },
+              { value: "7", label: "7 ngày" },
+            ]}
+          />
+          <DashboardSelect
             value={method}
-            onChange={(event) => {
-              setMethod(event.target.value);
+            onValueChange={(value) => {
+              setMethod(value);
               setPage(1);
             }}
-            aria-label="Lọc HTTP method"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="">Mọi method</option>
-            {["GET", "POST", "PUT", "PATCH", "DELETE"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-          <select
+            ariaLabel="Lọc HTTP method"
+            options={[
+              { value: "", label: "Mọi method" },
+              ...["GET", "POST", "PUT", "PATCH", "DELETE"].map((item) => ({
+                value: item,
+                label: item,
+              })),
+            ]}
+          />
+          <DashboardSelect
             value={outcome}
-            onChange={(event) => {
-              setOutcome(event.target.value);
+            onValueChange={(value) => {
+              setOutcome(value);
               setPage(1);
             }}
-            aria-label="Lọc kết quả"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="">Mọi kết quả</option>
-            <option value="SUCCESS">Thành công</option>
-            <option value="CLIENT_ERROR">Lỗi client</option>
-            <option value="SERVER_ERROR">Lỗi server</option>
-            <option value="UNHANDLED_ERROR">Lỗi chưa xử lý</option>
-          </select>
-          <select
+            ariaLabel="Lọc kết quả"
+            options={[
+              { value: "", label: "Mọi kết quả" },
+              { value: "SUCCESS", label: "Thành công" },
+              { value: "CLIENT_ERROR", label: "Lỗi client" },
+              { value: "SERVER_ERROR", label: "Lỗi server" },
+              { value: "UNHANDLED_ERROR", label: "Lỗi chưa xử lý" },
+            ]}
+          />
+          <DashboardSelect
             value={group}
-            onChange={(event) => {
-              setGroup(event.target.value);
+            onValueChange={(value) => {
+              setGroup(value);
               setPage(1);
             }}
-            aria-label="Lọc nhóm API"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="">Mọi nhóm</option>
-            {data?.groups.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-          <select
+            ariaLabel="Lọc nhóm API"
+            options={[
+              { value: "", label: "Mọi nhóm" },
+              ...(data?.groups.map((item) => ({
+                value: item,
+                label: item,
+              })) || []),
+            ]}
+          />
+          <DashboardSelect
             value={slow}
-            onChange={(event) => {
-              setSlow(event.target.value);
+            onValueChange={(value) => {
+              setSlow(value);
               setPage(1);
             }}
-            aria-label="Lọc tốc độ"
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="">Mọi tốc độ</option>
-            <option value="true">Chậm</option>
-            <option value="false">Bình thường</option>
-          </select>
+            ariaLabel="Lọc tốc độ"
+            options={[
+              { value: "", label: "Mọi tốc độ" },
+              { value: "true", label: "Chậm" },
+              { value: "false", label: "Bình thường" },
+            ]}
+          />
           <Button
             type="button"
             variant="ghost"
