@@ -473,12 +473,33 @@ function unary<TRequest, TResponse>(
   timeoutMs = DEFAULT_GRPC_TIMEOUT_MS
 ): Promise<TResponse> {
   return new Promise((resolve, reject) => {
-    method.call(
-      getClient(),
-      request,
-      getMetadata(),
-      { deadline: Date.now() + timeoutMs },
-      (error, response) => {
+    let settled = false;
+    let call: grpc.ClientUnaryCall | undefined;
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      call?.cancel();
+      reject(
+        new AiBackendError(
+          `AI backend request timed out after ${timeoutMs}ms`,
+          grpc.status.DEADLINE_EXCEEDED
+        )
+      );
+    }, timeoutMs);
+
+    const invoke = method as unknown as (
+      request: TRequest,
+      metadata: grpc.Metadata,
+      callback: (
+        error: grpc.ServiceError | null,
+        response: TResponse
+      ) => void
+    ) => grpc.ClientUnaryCall;
+
+    try {
+      call = invoke.call(getClient(), request, getMetadata(), (error, response) => {
+        settled = true;
+        clearTimeout(timeout);
         if (error) {
           reject(
             new AiBackendError(
@@ -490,8 +511,12 @@ function unary<TRequest, TResponse>(
           return;
         }
         resolve(response);
-      }
-    );
+      });
+    } catch (error) {
+      settled = true;
+      clearTimeout(timeout);
+      reject(error instanceof Error ? error : new Error(String(error)));
+    }
   });
 }
 
