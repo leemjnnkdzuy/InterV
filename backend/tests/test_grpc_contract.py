@@ -112,7 +112,7 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.fast_model, "deepseek-v4-flash")
         self.assertNotIn("secret", str(response).lower())
 
-    async def test_start_interview_prepares_all_questions_and_warms_tts(self):
+    async def test_start_interview_prepares_all_questions_without_blocking_on_tts(self):
         generated = [
             GeneratedQuestion(
                 id=f"draft-{index}",
@@ -156,7 +156,7 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.questions[-1].id, "q_5")
         self.assertEqual(generate.await_args.args[0].requested_questions, 5)
         self.assertEqual(generate.await_args.args[0].question_count, 5)
-        self.assertEqual(synthesize.await_count, 5)
+        synthesize.assert_not_awaited()
         self.rag_agent.index_session_context.assert_awaited_once()
         indexed_context = self.rag_agent.index_session_context.await_args.args[0]
         self.assertEqual(indexed_context.run_id, response.run_id)

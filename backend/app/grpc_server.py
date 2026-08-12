@@ -443,24 +443,9 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
             for index, question in enumerate(questions, start=1):
                 question.id = f"q_{index}"
 
-            semaphore = asyncio.Semaphore(2)
-
-            async def warm_audio(question):
-                async with semaphore:
-                    return await synthesize_preview(
-                        TtsPreviewRequest(
-                            text=question.text[:500],
-                            language=payload.language,
-                            voice_id=payload.voice_id,
-                        )
-                    )
-
-            warm_results = await asyncio.gather(
-                *(warm_audio(question) for question in questions),
-                return_exceptions=True,
-            )
-            if warm_results and isinstance(warm_results[0], Exception):
-                raise warm_results[0]
+            # Do not block interview creation on warming every question's TTS.
+            # The frontend requests the first question audio immediately after
+            # this RPC; later questions are synthesized on demand and cached.
             await get_rag_agent().index_session_context(
                 _knowledge_record(source=source, run_id=run_id)
             )
