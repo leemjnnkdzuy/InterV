@@ -1,0 +1,29 @@
+services:
+  interv-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: interv-backend:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "3001"
+      GRPC_HOST: "0.0.0.0"
+      GRPC_PORT: "50051"
+      GRPC_TLS_CERT_PATH: "/run/interv/certs/server.crt"
+      GRPC_TLS_KEY_PATH: "/run/interv/certs/server.key"
+      QDRANT_PATH: "/var/lib/interv/data/qdrant"
+      RAG_MODEL_CACHE_DIR: "/var/lib/interv/data/model-cache"
+    ports:
+      - "3001:3001"
+      - "50051:50051"
+    volumes:
+      - ./data:/var/lib/interv/data
+      - ./certs:/run/interv/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
