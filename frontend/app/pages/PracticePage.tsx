@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { unlockInterviewAudio } from "@/app/lib/InterviewAudio";
@@ -40,8 +41,7 @@ function createIdempotencyKey() {
 export default function PracticePage({ practiceId }: PracticePageProps) {
   const router = useRouter();
   const { refreshUser } = useAuthContext();
-  const { language: uiLanguage, t } = useLanguage();
-  const numberLocale = uiLanguage === "zh" ? "zh-CN" : uiLanguage === "en" ? "en-US" : "vi-VN";
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [activePhase, setActivePhase] = useState<
     "setup" | "preparing" | "interview"
@@ -172,13 +172,6 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
       setInitialQuestionAudio(data.firstQuestionAudio);
       setActivePhase("interview");
       void refreshUser();
-      toast.success(
-        recruitmentMode
-          ? "Buổi phỏng vấn tuyển dụng đã bắt đầu"
-          : t("practiceSetup.chargedAndStarted", {
-              credits: (data.quote?.totalCredits || 0).toLocaleString(numberLocale),
-            })
-      );
     } catch (err: unknown) {
       console.error(err);
       if (
@@ -217,49 +210,77 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
     <div className="dark w-full h-screen bg-background text-left relative overflow-hidden flex flex-col animate-in fade-in duration-300">
       <SilkBackground fadeBottom bottomColor="var(--background)" />
       <div className="relative z-10 w-full h-full flex flex-col">
-        {activePhase === "setup" ? (
-          <SetupPhase
-            router={router}
-            practiceId={practiceId}
-            title={title}
-            setTitle={setTitle}
-            industry={industry}
-            setIndustry={setIndustry}
-            jobDescription={jobDescription}
-            setJobDescription={setJobDescription}
-            topic={topic}
-            setTopic={setTopic}
-            difficulty={difficulty}
-            setDifficulty={setDifficulty}
-            duration={duration}
-            setDuration={setDuration}
-            language={language}
-            setLanguage={setLanguage}
-            voiceId={voiceId}
-            setVoiceId={setVoiceId}
-            isSavingSetup={isSavingSetup}
-            recruitmentMode={recruitmentMode}
-            recruitmentExpiresAt={recruitmentExpiresAt}
-            handleStartInterview={handleStartInterview}
-          />
-        ) : activePhase === "preparing" ? (
-          <PreparationPhase />
-        ) : (
-          <InterviewPhase
-            practiceId={practiceId}
-            runId={runId}
-            title={title}
-            industry={industry}
-            difficulty={difficulty}
-            language={language}
-            voiceId={voiceId}
-            questionsList={questionsList}
-            initialQuestionAudio={initialQuestionAudio}
-            questionCount={duration}
-            jobDescription={jobDescription}
-            topic={topic}
-          />
-        )}
+        <AnimatePresence initial={false} mode="wait">
+          {activePhase === "interview" ? (
+            <motion.div
+              key="interview"
+              className="h-full w-full"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+            >
+              <InterviewPhase
+                practiceId={practiceId}
+                runId={runId}
+                title={title}
+                industry={industry}
+                difficulty={difficulty}
+                language={language}
+                voiceId={voiceId}
+                questionsList={questionsList}
+                initialQuestionAudio={initialQuestionAudio}
+                questionCount={duration}
+                jobDescription={jobDescription}
+                topic={topic}
+              />
+            </motion.div>
+          ) : activePhase === "preparing" ? (
+            <motion.div
+              key="preparing"
+              className="h-full w-full"
+              initial={{ opacity: 0, scale: 0.985 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, filter: "blur(14px)", scale: 1.025 }}
+              transition={{ duration: 0.55, ease: "easeInOut" }}
+            >
+              <PreparationPhase />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="setup"
+              className="h-full w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, filter: "blur(12px)", scale: 1.015 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+            >
+              <SetupPhase
+                router={router}
+                practiceId={practiceId}
+                title={title}
+                setTitle={setTitle}
+                industry={industry}
+                setIndustry={setIndustry}
+                jobDescription={jobDescription}
+                setJobDescription={setJobDescription}
+                topic={topic}
+                setTopic={setTopic}
+                difficulty={difficulty}
+                setDifficulty={setDifficulty}
+                duration={duration}
+                setDuration={setDuration}
+                language={language}
+                setLanguage={setLanguage}
+                voiceId={voiceId}
+                setVoiceId={setVoiceId}
+                isSavingSetup={isSavingSetup}
+                recruitmentMode={recruitmentMode}
+                recruitmentExpiresAt={recruitmentExpiresAt}
+                handleStartInterview={handleStartInterview}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

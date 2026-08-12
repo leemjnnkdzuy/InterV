@@ -32,7 +32,7 @@ export default function PracticeProjectPage() {
   const [sessions, setSessions] = useState<PracticeProjectSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");

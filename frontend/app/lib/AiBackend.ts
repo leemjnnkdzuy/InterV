@@ -9,6 +9,8 @@ import { getApiRequestContext } from "@/app/lib/RequestContext";
 
 const AI_BACKEND_USE_DEV_TUNNEL =
   process.env.AI_BACKEND_USE_DEV_TUNNEL?.trim().toLowerCase() === "true";
+const AI_BACKEND_GRPC_INSECURE =
+  process.env.AI_BACKEND_GRPC_INSECURE?.trim().toLowerCase() === "true";
 const AI_BACKEND_GRPC_URL = AI_BACKEND_USE_DEV_TUNNEL
   ? "127.0.0.1:50051"
   : process.env.AI_BACKEND_GRPC_URL || "localhost:50051";
@@ -58,6 +60,15 @@ function readConfiguredPem(name: string): Buffer | undefined {
 }
 
 function createChannelCredentials(): grpc.ChannelCredentials {
+  if (AI_BACKEND_GRPC_INSECURE) {
+    if (!isLoopbackAddress(AI_BACKEND_GRPC_URL)) {
+      throw new Error(
+        "AI_BACKEND_GRPC_INSECURE is only allowed for a loopback gRPC address"
+      );
+    }
+    return grpc.credentials.createInsecure();
+  }
+
   const rootCertificate = readConfiguredPem("AI_BACKEND_GRPC_TLS_CA_PEM");
   const clientCertificate = readConfiguredPem(
     "AI_BACKEND_GRPC_TLS_CLIENT_CERT_PEM"

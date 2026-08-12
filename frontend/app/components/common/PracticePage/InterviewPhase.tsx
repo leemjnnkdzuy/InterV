@@ -403,14 +403,14 @@ export default function InterviewPhase({
 
   if (!currentQuestion) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-background">
+      <div className="flex h-full w-full items-center justify-center bg-transparent">
         <Spinner className="h-10 w-10 text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-full w-full select-none flex-col overflow-hidden bg-background text-foreground">
+    <div className="relative flex h-full w-full select-none flex-col overflow-hidden bg-transparent text-foreground">
       <header className="z-20 flex w-full shrink-0 items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
           <div
@@ -510,11 +510,6 @@ export default function InterviewPhase({
 
           {stage === "recording" && (
             <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-red-500">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                <span>{t("interview.recording")}</span>
-              </div>
-
               <div className="min-h-20 w-full border-t border-border/50 pt-4">
                 <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">
                   {t("interview.liveTranscript")}

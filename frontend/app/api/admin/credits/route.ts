@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 import { recordAdminAudit } from "@/app/lib/AdminAudit";
+import { publishCreditUpdated } from "@/app/lib/CreditEvents";
 import { authorizeRequest } from "@/app/lib/Auth";
 import connectDB from "@/app/lib/ConnectDB";
 import {
@@ -350,6 +351,16 @@ async function POSTHandler(request: NextRequest) {
       });
     } finally {
       await dbSession.endSession();
+    }
+
+    if (!idempotentReplay && updatedUser) {
+      publishCreditUpdated({
+        userId: updatedUser.id,
+        balance: updatedUser.credits,
+        delta: credits,
+        reason: "ADMIN_ADJUST",
+        referenceId,
+      });
     }
 
     return NextResponse.json({

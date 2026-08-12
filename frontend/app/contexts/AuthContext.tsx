@@ -140,6 +140,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser]);
 
   useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    const source = new EventSource("/api/auth/credits/stream");
+    const handleCreditUpdated = (event: Event) => {
+      if (!(event instanceof MessageEvent)) {
+        return;
+      }
+
+      try {
+        const payload: unknown = JSON.parse(event.data);
+        if (
+          typeof payload !== "object" ||
+          payload === null ||
+          typeof (payload as { balance?: unknown }).balance !== "number"
+        ) {
+          return;
+        }
+
+        const balance = (payload as { balance: number }).balance;
+        setUser((currentUser) =>
+          currentUser ? { ...currentUser, credits: balance } : currentUser
+        );
+      } catch {
+        // Ignore malformed events and keep the connection alive.
+      }
+    };
+
+    source.addEventListener("credit.updated", handleCreditUpdated);
+    return () => {
+      source.removeEventListener("credit.updated", handleCreditUpdated);
+      source.close();
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
     window.addEventListener("session-revoked", handleSessionRevoked);
     return () => {
       window.removeEventListener("session-revoked", handleSessionRevoked);

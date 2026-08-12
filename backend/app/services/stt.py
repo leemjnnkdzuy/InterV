@@ -54,8 +54,6 @@ def _transcribe_path(path: Path, language: str | None) -> TranscribeResponse:
         transcript = " ".join(
             segment.text.strip() for segment in segments
         ).strip()
-    if not transcript:
-        raise RuntimeError("Faster Whisper returned an empty transcript")
     return TranscribeResponse(
         transcript=transcript,
         language=getattr(info, "language", None),
