@@ -17,6 +17,12 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Keep the build independent from production secrets. Runtime values are
+# supplied by Coolify to the runner stage.
+ARG MONGODB_URI=mongodb://127.0.0.1:27017/interv-build
+ARG MONGODB_URI_EVENT=mongodb://127.0.0.1:27017/interv-build-events
+ENV MONGODB_URI=$MONGODB_URI
+ENV MONGODB_URI_EVENT=$MONGODB_URI_EVENT
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -30,13 +36,25 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl ca-certificates icu-libs gcompat \
+    && curl -fsSL https://aka.ms/TunnelsCliDownload/linux-x64 \
+      -o /usr/local/bin/devtunnel \
+    && chmod +x /usr/local/bin/devtunnel
+
+ENV DEV_TUNNEL_ID=interv-backend.jpe1
+ENV AI_BACKEND_USE_DEV_TUNNEL=true
+ENV AI_BACKEND_GRPC_TLS_SERVER_NAME=171.250.163.54
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/proto ./proto
+COPY --from=builder /app/certs/interv-backend.crt ./certs/interv-backend.crt
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "node_modules/next/dist/bin/next", "start"]
+CMD ["./docker-entrypoint.sh"]
