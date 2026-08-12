@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.git/
+.gitignore
+data/qdrant/
+data/model-cache/
+certs/*.pem
+certs/*.crt
+certs/*.key
+certs/*.csr
