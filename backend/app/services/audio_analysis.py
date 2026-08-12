@@ -29,6 +29,13 @@ class AudioBehaviorResult:
     provider: str
 
 
+@dataclass(slots=True)
+class SenseVoiceTags:
+    languages: list[str]
+    emotions: list[str]
+    events: list[str]
+
+
 _sensevoice_model = None
 
 
@@ -37,11 +44,18 @@ def _score_baseline(samples: list[AudioSample]) -> tuple[int, int, int, list[str
     transcripts = [sample.transcript.strip() for sample in samples if sample.transcript.strip()]
     total_duration = sum(max(sample.duration_sec, 0.0) for sample in usable)
     word_count = sum(len(transcript.split()) for transcript in transcripts)
-    speaking_rate = word_count / max(total_duration / 60.0, 1.0)
+    speaking_rate = (
+        word_count / (total_duration / 60.0)
+        if total_duration > 0 and word_count > 0
+        else 0.0
+    )
 
-    confidence = 68
-    composure = 70
-    vocal_delivery = 68
+    # Confidence and composure are not observable psychometric constructs in this
+    # pipeline. Keep neutral placeholders for the legacy API contract and never
+    # modify them from an emotion label.
+    confidence = 50
+    composure = 50
+    vocal_delivery = 50
     observations: list[str] = []
     if usable:
         observations.append(f"Đã phân tích {len(usable)} đoạn ghi âm của ứng viên.")
@@ -50,18 +64,20 @@ def _score_baseline(samples: list[AudioSample]) -> tuple[int, int, int, list[str
 
     if speaking_rate > 0:
         if 90 <= speaking_rate <= 180:
-            vocal_delivery += 8
+            vocal_delivery = 75
             observations.append("Tốc độ trình bày nằm trong khoảng dễ theo dõi.")
         elif speaking_rate > 210:
-            composure -= 8
+            vocal_delivery = 40
             observations.append("Tốc độ nói khá nhanh, nên chủ động ngắt nhịp rõ hơn.")
         elif speaking_rate < 65:
-            confidence -= 6
+            vocal_delivery = 40
             observations.append("Nhịp nói chậm; nên giảm khoảng dừng kéo dài.")
-
-    if len(transcripts) >= 2:
-        confidence += 4
-        composure += 3
+        else:
+            vocal_delivery = 60
+    observations.append(
+        "Confidence/composure được giữ ở mức trung tính; hệ thống không suy luận "
+        "trạng thái tâm lý từ giọng nói."
+    )
     return confidence, composure, vocal_delivery, observations
 
 
@@ -119,9 +135,30 @@ def _load_sensevoice():
     return _sensevoice_model
 
 
-def _sensevoice_emotions(samples: list[AudioSample]) -> list[str]:
+def _sensevoice_tags(samples: list[AudioSample]) -> SenseVoiceTags:
     model = _load_sensevoice()
+    languages: list[str] = []
     emotions: list[str] = []
+    events: list[str] = []
+    language_codes = {"zh", "en", "yue", "ja", "ko", "nospeech"}
+    emotion_codes = {
+        "happy",
+        "sad",
+        "angry",
+        "neutral",
+        "fearful",
+        "disgusted",
+        "surprised",
+    }
+    event_codes = {
+        "speech",
+        "bgm",
+        "applause",
+        "laughter",
+        "crying",
+        "sneeze",
+        "cough",
+    }
     for sample in samples:
         if not sample.audio:
             continue
@@ -142,45 +179,46 @@ def _sensevoice_emotions(samples: list[AudioSample]) -> list[str]:
             text = ""
             if isinstance(response, list) and response and isinstance(response[0], dict):
                 text = str(response[0].get("text", ""))
-            emotions.extend(
-                tag.lower()
-                for tag in re.findall(
-                    r"<\|(HAPPY|SAD|ANGRY|NEUTRAL|FEARFUL|DISGUSTED|SURPRISED)\|>",
-                    text,
-                    flags=re.IGNORECASE,
-                )
-            )
+            tags = [tag.casefold() for tag in re.findall(r"<\|([^|>]+)\|>", text)]
+            languages.extend(tag for tag in tags if tag in language_codes)
+            emotions.extend(tag for tag in tags if tag in emotion_codes)
+            events.extend(tag for tag in tags if tag in event_codes)
         finally:
             temp_path.unlink(missing_ok=True)
-    return emotions
+    return SenseVoiceTags(
+        languages=languages,
+        emotions=emotions,
+        events=events,
+    )
 
 
 def _analyze_with_sensevoice(samples: list[AudioSample]) -> AudioBehaviorResult:
     confidence, composure, vocal_delivery, observations = _score_baseline(samples)
-    emotions = _sensevoice_emotions(samples)
+    tags = _sensevoice_tags(samples)
     dominant_emotion = "neutral"
 
-    if emotions:
-        emotion_counts = Counter(emotions)
+    if tags.languages:
+        language_counts = Counter(tags.languages)
+        dominant_language, language_segments = language_counts.most_common(1)[0]
+        observations.append(
+            "SenseVoice LID nhận diện ngôn ngữ chủ đạo "
+            f"{dominant_language} trên {language_segments}/{len(tags.languages)} đoạn có thẻ LID."
+        )
+
+    if tags.events:
+        event_counts = Counter(tags.events)
+        rendered_events = ", ".join(
+            f"{event}={count}" for event, count in event_counts.most_common()
+        )
+        observations.append(f"SenseVoice AED ghi nhận: {rendered_events}.")
+
+    if tags.emotions:
+        emotion_counts = Counter(tags.emotions)
         dominant_emotion = emotion_counts.most_common(1)[0][0]
         observations.append(
-            f"SenseVoice nhận diện cảm xúc chủ đạo là {dominant_emotion}."
+            "SenseVoice SER gắn nhãn cảm xúc âm học chủ đạo là "
+            f"{dominant_emotion}; nhãn này không được quy đổi thành điểm tâm lý."
         )
-        if dominant_emotion == "happy":
-            confidence += 7
-            vocal_delivery += 5
-        elif dominant_emotion in {"fearful", "sad"}:
-            confidence -= 10
-            composure -= 7
-        elif dominant_emotion == "angry":
-            composure -= 12
-        elif dominant_emotion == "surprised":
-            composure -= 3
-
-        neutral_ratio = emotion_counts.get("neutral", 0) / len(emotions)
-        if neutral_ratio >= 0.6:
-            composure += 6
-            observations.append("Giọng nói giữ được trạng thái ổn định ở phần lớn câu trả lời.")
 
     return AudioBehaviorResult(
         confidence=max(0, min(confidence, 100)),

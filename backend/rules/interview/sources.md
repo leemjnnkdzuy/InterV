@@ -4,6 +4,18 @@ Tài liệu này là registry duy nhất cho các mã nguồn xuất hiện tron
 tóm lược nguyên tắc; không sao chép dài nội dung có bản quyền. Các quy tắc pháp lý
 cần được rà soát lại theo quốc gia nơi hệ thống được triển khai.
 
+## Cấp độ provenance
+
+- **A - bằng chứng trực tiếp:** nghiên cứu, chuẩn hoặc văn bản pháp luật trực tiếp hỗ
+  trợ nguyên tắc được nêu.
+- **B - taxonomy tham chiếu:** nguồn hỗ trợ cách phân loại nhiệm vụ/năng lực, nhưng
+  không xác nhận danh sách năng lực riêng của InterV.
+- **C - blueprint thiết kế:** nội dung do nhóm phát triển xây dựng để tạo câu hỏi mẫu;
+  bắt buộc hiệu chỉnh bằng JD/job analysis và chưa được xem là thang đo đã validation.
+
+Không nguồn nào dưới đây chứng minh toàn bộ 15 rule ngành hoặc 60 profile của InterV.
+Các file ngành/profile là provenance cấp C; O*NET chỉ là taxonomy cấp B.
+
 ## Sách và handbook
 
 ### [ROULIN2022] The Psychology of Job Interviews
@@ -50,6 +62,13 @@ cần được rà soát lại theo quốc gia nơi hệ thống được triể
 - DOI: https://doi.org/10.1348/096317902320369712
 - Dùng cho: cân bằng câu hỏi "đã làm gì" và "sẽ làm gì".
 
+### [MCCARTHY2004] Measuring Job Interview Anxiety
+
+- McCarthy, J. M., & Goffin, R. D. (2004), Personnel Psychology, 57(3), 607-637.
+- DOI: https://doi.org/10.1111/j.1744-6570.2004.00002.x
+- Dùng cho: khái niệm lo âu phỏng vấn cần công cụ đo hợp lệ; không được suy luận lo âu
+  chỉ từ nhịp nói hoặc một nhãn cảm xúc tự động.
+
 ## Chuẩn nghề nghiệp và nguồn chính phủ
 
 ### [SIOP2018] Principles for Validation and Use of Personnel Selection Procedures
@@ -73,9 +92,11 @@ cần được rà soát lại theo quốc gia nơi hệ thống được triể
 
 ### [ONET2026] O*NET Content Model
 
-- U.S. Department of Labor, O*NET Resource Center, Content Model.
+- U.S. Department of Labor, O*NET Database 30.3 và Content Model, truy cập 2026.
 - URL: https://www.onetcenter.org/content.html
-- Dùng cho: abilities, skills, knowledge, work styles, activities và work context.
+- Database: https://www.onetcenter.org/database.html
+- Dùng cho: taxonomy abilities, skills, knowledge, activities, tasks và work context.
+  Không dùng để tuyên bố 15 ngành/60 profile của InterV đã được O*NET validation.
 
 ### [EEOC1978] Uniform Guidelines on Employee Selection Procedures
 
@@ -84,6 +105,36 @@ cần được rà soát lại theo quốc gia nơi hệ thống được triể
 - Dùng cho: job-relatedness, adverse impact, validation và lưu ý fairness. Đây là
   nguồn Hoa Kỳ, không thay thế tư vấn pháp lý tại Việt Nam.
 
+### [VNPDPL2025] Luật Bảo vệ dữ liệu cá nhân Việt Nam
+
+- Luật số 91/2025/QH15, ban hành 26/06/2025, hiệu lực 01/01/2026.
+- URL: https://vbpl.moj.gov.vn/bocongan/Pages/vbpq-thuoctinh.aspx?ItemID=179252
+- Dùng cho: giới hạn mục đích, xử lý dữ liệu cá nhân trong tuyển dụng và nghĩa vụ bảo
+  vệ dữ liệu. Rule không thay thế tư vấn pháp lý cho một triển khai cụ thể.
+
+### [EUAI2024] Regulation (EU) 2024/1689 - Artificial Intelligence Act
+
+- Văn bản chính thức: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+- Dùng cho: cảnh báo phạm vi pháp lý quốc tế; suy luận cảm xúc tại nơi làm việc bị cấm
+  trong phạm vi Điều 5(1)(f), trừ ngoại lệ y tế/an toàn. InterV không được triển khai
+  như công cụ emotion scoring cho quyết định tuyển dụng.
+
+## Quản trị rủi ro AI và mô hình tiếng nói
+
+### [NIST2023] NIST AI Risk Management Framework 1.0
+
+- NIST AI 100-1, 2023, DOI: https://doi.org/10.6028/NIST.AI.100-1
+- Dùng cho: validity/reliability, transparency, explainability, privacy và fairness.
+
+### [FUNAUDIO2024] FunAudioLLM / SenseVoice
+
+- An và cộng sự, FunAudioLLM: Voice Understanding and Generation Foundation Models
+  for Natural Interaction Between Humans and LLMs, 2024.
+- Paper: https://arxiv.org/abs/2407.04051
+- Model card: https://huggingface.co/FunAudioLLM/SenseVoiceSmall
+- Dùng cho: ASR, language identification, speech emotion recognition và audio-event
+  detection của SenseVoice. Nhãn model không phải chẩn đoán tâm lý hay bằng chứng năng lực.
+
 ## Nguồn kỹ thuật RAG
 
 ### [QDRANT2026] Qdrant Hybrid Search with FastEmbed
@@ -91,3 +142,9 @@ cần được rà soát lại theo quốc gia nơi hệ thống được triể
 - Qdrant documentation, dense + sparse retrieval và Reciprocal Rank Fusion.
 - URL: https://qdrant.tech/documentation/tutorials-develop/hybrid-search-fastembed/
 - Dùng cho: kiến trúc vector store, metadata filter và hybrid retrieval của backend.
+
+### [DEEPSEEK2026] DeepSeek JSON Output
+
+- Tài liệu API chính thức: https://api-docs.deepseek.com/guides/json_mode/
+- Dùng cho: `response_format=json_object`, yêu cầu prompt chứa JSON/schema, giới hạn
+  token và xử lý trường hợp nội dung rỗng. Output vẫn phải được backend validate.

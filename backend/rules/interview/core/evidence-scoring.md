@@ -29,10 +29,13 @@ phỏng vấn, phong cách nói, accent hoặc mức độ tự tin bề ngoài.
 
 - `knowledge`, `problemSolving`, `jdFit`: chỉ từ nội dung trả lời/rule.
 - `communication`: cấu trúc và độ rõ của thông tin, không dựa vào accent.
-- `confidence`, `composure`, `vocalDelivery`: chỉ dùng output SenseVoice được gắn nhãn
-  là tín hiệu hỗ trợ, không phải chẩn đoán tâm lý.
+- `confidence`, `composure`, `vocalDelivery`: nếu giao diện còn hiển thị thì phải ghi
+  rõ là chỉ số coaching heuristic, tách khỏi điểm năng lực và không dùng cho quyết định
+  tuyển dụng. Không quy đổi trực tiếp nhãn cảm xúc SenseVoice thành điểm tâm lý.
+- Language ID, emotion tag và audio-event tag chỉ là output mô hình cần kèm provider,
+  phiên bản, uncertainty và giới hạn miền dữ liệu.
 - Feedback phải tách strength, gap và hành động luyện tập.
 
 ## Nguồn
 
-[SIOP2018] [SCHMIDT1998] [FARR2017] [CAMPION1997]
+[SIOP2018] [SCHMIDT1998] [FARR2017] [CAMPION1997] [MCCARTHY2004] [FUNAUDIO2024]

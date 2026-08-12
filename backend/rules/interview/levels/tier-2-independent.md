@@ -2,13 +2,20 @@
 rule_id: "rule:level:tier-2-independent"
 kind: "level"
 tier: 2
-schema_version: 1
+provenance_status: "design-blueprint-requires-validation"
+schema_version: 2
 ---
 # Rule level: Tier 2 - Independent
 
 ## Mục tiêu level
 
 Xác minh năng lực tự chủ, ưu tiên và giải quyết vấn đề đầu-cuối.
+
+## Trạng thái chứng cứ
+
+Tier này là phép ánh xạ thiết kế của InterV (provenance cấp C), không phải thang seniority
+chuẩn hóa chung cho mọi nghề. Tên level chỉ giúp điều chỉnh constraint, mức tự chủ và
+phạm vi tác động; phải được đối chiếu với JD và cơ hội thực tế của ứng viên.
 
 ## Phạm vi năng lực
 

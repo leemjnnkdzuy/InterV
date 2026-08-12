@@ -2,13 +2,20 @@
 rule_id: "rule:level:tier-4-strategic"
 kind: "level"
 tier: 4
-schema_version: 1
+provenance_status: "design-blueprint-requires-validation"
+schema_version: 2
 ---
 # Rule level: Tier 4 - Strategic
 
 ## Mục tiêu level
 
 Xác minh tư duy chiến lược, quản trị danh mục và trách nhiệm tổ chức.
+
+## Trạng thái chứng cứ
+
+Tier này là phép ánh xạ thiết kế của InterV (provenance cấp C), không phải thang seniority
+chuẩn hóa chung cho mọi nghề. Tên level chỉ giúp điều chỉnh constraint, mức tự chủ và
+phạm vi tác động; phải được đối chiếu với JD và cơ hội thực tế của ứng viên.
 
 ## Phạm vi năng lực
 

@@ -30,4 +30,4 @@ không được dùng kiến thức ngầm như bằng chứng duy nhất.
 
 ## Nguồn
 
-[SIOP_AI2023] [SIOP2018] [QDRANT2026]
+[SIOP_AI2023] [SIOP2018] [NIST2023] [QDRANT2026] [DEEPSEEK2026]
