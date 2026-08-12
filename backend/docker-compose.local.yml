@@ -19,11 +19,12 @@ services:
       - "3001:3001"
       - "50051:50051"
     volumes:
-      - ./data:/var/lib/interv/data
+      - D:/container/interv-backend/data:/var/lib/interv/data
+      - D:/container/interv-backend/modelscope:/root/.cache/modelscope
       - ./certs:/run/interv/certs:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3001/health || exit 1"]
       interval: 30s
       timeout: 10s
-      start_period: 120s
+      start_period: 30m
       retries: 5

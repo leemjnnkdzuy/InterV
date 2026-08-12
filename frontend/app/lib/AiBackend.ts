@@ -7,8 +7,11 @@ import * as protoLoader from "@grpc/proto-loader";
 
 import { getApiRequestContext } from "@/app/lib/RequestContext";
 
-const AI_BACKEND_GRPC_URL =
-  process.env.AI_BACKEND_GRPC_URL || "localhost:50051";
+const AI_BACKEND_USE_DEV_TUNNEL =
+  process.env.AI_BACKEND_USE_DEV_TUNNEL?.trim().toLowerCase() === "true";
+const AI_BACKEND_GRPC_URL = AI_BACKEND_USE_DEV_TUNNEL
+  ? "127.0.0.1:50051"
+  : process.env.AI_BACKEND_GRPC_URL || "localhost:50051";
 const MAX_GRPC_MESSAGE_BYTES = 32 * 1024 * 1024;
 const DEFAULT_GRPC_TIMEOUT_MS = 120_000;
 
