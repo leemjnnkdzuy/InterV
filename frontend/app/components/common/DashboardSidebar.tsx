@@ -13,6 +13,7 @@ import {
   FileText,
   History,
   Logout as LogOut,
+  MenuDots,
   Playlist,
   RoundGraph,
   ShieldCheck,
@@ -32,6 +33,12 @@ import {
   DialogTitle,
 } from "@/app/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -41,7 +48,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from "@/app/components/ui/sidebar";
@@ -257,9 +263,7 @@ export default function DashboardSidebar({
         )}
       </SidebarHeader>
 
-      <SidebarSeparator className="mx-4 w-auto bg-border/20" />
-
-      <SidebarContent className="px-3 py-6">
+      <SidebarContent className="no-scrollbar px-3 py-6">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
@@ -279,38 +283,13 @@ export default function DashboardSidebar({
                   <SidebarMenuItem key={item.href}>
                     <motion.div variants={itemVariants} className="w-full">
                     <SidebarMenuButton
-                      tooltip={{
-                        children: (
-                          <div className="flex min-w-44 items-center gap-3">
-                            <span
-                              className={cn(
-                                "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                                active
-                                  ? "bg-primary text-background"
-                                  : "bg-sidebar-accent text-muted-foreground"
-                              )}
-                            >
-                              <item.icon weight="BoldDuotone" className="size-5" />
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-bold leading-none text-foreground">
-                                {item.label}
-                              </span>
-                              <span className="mt-1 block truncate text-xs leading-4 text-muted-foreground">
-                                {item.subtitle}
-                              </span>
-                            </span>
-                          </div>
-                        ),
-                        className:
-                          "rounded-2xl border border-border/20 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-xl",
-                      }}
+                      tooltip={item.label}
                       isActive={active}
                       onClick={() => navigate(item.href)}
                       className={cn(
                         "relative flex w-full cursor-pointer items-center overflow-hidden transition-all duration-300 group/btn",
                         collapsed
-                          ? "mx-auto justify-center rounded-2xl group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!p-2.5"
+                          ? "mx-auto justify-center rounded-2xl group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5"
                           : "h-auto gap-4 rounded-2xl px-4 py-3 text-sm font-medium",
                         active
                           ? "text-background shadow-md shadow-primary/10"
@@ -329,7 +308,7 @@ export default function DashboardSidebar({
                         <item.icon
                           weight="BoldDuotone"
                           className={cn(
-                            "size-7 shrink-0 transition-all duration-300",
+                            "!h-8 !w-8 shrink-0 transition-all duration-300",
                             active
                               ? "text-background"
                               : "text-muted-foreground group-hover/btn:text-foreground"
@@ -368,17 +347,18 @@ export default function DashboardSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarSeparator className="mx-4 w-auto bg-border/20" />
-
       <SidebarFooter className="bg-gradient-to-t from-sidebar-accent/10 to-transparent p-4">
         {user && (
           <div
             className={cn(
               "flex items-center gap-3 rounded-2xl border border-border/20 bg-card/40 p-3 shadow-sm backdrop-blur-md transition-all duration-300",
-              collapsed && "justify-center border-transparent bg-transparent"
+              collapsed && "justify-center border-transparent bg-transparent p-0"
             )}
           >
-            <div className="relative size-10 shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 p-0.5 shadow-inner">
+            <div className={cn(
+              "relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 p-0.5 shadow-inner",
+              collapsed ? "size-12" : "size-10"
+            )}>
               <div className="relative flex size-full items-center justify-center overflow-hidden rounded-[10px] border border-border/20 bg-sidebar-accent text-sm font-extrabold text-sidebar-accent-foreground shadow-inner">
               {user.avatar ? (
                 <Image
@@ -411,46 +391,40 @@ export default function DashboardSidebar({
                     {user.email}
                   </span>
                 </button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  title="Đăng xuất"
-                  aria-label="Đăng xuất"
-                  onClick={openLogoutConfirm}
-                  className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-                >
-                  <LogOut weight="BoldDuotone" className="size-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      title="Tùy chọn tài khoản"
+                      aria-label="Tùy chọn tài khoản"
+                      className="cursor-pointer rounded-xl border border-transparent p-2 text-muted-foreground transition-all duration-300 hover:border-border/20 hover:bg-sidebar-accent hover:text-foreground"
+                    >
+                      <MenuDots className="size-5 rotate-90" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48 rounded-3xl border border-border/10 bg-card p-1.5 shadow-lg"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile")}
+                      className="cursor-pointer"
+                    >
+                      <User weight="BoldDuotone" className="mr-2 size-4" />
+                      <span>Tài khoản</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={openLogoutConfirm}
+                      className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+                    >
+                      <LogOut weight="BoldDuotone" className="mr-2 size-4 text-destructive" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>
-        )}
-        {collapsed && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={{
-                  children: (
-                    <div className="min-w-28">
-                      <p className="text-sm font-bold leading-none text-foreground">
-                        Đăng xuất
-                      </p>
-                      <p className="mt-1 text-xs leading-4 text-muted-foreground">
-                        Rời phiên hiện tại
-                      </p>
-                    </div>
-                  ),
-                  className:
-                    "rounded-2xl border border-border/20 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-xl",
-                }}
-                onClick={openLogoutConfirm}
-                className="cursor-pointer text-muted-foreground hover:text-destructive"
-              >
-                <LogOut weight="BoldDuotone" className="size-4.5" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
         )}
       </SidebarFooter>
 

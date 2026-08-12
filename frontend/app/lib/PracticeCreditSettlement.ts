@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import CreditLog from "@/app/models/CreditLog";
 import PracticeRun from "@/app/models/PracticeRun";
 import User from "@/app/models/User";
+import { publishCreditUpdated } from "@/app/lib/CreditEvents";
 
 interface ChargePracticeInput {
   runId: string;
@@ -96,6 +97,15 @@ export async function chargePracticeRun({
         remainingCredits: user.credits,
       };
     }, TRANSACTION_OPTIONS);
+    if (result.outcome === "settled") {
+      publishCreditUpdated({
+        userId,
+        balance: result.remainingCredits,
+        delta: -credits,
+        reason: "AI_INTERVIEW",
+        referenceId: runId,
+      });
+    }
     return result;
   } finally {
     await dbSession.endSession();
@@ -113,6 +123,7 @@ export async function refundPracticeRun(
     outcome: "already-settled",
     remainingCredits: 0,
   };
+  let creditDelta = 0;
   try {
     await dbSession.withTransaction(async () => {
       const run = await PracticeRun.findOne({
@@ -183,7 +194,17 @@ export async function refundPracticeRun(
         outcome: "settled",
         remainingCredits: user.credits,
       };
+      creditDelta = refundCredits;
     }, TRANSACTION_OPTIONS);
+    if (result.outcome === "settled") {
+      publishCreditUpdated({
+        userId,
+        balance: result.remainingCredits,
+        delta: creditDelta,
+        reason: "AI_INTERVIEW_REFUND",
+        referenceId: runId,
+      });
+    }
     return result;
   } finally {
     await dbSession.endSession();

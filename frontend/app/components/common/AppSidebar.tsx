@@ -327,8 +327,6 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarSeparator className="bg-border/20 mx-4" />
-
       {/* Sidebar Footer */}
       <SidebarFooter className="p-4 bg-gradient-to-t from-sidebar-accent/10 to-transparent">
         <SidebarMenu className="gap-3">

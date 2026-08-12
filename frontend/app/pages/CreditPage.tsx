@@ -44,12 +44,12 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
             <div>
               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">{t("credit.availableBalance")}</p>
               <div className="flex items-center gap-1.5 mt-2">
-                {isLoading ? (
-                  <Skeleton className="h-9 w-24 bg-white/20" />
-                ) : (
+                {user ? (
                   <span className="text-4xl font-extrabold tracking-tight">
                     {user?.credits !== undefined ? user.credits.toLocaleString(numberLocale) : "0"}
                   </span>
+                ) : (
+                  <Skeleton className="h-9 w-24 bg-white/20" />
                 )}
                 <span className="text-4xl font-extrabold tracking-tight">Credits</span>
               </div>

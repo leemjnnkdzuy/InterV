@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import CreditLog from "@/app/models/CreditLog";
 import Transaction from "@/app/models/Transaction";
 import User from "@/app/models/User";
+import { publishCreditUpdated } from "@/app/lib/CreditEvents";
 import { getPayOS } from "@/app/lib/PayOS";
 
 const PROVIDER_STATUSES = new Set([
@@ -78,6 +79,10 @@ export async function settlePaidTransaction(
 ): Promise<"settled" | "already-settled" | "not-found"> {
   const dbSession = await mongoose.startSession();
   let outcome: "settled" | "already-settled" | "not-found" = "not-found";
+  let settledUserId: string | null = null;
+  let settledBalance = 0;
+  let settledDelta = 0;
+  let settledReferenceId = "";
   try {
     await dbSession.withTransaction(
       async () => {
@@ -97,12 +102,12 @@ export async function settlePaidTransaction(
           return;
         }
 
-        const userUpdate = await User.updateOne(
+        const userUpdate = await User.findOneAndUpdate(
           { _id: transaction.userId, isActive: true },
           { $inc: { credits: transaction.credits } },
-          { session: dbSession }
-        );
-        if (userUpdate.modifiedCount !== 1) {
+          { returnDocument: "after", session: dbSession }
+        ).select("credits");
+        if (!userUpdate) {
           throw new Error("Payment owner is missing or inactive");
         }
 
@@ -124,6 +129,10 @@ export async function settlePaidTransaction(
         transaction.lastReconciledAt = new Date();
         transaction.reconciliationError = "";
         await transaction.save({ session: dbSession });
+        settledUserId = transaction.userId.toString();
+        settledBalance = userUpdate.credits;
+        settledDelta = transaction.credits;
+        settledReferenceId = String(transaction.orderCode);
         outcome = "settled";
       },
       {
@@ -133,6 +142,15 @@ export async function settlePaidTransaction(
         maxCommitTimeMS: 10_000,
       }
     );
+    if (settledUserId) {
+      publishCreditUpdated({
+        userId: settledUserId,
+        balance: settledBalance,
+        delta: settledDelta,
+        referenceId: settledReferenceId,
+        reason: "RECHARGE",
+      });
+    }
     return outcome;
   } finally {
     await dbSession.endSession();
