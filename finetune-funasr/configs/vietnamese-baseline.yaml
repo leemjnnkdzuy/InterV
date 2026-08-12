@@ -1,0 +1,32 @@
+# Configuration template; not an executed run.
+run_id: TODO
+language: vi
+base_model: TODO
+seed: 42
+
+data:
+  train_manifest: TODO
+  dev_manifest: TODO
+  test_manifest: TODO
+  sample_rate: 16000
+  channels: 1
+  speaker_disjoint: true
+  text_normalization: TODO
+
+training:
+  output_dir: TODO
+  learning_rate: TODO
+  batch_size: TODO
+  gradient_accumulation_steps: TODO
+  num_train_epochs: TODO
+  warmup_ratio: TODO
+  evaluation_strategy: steps
+  save_strategy: steps
+  load_best_model_at_end: true
+  metric_for_best_model: dev_wer
+  greater_is_better: false
+
+evaluation:
+  metrics: [wer, cer, rtf, latency_p50, latency_p95]
+  normalize_unicode: TODO
+  preserve_diacritics: true
