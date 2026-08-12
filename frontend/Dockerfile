@@ -30,6 +30,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
+RUN apk add --no-cache curl
+
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
@@ -37,4 +39,4 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
