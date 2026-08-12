@@ -14,5 +14,6 @@ markitdown[pdf,docx]>=0.1.6
 faster-whisper>=1.1.0
 funasr>=1.2.7
 modelscope>=1.25.0
-torch>=2.5.0
-torchaudio>=2.5.0
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+torchaudio==2.5.1+cpu
