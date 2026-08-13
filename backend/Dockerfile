@@ -4,7 +4,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app/backend
+    PYTHONPATH=/app/backend \
+    GRPC_HOST=0.0.0.0 \
+    GRPC_TLS_CERT_PATH=/app/backend/certs/server.crt \
+    GRPC_TLS_KEY_PATH=/app/backend/certs/server.key
 
 WORKDIR /app/backend
 
