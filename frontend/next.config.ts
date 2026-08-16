@@ -6,6 +6,9 @@ const glslLoader = fileURLToPath(
 );
 
 const nextConfig: NextConfig = {
+	experimental: {
+		cpus: 2,
+	},
 	serverExternalPackages: ["@grpc/grpc-js", "@grpc/proto-loader"],
 	outputFileTracingIncludes: {
 		"/api/**/*": ["proto/interv_ai.proto"],

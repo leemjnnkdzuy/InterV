@@ -44,7 +44,7 @@ RUN apk add --no-cache curl ca-certificates icu-libs gcompat \
 ENV DEV_TUNNEL_ID=interv-backend.jpe1
 ENV AI_BACKEND_USE_DEV_TUNNEL=false
 ENV AI_BACKEND_GRPC_URL=180.93.43.99:50051
-ENV AI_BACKEND_GRPC_TLS_SERVER_NAME=180.93.43.99
+ENV AI_BACKEND_GRPC_TLS_SERVER_NAME=171.250.163.54
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules

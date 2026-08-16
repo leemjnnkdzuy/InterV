@@ -1,6 +1,6 @@
 import "server-only";
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
@@ -48,7 +48,20 @@ function isLoopbackAddress(address: string): boolean {
 
 function readConfiguredPem(name: string): Buffer | undefined {
   const configured = process.env[name]?.trim();
-  if (!configured) return undefined;
+  if (!configured) {
+    const bundledCertificatePath = path.join(
+      process.cwd(),
+      "certs",
+      "interv-backend.crt"
+    );
+    if (
+      name === "AI_BACKEND_GRPC_TLS_CA_PEM" &&
+      existsSync(bundledCertificatePath)
+    ) {
+      return readFileSync(bundledCertificatePath);
+    }
+    return undefined;
+  }
   if (configured.includes("-----BEGIN")) {
     return Buffer.from(configured.replaceAll("\\n", "\n"), "utf8");
   }
