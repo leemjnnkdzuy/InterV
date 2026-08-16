@@ -284,7 +284,10 @@ async function POSTHandler(
       difficulty: run.difficulty || session.difficulty || "Middle",
       questionCount,
       language: run.language || session.language || "vi-VN",
-      voiceId: run.voiceId || session.voiceId || "vi-VN-HoaiMyNeural",
+      voiceId:
+        run.voiceId ||
+        session.voiceId ||
+        "hn_female_ngochuyen_full_48k-fhg",
     };
     const targetQuestionIndex = Math.min(
       nextQuestionIndex + 1,

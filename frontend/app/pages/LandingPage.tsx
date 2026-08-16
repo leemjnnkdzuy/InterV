@@ -17,7 +17,7 @@ import SilkBackground from "@/app/components/common/SilkBackground";
 
 export default function LandingPage() {
   return (
-    <div className="dark w-full min-h-screen bg-[var(--sidebar)] text-zinc-100 flex flex-col relative overflow-x-clip font-sans">
+    <div className="w-full min-h-screen bg-[var(--background)] text-foreground flex flex-col relative overflow-x-clip font-sans">
       {/* Background Ambient Glow (Mesh Gradient Effect for Dark Theme) */}
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
         {/* Soft Gold/Orange/Lime glow in top-left using chart-1 */}

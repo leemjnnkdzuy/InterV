@@ -14,7 +14,10 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Card } from "@/app/components/ui/card";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { translateIndustry } from "@/app/lib/Localization";
-import { playInterviewAudio, stopInterviewAudio } from "@/app/lib/InterviewAudio";
+import {
+  playInterviewAudio,
+  stopInterviewAudio,
+} from "@/app/lib/InterviewAudio";
 import type { InterviewVoice, SetupPhaseProps } from "@/app/types";
 import {
   Select,
@@ -36,14 +39,10 @@ import {
 
 const LANGUAGE_OPTIONS = [
   { id: "vi-VN", labelKey: "practiceSetup.languageVi", sampleKey: "practiceSetup.sampleVi" },
-  { id: "en-US", labelKey: "practiceSetup.languageEn", sampleKey: "practiceSetup.sampleEn" },
-  { id: "zh-CN", labelKey: "practiceSetup.languageZh", sampleKey: "practiceSetup.sampleZh" },
 ];
 
 const DEFAULT_VOICE_BY_LANGUAGE: Record<string, string> = {
-  "vi-VN": "vi-VN-HoaiMyNeural",
-  "en-US": "en-US-JennyNeural",
-  "zh-CN": "zh-CN-XiaoxiaoNeural",
+  "vi-VN": "hn_female_ngochuyen_full_48k-fhg",
 };
 
 type VoicePreviewAudio = {
@@ -89,11 +88,12 @@ export default function SetupPhase({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [voices, setVoices] = useState<InterviewVoice[]>([]);
-  const [isLoadingVoices, setIsLoadingVoices] = useState(false);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [isPreviewingVoice, setIsPreviewingVoice] = useState(false);
   const [isVoicePreviewPlaying, setIsVoicePreviewPlaying] = useState(false);
   const [preparedVoicePreviewKey, setPreparedVoicePreviewKey] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const loadedVoiceLanguageRef = useRef("");
   const voicePreviewGenerationRef = useRef(0);
   const voicePreviewCacheRef = useRef(new Map<string, VoicePreviewAudio>());
   const voicePreviewRequestRef = useRef(
@@ -132,10 +132,12 @@ export default function SetupPhase({
   }));
   const selectedLanguage = languageOptions.find((item) => item.id === language) || languageOptions[0];
   const selectedLanguageSample = selectedLanguage.sample;
+  const selectedVoice = voices.find((voice) => voice.id === voiceId);
   const numberLocale = uiLanguage === "zh" ? "zh-CN" : uiLanguage === "en" ? "en-US" : "vi-VN";
   const voicePreviewKey = `${language}:${voiceId}:${selectedLanguageSample}`;
   const isCurrentVoicePreviewReady =
-    Boolean(voiceId) && preparedVoicePreviewKey === voicePreviewKey;
+    Boolean(voiceId) &&
+    preparedVoicePreviewKey === voicePreviewKey;
 
   const getVoiceGenderLabel = (gender?: string) => {
     if (!gender) return "";
@@ -157,6 +159,7 @@ export default function SetupPhase({
   };
 
   useEffect(() => {
+    if (loadedVoiceLanguageRef.current === language) return;
     let cancelled = false;
 
     const fetchVoices = async () => {
@@ -165,6 +168,7 @@ export default function SetupPhase({
         const data = await aiService.getVoices(language);
         if (cancelled) return;
         const nextVoices = data.voices || [];
+        loadedVoiceLanguageRef.current = language;
         setVoices(nextVoices);
 
         if (!nextVoices.some((voice) => voice.id === voiceId)) {
@@ -209,7 +213,7 @@ export default function SetupPhase({
   useEffect(() => () => stopInterviewAudio(), []);
 
   useEffect(() => {
-    if (isLoadingVoices || !voiceId) return;
+    if (isLoadingVoices || !voiceId || !selectedVoice) return;
     let cancelled = false;
     const key = `${language}:${voiceId}:${selectedLanguageSample}`;
     const cached = voicePreviewCacheRef.current.get(key);
@@ -268,7 +272,14 @@ export default function SetupPhase({
     return () => {
       cancelled = true;
     };
-  }, [isLoadingVoices, language, selectedLanguageSample, t, voiceId]);
+  }, [
+    isLoadingVoices,
+    language,
+    selectedLanguageSample,
+    selectedVoice,
+    t,
+    voiceId,
+  ]);
 
   const handleSaveTitle = async () => {
     if (!title.trim()) {
@@ -445,6 +456,7 @@ export default function SetupPhase({
     isSavingSetup ||
     isUploading ||
     isLoadingVoices ||
+    !selectedVoice ||
     !voiceId ||
     !quote.canAfford;
 

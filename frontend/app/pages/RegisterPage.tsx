@@ -137,7 +137,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="dark min-h-screen relative bg-zinc-950 text-white flex items-center justify-center">
+    <div className="min-h-screen relative bg-background text-foreground flex items-center justify-center">
       <button
         onClick={() => router.push("/")}
         className="absolute left-6 top-6 z-20 text-zinc-400 hover:text-white transition-colors cursor-pointer"

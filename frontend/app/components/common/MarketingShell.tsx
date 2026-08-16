@@ -7,8 +7,7 @@ import { Footer, Header } from "@/app/components/common/LandingPage";
 export default function MarketingShell({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="dark w-full min-h-screen bg-[var(--marketing-page-bg)] text-zinc-100 flex flex-col relative overflow-x-clip font-sans"
-      style={{ "--marketing-page-bg": "#08080a" } as React.CSSProperties}
+      className="w-full min-h-screen bg-[var(--marketing-page-bg)] text-foreground flex flex-col relative overflow-x-clip font-sans"
     >
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[var(--chart-1)]/15 blur-[130px]" />

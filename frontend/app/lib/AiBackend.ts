@@ -107,11 +107,13 @@ interface VoiceResponse {
   locale: string;
   gender: string;
   description: string;
+  demoUrl: string;
 }
 
 export interface GrpcQuestion {
   id: string;
   text: string;
+  ttsText: string;
   competency: string;
   difficulty: string;
   expectedSignals: string[];
@@ -143,6 +145,15 @@ export interface GrpcAudioBehaviorAnalysis {
   vocalDelivery: number;
   dominantEmotion: string;
   observations: string[];
+  recommendations: string[];
+  speakingRateWpm: number;
+  paceConsistency: number;
+  pauseRatio: number;
+  volumeStability: number;
+  fillerWordCount: number;
+  averageAnswerDurationSec: number;
+  analyzedAnswerCount: number;
+  totalWordCount: number;
   provider: string;
 }
 
@@ -566,7 +577,7 @@ export const aiBackend = {
     text: string;
     language: string;
     voiceId: string;
-  }) => unary(getClient().synthesizeTts, request, 60_000),
+  }) => unary(getClient().synthesizeTts, request, 95_000),
 
   startInterview: (context: GrpcInterviewContext) =>
     unary(getClient().startInterview, { context }, 300_000),

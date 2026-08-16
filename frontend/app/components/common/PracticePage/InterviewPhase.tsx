@@ -3,8 +3,15 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  ChevronDown,
+  MessageSquareText,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import {
   ClockCircle,
   Exit,
@@ -28,9 +35,12 @@ import type {
 } from "@/app/types";
 import {
   playInterviewAudio,
+  speakInterviewText,
   stopInterviewAudio,
 } from "@/app/lib/InterviewAudio";
+import FinishingPhase from "./FinishingPhase";
 import ThreeWaveform from "./ThreeWaveform";
+import { cn } from "@/app/lib/Utils";
 
 type InterviewStage =
   | "preparing"
@@ -41,6 +51,31 @@ type InterviewStage =
   | "submitting"
   | "finishing"
   | "error";
+
+type InterviewHistoryEntry = {
+  questionId: string;
+  question: string;
+  answer: string;
+};
+
+const SERVER_TTS_WAIT_MS = 7_000;
+
+async function waitForServerAudio<T>(request: Promise<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      request,
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("Server TTS response was too slow")),
+          SERVER_TTS_WAIT_MS
+        );
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 export default function InterviewPhase({
   practiceId,
@@ -64,6 +99,12 @@ export default function InterviewPhase({
   const [finishLog, setFinishLog] = useState<string[]>([]);
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
+  const [historyEntries, setHistoryEntries] =
+    useState<InterviewHistoryEntry[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(
+    null
+  );
   const startedAtRef = useRef<number | null>(null);
   const finishInFlightRef = useRef(false);
   const audioCacheRef = useRef(
@@ -78,7 +119,7 @@ export default function InterviewPhase({
 
   const audioKey = useCallback(
     (question: GeneratedInterviewQuestion) =>
-      `${language}:${voiceId}:${question.id}:${question.text}`,
+      `${language}:${voiceId}:${question.id}:${question.ttsText || question.text}`,
     [language, voiceId]
   );
 
@@ -125,7 +166,7 @@ export default function InterviewPhase({
 
       const request = aiService
         .previewTts({
-          text: question.text.slice(0, 500),
+          text: (question.ttsText || question.text).slice(0, 500),
           language,
           voiceId,
         })
@@ -151,10 +192,15 @@ export default function InterviewPhase({
 
   const playQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
-      const data = await getQuestionAudio(question);
-      await playInterviewAudio(data.audioBase64, data.contentType);
+      try {
+        const data = await waitForServerAudio(getQuestionAudio(question));
+        await playInterviewAudio(data.audioBase64, data.contentType);
+      } catch (error) {
+        console.warn("Server TTS unavailable, using browser voice:", error);
+        await speakInterviewText(question.text, language);
+      }
     },
-    [getQuestionAudio]
+    [getQuestionAudio, language]
   );
 
   useEffect(() => {
@@ -321,7 +367,6 @@ export default function InterviewPhase({
         ...previous,
         t("interview.finishLogSave"),
       ]);
-      toast.success(t("interview.finishSuccess"));
       router.push(
         `/practice/${encodeURIComponent(practiceId)}/analysis?runId=${encodeURIComponent(runId)}`
       );
@@ -366,6 +411,21 @@ export default function InterviewPhase({
         throw new Error(response.message || t("interview.saveResultError"));
       }
 
+      setHistoryEntries((previous) => {
+        const entry: InterviewHistoryEntry = {
+          questionId: currentQuestion.id,
+          question: currentQuestion.text,
+          answer: normalizedAnswer,
+        };
+        const existingIndex = previous.findIndex(
+          (item) => item.questionId === currentQuestion.id
+        );
+        if (existingIndex < 0) return [...previous, entry];
+        return previous.map((item, index) =>
+          index === existingIndex ? entry : item
+        );
+      });
+      setExpandedHistoryId(currentQuestion.id);
       setAnsweredCount(response.answeredCount);
       if (response.completed || !response.nextQuestion) {
         await finishInterview();
@@ -435,9 +495,161 @@ export default function InterviewPhase({
   }
 
   return (
-    <div className="relative flex h-full w-full select-none flex-col overflow-hidden bg-transparent text-foreground">
+    <AnimatePresence initial={false} mode="wait">
+      {stage === "finishing" ? (
+        <motion.div
+          key="finishing"
+          className="h-full w-full"
+          initial={{ opacity: 0, scale: 0.985 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, filter: "blur(14px)", scale: 1.025 }}
+          transition={{ duration: 0.55, ease: "easeInOut" }}
+        >
+          <FinishingPhase completedSteps={finishLog.length} />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="interview-session"
+          className="relative flex h-full w-full select-none flex-col overflow-hidden bg-transparent text-foreground"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, filter: "blur(12px)", scale: 1.015 }}
+          transition={{ duration: 0.45, ease: "easeInOut" }}
+        >
+          <AnimatePresence initial={false}>
+            {isHistoryOpen && (
+              <motion.aside
+                key="interview-history"
+                initial={{ x: "-100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "-100%", opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="absolute inset-y-0 left-0 z-40 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col border-r border-border/60 bg-background/95 shadow-2xl backdrop-blur-2xl"
+              >
+                <div className="flex h-20 shrink-0 items-center justify-between border-b border-border/50 px-5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <MessageSquareText className="h-4 w-4 text-primary" />
+                      <h2 className="truncate text-sm font-extrabold">
+                        {t("interview.historyTitle")}
+                      </h2>
+                    </div>
+                    <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                      {t("interview.historyProgress", {
+                        answered: historyEntries.length,
+                        total: questionCount,
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsHistoryOpen(false)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label={t("interview.closeHistory")}
+                    title={t("interview.closeHistory")}
+                  >
+                    <PanelLeftClose className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-3">
+                  {historyEntries.map((entry, index) => {
+                    const isExpanded = expandedHistoryId === entry.questionId;
+                    return (
+                      <button
+                        key={entry.questionId}
+                        type="button"
+                        onClick={() =>
+                          setExpandedHistoryId((current) =>
+                            current === entry.questionId ? null : entry.questionId
+                          )
+                        }
+                        aria-expanded={isExpanded}
+                        className={cn(
+                          "w-full rounded-2xl border px-3.5 py-3 text-left transition-colors",
+                          isExpanded
+                            ? "border-primary/30 bg-primary/10"
+                            : "border-transparent hover:border-border/60 hover:bg-muted/60"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="flex h-6 min-w-6 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={cn(
+                                "select-text text-xs font-bold leading-relaxed",
+                                !isExpanded && "line-clamp-2"
+                              )}
+                            >
+                              {entry.question}
+                            </p>
+                            <p className="mt-1 text-[10px] font-semibold text-primary">
+                              {t("interview.answered")}
+                            </p>
+                          </div>
+                          <ChevronDown
+                            className={cn(
+                              "mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                              isExpanded && "rotate-180"
+                            )}
+                          />
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-3 border-t border-border/50 pt-3">
+                            <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-muted-foreground">
+                              {t("interview.yourPreviousAnswer")}
+                            </p>
+                            <p className="whitespace-pre-wrap select-text text-xs leading-relaxed text-foreground/85">
+                              {entry.answer}
+                            </p>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  <div className="rounded-2xl border border-primary/35 bg-primary/10 px-3.5 py-3 text-left shadow-sm shadow-primary/5">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-6 min-w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-primary-foreground">
+                        {currentStep + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-3 select-text text-xs font-bold leading-relaxed">
+                          {currentQuestion.text}
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold text-primary">
+                          {t("interview.currentQuestion")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.aside>
+            )}
+          </AnimatePresence>
+
+          <div
+            className={cn(
+              "flex h-full min-w-0 flex-1 flex-col transition-[padding] duration-300",
+              isHistoryOpen && "lg:pl-80"
+            )}
+          >
       <header className="z-20 flex w-full shrink-0 items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
+          {!isHistoryOpen && (
+            <button
+              type="button"
+              onClick={() => setIsHistoryOpen(true)}
+              className="mr-1 flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-background/70 text-muted-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={t("interview.openHistory")}
+              title={t("interview.openHistory")}
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          )}
           <div
             className="relative flex h-8 w-8 items-center justify-center transition-transform duration-100"
             style={{
@@ -480,7 +692,7 @@ export default function InterviewPhase({
           <button
             type="button"
             onClick={() => void finishInterview()}
-            disabled={stage === "finishing" || stage === "submitting"}
+            disabled={stage === "submitting"}
             className="text-muted-foreground transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={
               answeredCount > 0
@@ -633,33 +845,9 @@ export default function InterviewPhase({
         soundLevel={stage === "speaking" ? 42 : soundLevel}
         isActive={stage === "recording" || stage === "speaking"}
       />
-
-      {stage === "finishing" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 px-6 backdrop-blur-xl">
-          <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
-            <div className="relative flex h-20 w-20 items-center justify-center">
-              <div className="absolute inset-0 animate-ping rounded-full border border-primary/20 opacity-75" />
-              <Spinner className="h-12 w-12 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-foreground">
-                {t("interview.finishingTitle")}
-              </h2>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                {t("interview.finishingDescription")}
-              </p>
-            </div>
-            <div className="max-h-36 w-full overflow-y-auto rounded-lg border border-border bg-muted/40 p-4 text-left font-mono text-[10px] text-emerald-400">
-              {finishLog.map((log) => (
-                <div key={log} className="mb-1.5 flex gap-2">
-                  <span className="text-primary">&gt;</span>
-                  <span>{log}</span>
-                </div>
-              ))}
-            </div>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }

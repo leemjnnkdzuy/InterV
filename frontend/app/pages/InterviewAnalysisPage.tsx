@@ -26,6 +26,26 @@ function clampScore(value: number | undefined): number {
   return Math.max(0, Math.min(100, Number(value) || 0));
 }
 
+function DeliveryMetric({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <div className="border-l-2 border-primary/60 pl-3">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 text-xl font-black text-foreground">{value}</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">{note}</p>
+    </div>
+  );
+}
+
 export default function InterviewAnalysisPage({
   practiceId,
   runId,
@@ -134,6 +154,74 @@ export default function InterviewAnalysisPage({
 
   const { run } = data;
   const result = run.result;
+  const audioAnalysis = result.audioAnalysis;
+  const usefulAudioObservations = (audioAnalysis?.observations || []).filter(
+    (observation) =>
+      !/sensevoice|\b(?:lid|aed|ser)\b|confidence\s*\/\s*composure|đã phân tích \d+ đoạn/i.test(
+        observation
+      )
+  );
+  const deliveryMetrics = audioAnalysis
+    ? [
+        typeof audioAnalysis.speakingRateWpm === "number" &&
+          audioAnalysis.speakingRateWpm > 0 && {
+          label: "Tốc độ nói",
+          value: `${Math.round(audioAnalysis.speakingRateWpm)} từ/phút`,
+          note:
+            audioAnalysis.speakingRateWpm >= 105 &&
+            audioAnalysis.speakingRateWpm <= 170
+              ? "Nằm trong khoảng dễ theo dõi."
+              : audioAnalysis.speakingRateWpm > 170
+                ? "Khá nhanh, nên giảm tốc ở ý chính."
+                : "Khá chậm, nên rút gọn phần dẫn nhập.",
+        },
+        typeof audioAnalysis.paceConsistency === "number" && {
+          label: "Nhịp nói ổn định",
+          value: `${audioAnalysis.paceConsistency}/100`,
+          note:
+            audioAnalysis.paceConsistency >= 70
+              ? "Tốc độ giữa các câu khá nhất quán."
+              : "Tốc độ thay đổi nhiều giữa các câu.",
+        },
+        typeof audioAnalysis.pauseRatio === "number" &&
+          audioAnalysis.pauseRatio >= 0 && {
+          label: "Khoảng lặng",
+          value: `${audioAnalysis.pauseRatio}%`,
+          note:
+            audioAnalysis.pauseRatio >= 10 && audioAnalysis.pauseRatio <= 35
+              ? "Có khoảng nghỉ vừa đủ để tách ý."
+              : audioAnalysis.pauseRatio > 35
+                ? "Có nhiều khoảng dừng dài."
+                : "Ít khoảng nghỉ, câu trả lời có thể bị dồn.",
+        },
+        typeof audioAnalysis.volumeStability === "number" &&
+          audioAnalysis.volumeStability >= 0 && {
+          label: "Âm lượng ổn định",
+          value: `${audioAnalysis.volumeStability}/100`,
+          note:
+            audioAnalysis.volumeStability >= 70
+              ? "Âm lượng được duy trì tương đối đều."
+              : "Âm lượng thay đổi đáng kể trong câu trả lời.",
+        },
+        typeof audioAnalysis.fillerWordCount === "number" && {
+          label: "Từ đệm",
+          value: `${audioAnalysis.fillerWordCount} lần`,
+          note:
+            audioAnalysis.fillerWordCount <= 2
+              ? "Ít từ đệm, thông điệp khá gọn."
+              : "Nên thay từ đệm bằng một nhịp dừng ngắn.",
+        },
+        typeof audioAnalysis.averageAnswerDurationSec === "number" &&
+          audioAnalysis.averageAnswerDurationSec > 0 && {
+          label: "Thời lượng trung bình",
+          value: `${Math.round(audioAnalysis.averageAnswerDurationSec)} giây/câu`,
+          note: `${audioAnalysis.analyzedAnswerCount || result.questions.length} câu trả lời có bản ghi âm.`,
+        },
+      ].filter(
+        (metric): metric is { label: string; value: string; note: string } =>
+          Boolean(metric)
+      )
+    : [];
   const locale =
     language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
   const completedAt = new Date(run.completedAt).toLocaleString(locale);
@@ -155,7 +243,7 @@ export default function InterviewAnalysisPage({
             <h1 className="text-2xl font-black md:text-3xl">
               {t("analysis.title")}
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               {run.title} · {run.answeredCount}/{run.questionCount}{" "}
               {t("analysis.questions")} · {completedAt}
             </p>
@@ -270,8 +358,8 @@ export default function InterviewAnalysisPage({
           </div>
         </section>
 
-        {result.audioAnalysis && (
-          <section className="border-b border-border/60 py-8">
+        {audioAnalysis && (
+          <section className="border-b border-border/60 py-8 [&>p]:hidden [&>div:nth-of-type(2)]:hidden">
             <div className="flex items-center gap-2">
               <Microphone3
                 className="h-5 w-5 text-primary"
@@ -279,21 +367,14 @@ export default function InterviewAnalysisPage({
                 aria-hidden="true"
               />
               <h2 className="text-base font-black">
-                {t("analysis.voiceBehavior")}
+                Hiệu quả trình bày bằng giọng nói
               </h2>
-              <span className="ml-auto text-[10px] font-bold uppercase text-muted-foreground">
-                {result.audioAnalysis.provider}
-              </span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
               {t("analysis.dominantEmotion")}:{" "}
-              <span className="font-bold text-foreground">
-                {result.audioAnalysis.dominantEmotion ||
-                  t("analysis.neutralEmotion")}
-              </span>
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {result.audioAnalysis.observations.map((observation) => (
+              {audioAnalysis.observations.map((observation) => (
                 <p
                   key={observation}
                   className="border-l-2 border-primary/60 pl-3 text-sm leading-6 text-foreground/75"
@@ -301,6 +382,70 @@ export default function InterviewAnalysisPage({
                   {observation}
                 </p>
               ))}
+            </div>
+
+            <div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                Các chỉ số phản ánh cách truyền đạt có thể quan sát được, không dùng
+                để suy đoán tính cách hay trạng thái tâm lý.
+              </p>
+
+              {deliveryMetrics.length > 0 && (
+                <div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {deliveryMetrics.map((metric) => (
+                    <DeliveryMetric key={metric.label} {...metric} />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-8 grid gap-8 md:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-black text-foreground">
+                    Dữ liệu ghi nhận
+                  </h3>
+                  {usefulAudioObservations.length > 0 ? (
+                    <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+                      {usefulAudioObservations.map((observation) => (
+                        <li
+                          key={observation}
+                          className="border-l-2 border-primary/60 pl-3"
+                        >
+                          {observation}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      Kết quả này được tạo trước khi có bộ chỉ số trình bày chi tiết.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-black text-primary">
+                    Nên thử ở lần tiếp theo
+                  </h3>
+                  {(audioAnalysis.recommendations || []).length > 0 ? (
+                    <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+                      {(audioAnalysis.recommendations || []).map(
+                        (recommendation) => (
+                          <li
+                            key={recommendation}
+                            className="border-l-2 border-primary/60 pl-3"
+                          >
+                            {recommendation}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      Thực hiện thêm một lượt để nhận gợi ý cải thiện dựa trên các
+                      chỉ số mới.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
         )}

@@ -7,10 +7,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
 } from "@/app/components/ui/drawer";
-import { Button } from "@/app/components/ui/button";
 import { 
   MedalStar, 
   ChatRound, 
@@ -238,14 +235,6 @@ export default function ResultPracticeDrawer({
             </div>
           </div>
 
-          {/* Footer action buttons */}
-          <DrawerFooter className="px-0 pt-6 mt-4 border-t border-border/20 flex flex-row gap-3">
-            <DrawerClose asChild>
-              <Button variant="outline" className="flex-1 rounded-2xl py-5 text-xs font-semibold cursor-pointer">
-                {t("resultDrawer.close")}
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>

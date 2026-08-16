@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { unlockInterviewAudio } from "@/app/lib/InterviewAudio";
-import { practiceService } from "@/app/services";
+import { aiService, practiceService } from "@/app/services";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
@@ -29,7 +29,7 @@ import {
 
 const DEFAULT_INDUSTRY = "Công nghệ thông tin";
 const DEFAULT_LANGUAGE = "vi-VN";
-const DEFAULT_VOICE = "vi-VN-HoaiMyNeural";
+const DEFAULT_VOICE = "hn_female_ngochuyen_full_48k-fhg";
 
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -83,7 +83,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         setTopic(session.topic || "");
         setDifficulty(session.difficulty || "Middle");
         setDuration(normalizeInterviewQuestionCount(session.questionCount));
-        setLanguage(session.language || DEFAULT_LANGUAGE);
+        setLanguage(DEFAULT_LANGUAGE);
         setVoiceId(session.voiceId || DEFAULT_VOICE);
         setRecruitmentMode(session.source === "recruitment");
         setRecruitmentExpiresAt(session.expiresAt);
@@ -164,12 +164,38 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         return;
       }
 
+      let firstQuestionAudio = data.firstQuestionAudio;
+      if (!firstQuestionAudio) {
+        try {
+          const audio = await aiService.previewTts({
+            text: (data.questions[0].ttsText || data.questions[0].text).slice(
+              0,
+              500
+            ),
+            language: selectedLanguage,
+            voiceId: selectedVoiceId,
+          });
+          if (!audio.success || !audio.audioBase64) {
+            throw new Error(audio.message || "TTS did not return audio");
+          }
+          firstQuestionAudio = {
+            audioBase64: audio.audioBase64,
+            contentType: audio.contentType,
+          };
+        } catch (audioError) {
+          console.error("Could not prepare the first question audio:", audioError);
+          toast.error(t("interview.ttsFailed"));
+          setActivePhase("setup");
+          return;
+        }
+      }
+
       startAttemptRef.current = null;
       setRunId(data.runId);
       setQuestionsList(data.questions);
       setLanguage(selectedLanguage);
       setVoiceId(selectedVoiceId);
-      setInitialQuestionAudio(data.firstQuestionAudio);
+      setInitialQuestionAudio(firstQuestionAudio);
       setActivePhase("interview");
       void refreshUser();
     } catch (err: unknown) {
@@ -177,7 +203,9 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
       if (
         axios.isAxiosError(err) &&
         err.response &&
-        [400, 401, 402, 403, 404, 409, 410].includes(err.response.status)
+        [400, 401, 402, 403, 404, 409, 410, 502].includes(
+          err.response.status
+        )
       ) {
         startAttemptRef.current = null;
       }
@@ -197,7 +225,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
 
   if (isLoading) {
     return (
-      <div className="dark flex h-screen w-screen bg-zinc-950 relative overflow-hidden">
+      <div className="flex h-screen w-screen bg-background relative overflow-hidden">
         <SilkBackground fadeBottom bottomColor="var(--background)" />
         <div className="relative z-10 w-full">
           <SetupPhaseSkeleton />
@@ -207,7 +235,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
   }
 
   return (
-    <div className="dark w-full h-screen bg-background text-left relative overflow-hidden flex flex-col animate-in fade-in duration-300">
+    <div className="w-full h-screen bg-background text-left relative overflow-hidden flex flex-col animate-in fade-in duration-300">
       <SilkBackground fadeBottom bottomColor="var(--background)" />
       <div className="relative z-10 w-full h-full flex flex-col">
         <AnimatePresence initial={false} mode="wait">

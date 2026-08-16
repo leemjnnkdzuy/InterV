@@ -5,6 +5,7 @@ import vertexShader from "@/app/assets/shaders/silk.vert.glsl";
 import fragmentShader from "@/app/assets/shaders/silk.frag.glsl";
 
 const hexToNormalizedRGB = (hex: string): [number, number, number] => {
+  if (hex.startsWith('var(')) return [0.72, 0.68, 0.76];
   hex = hex.replace('#', '');
   return [
     parseInt(hex.slice(0, 2), 16) / 255,
@@ -89,7 +90,7 @@ const Silk = ({ speed = 5, scale = 1, color = '#7B7481', noiseIntensity = 1.5, r
       dpr={[1, 2]}
       frameloop="always"
       gl={{ alpha: false, antialias: false }}
-      style={{ background: '#17161a' }}
+      style={{ background: 'var(--silk-canvas-bg)' }}
     >
       <SilkPlane ref={meshRef} uniforms={uniforms} />
     </Canvas>

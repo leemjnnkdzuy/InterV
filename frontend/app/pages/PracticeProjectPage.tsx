@@ -189,7 +189,7 @@ export default function PracticeProjectPage() {
   };
 
   return (
-    <div className="dark relative -m-6 min-h-screen overflow-hidden bg-transparent px-6 py-6 lg:-m-8 lg:px-8 lg:py-8">
+    <div className="relative -m-6 min-h-screen overflow-hidden bg-transparent px-6 py-6 lg:-m-8 lg:px-8 lg:py-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"

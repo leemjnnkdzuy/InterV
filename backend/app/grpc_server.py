@@ -235,6 +235,7 @@ def _question_message(question) -> interv_ai_pb2.InterviewQuestion:
     return interv_ai_pb2.InterviewQuestion(
         id=question.id,
         text=question.text,
+        tts_text=question.tts_text,
         competency=question.competency,
         difficulty=question.difficulty or "",
         expected_signals=question.expected_signals,
@@ -287,7 +288,7 @@ def _context_kwargs(context) -> dict[str, object]:
         "topic": context.topic,
         "difficulty": context.difficulty or "Middle",
         "language": context.language or "vi-VN",
-        "voice_id": context.voice_id or "vi-VN-HoaiMyNeural",
+        "voice_id": context.voice_id or "hn_female_ngochuyen_full_48k-fhg",
     }
 
 
@@ -404,6 +405,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                     locale=voice.locale,
                     gender=voice.gender or "",
                     description=voice.description or "",
+                    demo_url=voice.demo_url or "",
                 )
                 for voice in voices
             ],
@@ -578,6 +580,15 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 "vocal_delivery": audio.vocal_delivery,
                 "dominant_emotion": audio.dominant_emotion,
                 "observations": list(audio.observations),
+                "recommendations": list(audio.recommendations),
+                "speaking_rate_wpm": audio.speaking_rate_wpm,
+                "pace_consistency": audio.pace_consistency,
+                "pause_ratio": audio.pause_ratio,
+                "volume_stability": audio.volume_stability,
+                "filler_word_count": audio.filler_word_count,
+                "average_answer_duration_sec": audio.average_answer_duration_sec,
+                "analyzed_answer_count": audio.analyzed_answer_count,
+                "total_word_count": audio.total_word_count,
                 "provider": audio.provider,
             }
 
@@ -650,6 +661,17 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                     vocal_delivery=int(result_audio.get("vocal_delivery", 0)),
                     dominant_emotion=str(result_audio.get("dominant_emotion", "")),
                     observations=[str(item) for item in result_audio.get("observations", [])],
+                    recommendations=[str(item) for item in result_audio.get("recommendations", [])],
+                    speaking_rate_wpm=float(result_audio.get("speaking_rate_wpm", 0)),
+                    pace_consistency=int(result_audio.get("pace_consistency", 0)),
+                    pause_ratio=int(result_audio.get("pause_ratio", 0)),
+                    volume_stability=int(result_audio.get("volume_stability", 0)),
+                    filler_word_count=int(result_audio.get("filler_word_count", 0)),
+                    average_answer_duration_sec=float(
+                        result_audio.get("average_answer_duration_sec", 0)
+                    ),
+                    analyzed_answer_count=int(result_audio.get("analyzed_answer_count", 0)),
+                    total_word_count=int(result_audio.get("total_word_count", 0)),
                     provider=str(result_audio.get("provider", "")),
                 ),
                 grounding_ids=evaluation.grounding_ids,
@@ -715,6 +737,15 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 vocal_delivery=result.vocal_delivery,
                 dominant_emotion=result.dominant_emotion,
                 observations=result.observations,
+                recommendations=result.recommendations,
+                speaking_rate_wpm=result.speaking_rate_wpm,
+                pace_consistency=result.pace_consistency,
+                pause_ratio=result.pause_ratio,
+                volume_stability=result.volume_stability,
+                filler_word_count=result.filler_word_count,
+                average_answer_duration_sec=result.average_answer_duration_sec,
+                analyzed_answer_count=result.analyzed_answer_count,
+                total_word_count=result.total_word_count,
                 provider=result.provider,
             ),
         )

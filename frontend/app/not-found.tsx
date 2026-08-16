@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, HomeAngle } from "@solar-icons/react";
 import { Button } from "@/app/components/ui/button";
 import { logo, trong_dong } from "@/app/assets";
 
 export default function NotFound() {
+	const router = useRouter();
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-hidden relative flex items-center">
 			{/* Right Side - Rotating Trống Đồng Background (50% visible) */}
@@ -59,16 +60,13 @@ export default function NotFound() {
 				{/* Action Buttons */}
 				<div className="flex flex-col sm:flex-row gap-4 max-w-md">
 					<Button
-						asChild
 						className="flex-1 bg-foreground text-background hover:bg-foreground/90 rounded-2xl px-8 font-semibold h-12 text-base shadow-lg transition-all duration-300 cursor-pointer"
+						onClick={() => router.push("/")}
 					>
-						<Link
-							href="/"
-							className="flex items-center justify-center gap-2 w-full"
-						>
+						<span className="flex items-center justify-center gap-2 w-full">
 							<HomeAngle className="h-5 w-5" />
 							Về Trang Chủ
-						</Link>
+						</span>
 					</Button>
 
 					<Button

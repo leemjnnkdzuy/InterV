@@ -9,6 +9,7 @@ class VoiceInfo(BaseModel):
     locale: str = Field(min_length=2, max_length=20)
     gender: str | None = None
     description: str | None = None
+    demo_url: str | None = None
 
 
 class VoicesResponse(BaseModel):
@@ -56,7 +57,7 @@ class InterviewStartRequest(BaseModel):
     question_count: int = Field(default=5, ge=5, le=25)
     language: str = Field(default="vi-VN", min_length=2, max_length=20)
     voice_id: str = Field(
-        default="vi-VN-HoaiMyNeural",
+        default="hn_female_ngochuyen_full_48k-fhg",
         min_length=1,
         max_length=120,
     )
@@ -65,6 +66,7 @@ class InterviewStartRequest(BaseModel):
 class GeneratedQuestion(BaseModel):
     id: str = Field(min_length=1, max_length=64)
     text: str = Field(min_length=1, max_length=500)
+    tts_text: str = Field(default="", max_length=1_000)
     competency: str = Field(min_length=1, max_length=120)
     difficulty: str | None = Field(default=None, max_length=80)
     expected_signals: list[str] = Field(default_factory=list, max_length=20)

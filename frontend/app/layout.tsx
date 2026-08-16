@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import {headers} from "next/headers";
 import {
 	Geist_Mono,
-	Inter,
+	Lexend_Deca,
 	Merriweather,
 	Merriweather_Sans,
 } from "next/font/google";
@@ -15,7 +15,10 @@ import {Toaster} from "@/app/components/ui/sonner";
 import {TooltipProvider} from "@/app/components/ui/tooltip";
 import {themeInitializerScript} from "@/app/scripts/theme";
 
-const inter = Inter({subsets: ["latin", "vietnamese"], variable: "--font-sans"});
+const lexendDeca = Lexend_Deca({
+	subsets: ["latin", "vietnamese"],
+	variable: "--font-sans",
+});
 
 
 const geistMono = Geist_Mono({
@@ -66,7 +69,7 @@ export default async function RootLayout({
 				"h-full",
 				"antialiased",
 				geistMono.variable,
-				inter.variable,
+				lexendDeca.variable,
 				merriweatherSans.variable,
 				merriweather.variable,
 				"font-sans",

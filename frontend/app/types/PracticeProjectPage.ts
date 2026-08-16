@@ -31,6 +31,15 @@ export interface PracticeResultData {
     vocalDelivery: number;
     dominantEmotion: string;
     observations: string[];
+    recommendations?: string[];
+    speakingRateWpm?: number;
+    paceConsistency?: number;
+    pauseRatio?: number;
+    volumeStability?: number;
+    fillerWordCount?: number;
+    averageAnswerDurationSec?: number;
+    analyzedAnswerCount?: number;
+    totalWordCount?: number;
     provider: string;
   };
   provider?: string;

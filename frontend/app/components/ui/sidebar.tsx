@@ -664,12 +664,12 @@ function SidebarMenuSubButton({
   isActive = false,
   className,
   ...props
-}: React.ComponentProps<"a"> & {
+}: React.ComponentProps<"button"> & {
   asChild?: boolean
   size?: "sm" | "md"
   isActive?: boolean
 }) {
-  const Comp = asChild ? Slot.Root : "a"
+  const Comp = asChild ? Slot.Root : "button"
 
   return (
     <Comp

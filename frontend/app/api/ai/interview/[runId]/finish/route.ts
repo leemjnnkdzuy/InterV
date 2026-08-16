@@ -250,7 +250,7 @@ async function POSTHandler(
         {
           success: false,
           message:
-            "Không có bản ghi âm để SenseVoice phân tích. Hãy ghi âm ít nhất một câu trả lời.",
+            "Không có bản ghi âm để phân tích cách trình bày. Hãy ghi âm ít nhất một câu trả lời.",
         },
         { status: 422 }
       );
@@ -297,7 +297,7 @@ async function POSTHandler(
     const audioAnalysis: GrpcAudioBehaviorAnalysis =
       analysisResponse.analysis;
     if (audioAnalysis.provider !== "sensevoice") {
-      throw new Error("SenseVoice did not complete the mandatory audio analysis");
+      throw new Error("The mandatory delivery analysis did not complete");
     }
 
     const context = {
@@ -309,7 +309,10 @@ async function POSTHandler(
       difficulty: run.difficulty || session.difficulty || "Middle",
       questionCount,
       language: run.language || session.language || "vi-VN",
-      voiceId: run.voiceId || session.voiceId || "vi-VN-HoaiMyNeural",
+      voiceId:
+        run.voiceId ||
+        session.voiceId ||
+        "hn_female_ngochuyen_full_48k-fhg",
     };
     usageAiRunId = aiRunId;
     usageEventKey = `interview-evaluate:${claimedRunId}:${claimStartedAt.toISOString()}`;

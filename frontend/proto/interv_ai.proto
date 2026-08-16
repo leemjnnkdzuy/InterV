@@ -65,6 +65,7 @@ message Voice {
   string locale = 3;
   string gender = 4;
   string description = 5;
+  string demo_url = 6;
 }
 
 message ListVoicesResponse {
@@ -92,6 +93,7 @@ message InterviewQuestion {
   string difficulty = 4;
   repeated string expected_signals = 5;
   repeated string grounding_ids = 6;
+  string tts_text = 7;
 }
 
 message InterviewContext {
@@ -184,6 +186,15 @@ message AudioBehaviorAnalysis {
   string dominant_emotion = 4;
   repeated string observations = 5;
   string provider = 6;
+  double speaking_rate_wpm = 7;
+  int32 pace_consistency = 8;
+  int32 pause_ratio = 9;
+  int32 volume_stability = 10;
+  int32 filler_word_count = 11;
+  double average_answer_duration_sec = 12;
+  int32 analyzed_answer_count = 13;
+  int32 total_word_count = 14;
+  repeated string recommendations = 15;
 }
 
 message InterviewEvaluation {

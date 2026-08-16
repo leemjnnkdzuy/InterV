@@ -10,6 +10,12 @@ import {
   rateLimitResponse,
 } from "@/app/lib/ServerSecurity";
 
+function assemblyAiLanguageCode(locale: unknown): string {
+  if (typeof locale !== "string") return "vi";
+  const languageCode = locale.trim().toLowerCase().split("-")[0];
+  return /^[a-z]{2,3}$/.test(languageCode) ? languageCode : "vi";
+}
+
 async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
@@ -37,7 +43,7 @@ async function POSTHandler(
       userId: tokenPayload.userId,
       status: "IN_PROGRESS",
     })
-      .select("_id")
+      .select("_id language")
       .lean();
     if (!run) {
       return NextResponse.json(
@@ -63,6 +69,7 @@ async function POSTHandler(
       expiresInSeconds: token.expiresInSeconds,
       websocketUrl: token.websocketUrl,
       speechModel: token.speechModel,
+      languageCode: assemblyAiLanguageCode(run.language),
       sampleRate: 16_000,
     });
   } catch (error: unknown) {

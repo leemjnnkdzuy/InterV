@@ -48,6 +48,10 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
       type: Boolean,
       default: false,
     },
+    archivedAt: {
+      type: Date,
+      index: true,
+    },
     title: {
       type: String,
       required: [true, "Tiêu đề buổi phỏng vấn là bắt buộc"],
@@ -71,7 +75,7 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
     },
     voiceId: {
       type: String,
-      default: "vi-VN-HoaiMyNeural",
+      default: "hn_female_ngochuyen_full_48k-fhg",
     },
     difficulty: {
       type: String,
@@ -119,6 +123,15 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
           vocalDelivery: { type: Number, required: false },
           dominantEmotion: { type: String, required: false },
           observations: { type: [String], default: [] },
+          recommendations: { type: [String], default: [] },
+          speakingRateWpm: { type: Number, required: false },
+          paceConsistency: { type: Number, required: false },
+          pauseRatio: { type: Number, required: false },
+          volumeStability: { type: Number, required: false },
+          fillerWordCount: { type: Number, required: false },
+          averageAnswerDurationSec: { type: Number, required: false },
+          analyzedAnswerCount: { type: Number, required: false },
+          totalWordCount: { type: Number, required: false },
           provider: { type: String, required: false },
         },
         provider: { type: String, required: false },

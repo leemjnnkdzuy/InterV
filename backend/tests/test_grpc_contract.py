@@ -143,7 +143,7 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
                         title="Frontend Engineer",
                         question_count=5,
                         language="vi-VN",
-                        voice_id="vi-VN-HoaiMyNeural",
+                        voice_id="hn_female_ngochuyen_full_48k-fhg",
                     )
                 ),
                 metadata=self.metadata,
@@ -214,6 +214,15 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
             vocal_delivery=84,
             dominant_emotion="neutral",
             observations=["Giọng nói ổn định."],
+            recommendations=["Dừng ngắn giữa các ý."],
+            speaking_rate_wpm=132,
+            pace_consistency=84,
+            pause_ratio=18,
+            volume_stability=86,
+            filler_word_count=1,
+            average_answer_duration_sec=52,
+            analyzed_answer_count=1,
+            total_word_count=114,
             provider="sensevoice",
         )
 

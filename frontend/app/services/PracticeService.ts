@@ -3,6 +3,8 @@ import api from "@/app/lib/Client";
 import type {
   InterviewResultResponse,
   PracticeCreatePayload,
+  PracticeHistoryResponse,
+  PracticeHistorySource,
   PracticeQuotePayload,
   PracticeStartPayload,
   PracticeStartResponse,
@@ -14,6 +16,13 @@ const FINISH_RECOVERY_TIMEOUT_MS = 600_000;
 
 function wait(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function createRecoveryIdempotencyKey() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export const practiceService = {
@@ -48,10 +57,12 @@ export const practiceService = {
   ): Promise<PracticeStartResponse> => {
     const deadline = Date.now() + START_RECOVERY_TIMEOUT_MS;
     let networkRetries = 0;
+    let idempotencyReset = false;
+    let requestData = data;
     while (true) {
       try {
         const remaining = Math.max(10_000, deadline - Date.now());
-        const response = await api.post(`/practice/${id}/start`, data, {
+        const response = await api.post(`/practice/${id}/start`, requestData, {
           timeout: Math.min(360_000, remaining),
         });
         return response.data;
@@ -60,8 +71,25 @@ export const practiceService = {
           throw error;
         }
         const responseData = error.response?.data as
-          | { preparing?: boolean; retryAfterSeconds?: number }
+          | {
+              preparing?: boolean;
+              retryAfterSeconds?: number;
+              resetIdempotency?: boolean;
+            }
           | undefined;
+        if (
+          error.response?.status === 409 &&
+          responseData?.resetIdempotency === true &&
+          !idempotencyReset &&
+          Date.now() < deadline
+        ) {
+          idempotencyReset = true;
+          requestData = {
+            ...requestData,
+            idempotencyKey: createRecoveryIdempotencyKey(),
+          };
+          continue;
+        }
         if (
           error.response?.status === 409 &&
           responseData?.preparing === true &&
@@ -137,6 +165,17 @@ export const practiceService = {
         }
       }
     }
+  },
+
+  getHistory: async (
+    page = 1,
+    source: PracticeHistorySource | "all" = "all",
+    limit = 20
+  ): Promise<PracticeHistoryResponse> => {
+    const response = await api.get("/practice/history", {
+      params: { page, source, limit },
+    });
+    return response.data;
   },
 
   getInterviewResult: async (
