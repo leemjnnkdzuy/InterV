@@ -3,6 +3,7 @@ import mongoose, { Document } from "mongoose";
 export interface IPracticeRunQuestion {
   id: string;
   text: string;
+  ttsText?: string;
   competency: string;
   difficulty?: string;
   expectedSignals?: string[];

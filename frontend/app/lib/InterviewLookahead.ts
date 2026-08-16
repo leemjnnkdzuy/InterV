@@ -58,6 +58,8 @@ export async function generateInterviewLookahead({
     const question = {
       id: questionId,
       text: response.nextQuestion.text,
+      ttsText:
+        response.nextQuestion.ttsText || response.nextQuestion.text,
       competency: response.nextQuestion.competency || "general",
       difficulty:
         response.nextQuestion.difficulty || context.difficulty || "Middle",
@@ -76,7 +78,7 @@ export async function generateInterviewLookahead({
     );
     if (updated.modifiedCount === 1) {
       await aiBackend.synthesizeTts({
-        text: question.text.slice(0, 500),
+        text: question.ttsText.slice(0, 500),
         language: context.language,
         voiceId: context.voiceId,
       });

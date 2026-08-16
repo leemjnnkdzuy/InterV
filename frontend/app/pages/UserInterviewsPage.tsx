@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -181,6 +181,7 @@ function StatTile({
 }
 
 function InterviewCard({ item }: { item: UserInterviewItem }) {
+  const router = useRouter();
   const campaign = item.campaign;
   const status = STATUS_META[item.status];
   const canStart = canStartInterview(item);
@@ -360,33 +361,22 @@ function InterviewCard({ item }: { item: UserInterviewItem }) {
           <div className="flex flex-wrap gap-2 lg:justify-end">
             {hasResult && (
               <Button
-                asChild
                 variant="outline"
                 size="lg"
                 className="h-10 rounded-lg px-4"
+                onClick={() => router.push(`/practice/${encodeURIComponent(item.practiceSessionId)}/analysis?runId=${encodeURIComponent(item.lastRunId || "")}`)}
               >
-                <Link
-                  href={`/practice/${encodeURIComponent(
-                    item.practiceSessionId
-                  )}/analysis?runId=${encodeURIComponent(item.lastRunId || "")}`}
-                >
                   <MedalStar className="size-4" weight="BoldDuotone" />
                   Xem kết quả
-                </Link>
               </Button>
             )}
 
             {canStart ? (
               <Button
-                asChild
                 size="lg"
                 className="h-10 rounded-lg px-5 font-bold shadow-lg shadow-primary/15"
+                onClick={() => router.push(`/practice/${encodeURIComponent(item.practiceSessionId)}`)}
               >
-                <Link
-                  href={`/practice/${encodeURIComponent(
-                    item.practiceSessionId
-                  )}`}
-                >
                   <PlayCircle className="size-4" weight="BoldDuotone" />
                   {item.status === "IN_PROGRESS"
                     ? "Vào lại buổi phỏng vấn"
@@ -394,7 +384,6 @@ function InterviewCard({ item }: { item: UserInterviewItem }) {
                       ? `Phỏng vấn lại (${attemptsLeft} lượt)`
                       : "Tham gia phỏng vấn"}
                   <AltArrowRight className="size-4" weight="BoldDuotone" />
-                </Link>
               </Button>
             ) : (
               <Button

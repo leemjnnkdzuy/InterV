@@ -55,7 +55,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="dark min-h-screen relative bg-zinc-950 text-white flex items-center justify-center">
+    <div className="min-h-screen relative bg-background text-foreground flex items-center justify-center">
       {/* corner icons */}
       <button
         onClick={() => router.push("/")}

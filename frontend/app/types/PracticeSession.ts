@@ -10,6 +10,7 @@ export interface IPracticeSession extends Document {
   expiresAt?: Date;
   maxAttempts?: number;
   lockedConfig?: boolean;
+  archivedAt?: Date;
   title: string;
   jobDescription?: string;
   topic?: string;
@@ -44,6 +45,15 @@ export interface IPracticeSession extends Document {
       vocalDelivery: number;
       dominantEmotion: string;
       observations: string[];
+      recommendations?: string[];
+      speakingRateWpm?: number;
+      paceConsistency?: number;
+      pauseRatio?: number;
+      volumeStability?: number;
+      fillerWordCount?: number;
+      averageAnswerDurationSec?: number;
+      analyzedAnswerCount?: number;
+      totalWordCount?: number;
       provider: string;
     };
     provider?: string;

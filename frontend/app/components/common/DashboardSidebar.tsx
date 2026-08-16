@@ -212,7 +212,7 @@ export default function DashboardSidebar({
       collapsible="icon"
       className="border-none bg-transparent transition-all duration-300 [&_[data-slot=sidebar-inner]]:border-e [&_[data-slot=sidebar-inner]]:border-white/10 [&_[data-slot=sidebar-inner]]:bg-sidebar/65 [&_[data-slot=sidebar-inner]]:backdrop-blur-xl [&_[data-slot=sidebar-inner]]:shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
     >
-      <SidebarHeader className="flex h-20 flex-row items-center justify-between px-6 group-data-[collapsible=icon]:h-28 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-4 group-data-[collapsible=icon]:px-0">
+      <SidebarHeader className="border-b-0 flex h-20 flex-row items-center justify-between px-6 group-data-[collapsible=icon]:h-28 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-4 group-data-[collapsible=icon]:px-0">
         {collapsed ? (
           <>
             <button
@@ -347,7 +347,7 @@ export default function DashboardSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-gradient-to-t from-sidebar-accent/10 to-transparent p-4">
+      <SidebarFooter className="border-t-0 bg-gradient-to-t from-sidebar-accent/10 to-transparent p-4">
         {user && (
           <div
             className={cn(

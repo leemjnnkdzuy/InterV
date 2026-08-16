@@ -2,8 +2,6 @@ import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/app/lib/ConnectDB";
 import PracticeSession from "@/app/models/PracticeSession";
-import PracticeRun from "@/app/models/PracticeRun";
-import PracticeAudio from "@/app/models/PracticeAudio";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
 import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
 import { authenticateRequest } from "@/app/lib/Auth";
@@ -13,7 +11,7 @@ import {
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
 
-const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
+const SUPPORTED_LANGUAGES = new Set(["vi-VN"]);
 
 async function GETHandler(
   request: NextRequest,
@@ -312,11 +310,10 @@ async function DELETEHandler(
     }
 
     await aiBackend.deleteKnowledge({ sessionId: _id });
-    await Promise.all([
-      PracticeAudio.deleteMany({ sessionId: _id, userId: payload.userId }),
-      PracticeRun.deleteMany({ sessionId: _id, userId: payload.userId }),
-      PracticeSession.deleteOne({ _id, userId: payload.userId }),
-    ]);
+    await PracticeSession.updateOne(
+      { _id, userId: payload.userId },
+      { $set: { archivedAt: new Date() } }
+    );
 
     return NextResponse.json({
       success: true,

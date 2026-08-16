@@ -388,7 +388,7 @@ export function getRecruitmentInvitationTemplate(input: {
                 <tr><td style="padding:14px 16px;color:#71717a;font-size:13px;">Bắt đầu</td><td style="padding:14px 16px;text-align:right;color:#f4f4f5;font-size:13px;">${escapeHtml(startsAt)}</td></tr>
                 <tr><td style="padding:14px 16px;color:#71717a;font-size:13px;border-top:1px solid #27272a;">Hạn hoàn thành</td><td style="padding:14px 16px;text-align:right;color:#f4f4f5;font-size:13px;border-top:1px solid #27272a;">${escapeHtml(endsAt)}</td></tr>
               </table>
-              <a href="${interviewUrl}" style="display:block;padding:14px 20px;background:#bbf451;color:#18181b;text-align:center;text-decoration:none;font-weight:800;border-radius:8px;">Mở buổi phỏng vấn</a>
+              <div style="display:block;padding:14px 20px;background:#bbf451;color:#18181b;text-align:center;font-weight:800;border-radius:8px;">Mở buổi phỏng vấn: ${interviewUrl}</div>
               <p style="margin:18px 0 0;color:#71717a;font-size:12px;line-height:1.6;">Bạn cần đăng nhập đúng tài khoản nhận thư này. Liên kết không yêu cầu cung cấp mật khẩu qua email.</p>
             </td>
           </tr>

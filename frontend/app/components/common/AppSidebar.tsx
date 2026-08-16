@@ -29,7 +29,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from "@/app/components/ui/sidebar";
@@ -192,7 +191,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
       collapsible="icon"
     >
       {/* Sidebar Header */}
-      <SidebarHeader className="flex h-20 flex-row items-center justify-between px-6 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-28">
+      <SidebarHeader className="border-b-0 flex h-20 flex-row items-center justify-between px-6 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-28">
         {isCollapsed ? (
           <>
             <div 
@@ -236,8 +235,6 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
           </>
         )}
       </SidebarHeader>
-
-      <SidebarSeparator className="bg-border/20 mx-4" />
 
       {/* Sidebar Content */}
       <SidebarContent className="px-3 py-6 no-scrollbar">
@@ -328,7 +325,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
       </SidebarContent>
 
       {/* Sidebar Footer */}
-      <SidebarFooter className="p-4 bg-gradient-to-t from-sidebar-accent/10 to-transparent">
+      <SidebarFooter className="border-t-0 bg-gradient-to-t from-sidebar-accent/10 to-transparent p-4">
         <SidebarMenu className="gap-3">
           {user && (
             <SidebarMenuItem>

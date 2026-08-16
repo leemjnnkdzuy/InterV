@@ -14,10 +14,10 @@ export default function SilkBackground({
 	return (
 		<div
 			className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0"
-			style={{backgroundColor: fadeBottom ? bottomColor : "#17161a"}}
+			style={{backgroundColor: fadeBottom ? bottomColor : "var(--silk-canvas-bg)"}}
 		>
 			<div
-				className="absolute inset-0 opacity-50 bg-[linear-gradient(155deg,rgba(123,116,129,0.95)_0%,rgba(24,23,29,0.9)_28%,rgba(96,91,103,0.85)_48%,rgba(12,12,15,0.95)_70%,rgba(68,64,73,0.8)_100%)]"
+				className="absolute inset-0 opacity-50 bg-[linear-gradient(155deg,color-mix(in_oklab,var(--silk-tint)_80%,transparent)_0%,color-mix(in_oklab,var(--silk-canvas-bg)_90%,transparent)_28%,color-mix(in_oklab,var(--silk-tint)_65%,transparent)_48%,color-mix(in_oklab,var(--silk-canvas-bg)_95%,transparent)_70%,color-mix(in_oklab,var(--silk-tint)_55%,transparent)_100%)]"
 				style={
 					fadeBottom ?
 						{
@@ -32,7 +32,7 @@ export default function SilkBackground({
 				<Silk
 					speed={5}
 					scale={1}
-					color="#7B7481"
+					color="var(--silk-color)"
 					noiseIntensity={1.5}
 					rotation={0}
 				/>

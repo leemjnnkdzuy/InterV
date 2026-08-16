@@ -7,7 +7,7 @@ import SilkBackground from "@/app/components/common/SilkBackground";
 
 export default function AppLoadingScreen() {
   return (
-    <div className="dark fixed inset-0 z-50 bg-zinc-950 text-white flex flex-col items-center justify-center select-none overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-background text-foreground flex flex-col items-center justify-center select-none overflow-hidden">
       <SilkBackground />
 
       {/* Content */}

@@ -60,26 +60,11 @@ function normalizeQuestion(
   return {
     id: question.id || `q_${index + 1}`,
     text: question.text,
+    ttsText: question.ttsText || question.text,
     competency: question.competency || "general",
     difficulty: question.difficulty || fallbackDifficulty,
     expectedSignals: question.expectedSignals || [],
     groundingIds: question.groundingIds || [],
-  };
-}
-
-async function firstQuestionAudio(
-  text: string,
-  language: string,
-  voiceId: string
-) {
-  const response = await aiBackend.synthesizeTts({
-    text: text.slice(0, 500),
-    language,
-    voiceId,
-  });
-  return {
-    audioBase64: response.audio.toString("base64"),
-    contentType: response.contentType || "audio/mpeg",
   };
 }
 
@@ -125,7 +110,7 @@ async function POSTHandler(
     let difficulty = boundedString(body.difficulty, 80) || "Middle";
     let language = boundedString(body.language, 20) || "vi-VN";
     let voiceId =
-      boundedString(body.voiceId, 120) || "vi-VN-HoaiMyNeural";
+      boundedString(body.voiceId, 120) || "hn_female_ngochuyen_full_48k-fhg";
     let questionCount = normalizeInterviewQuestionCount(body.duration);
     const idempotencyKey = boundedString(body.idempotencyKey, 80);
     let hasUploadedJdFile = body.hasUploadedJdFile === true;
@@ -137,7 +122,11 @@ async function POSTHandler(
     }
 
     await connectDB();
-    const session = await PracticeSession.findOne({ _id, userId });
+    const session = await PracticeSession.findOne({
+      _id,
+      userId,
+      archivedAt: { $exists: false },
+    });
     if (!session) {
       return NextResponse.json(
         { success: false, message: "Không tìm thấy buổi luyện tập" },
@@ -235,7 +224,9 @@ async function POSTHandler(
       topic = session.topic || "";
       difficulty = session.difficulty || "Middle";
       language = session.language || "vi-VN";
-      voiceId = session.voiceId || "vi-VN-HoaiMyNeural";
+      voiceId = session.voiceId?.includes("_48k-")
+        ? session.voiceId
+        : "hn_female_ngochuyen_full_48k-fhg";
       questionCount = normalizeInterviewQuestionCount(session.questionCount);
       hasUploadedJdFile = false;
     }
@@ -272,11 +263,6 @@ async function POSTHandler(
         practiceRun.status === "IN_PROGRESS"
       ) {
         const first = practiceRun.questions[0];
-        const audio = await firstQuestionAudio(
-          first.text,
-          practiceRun.language,
-          practiceRun.voiceId
-        );
         await PracticeRun.updateOne(
           { _id: practiceRun._id },
           {
@@ -289,17 +275,21 @@ async function POSTHandler(
           runId: practiceRun._id.toString(),
           questions: practiceRun.questions,
           questionCount: existingQuestionCount,
-          firstQuestionAudio: audio,
           quote: {
             totalCredits: practiceRun.creditUsage.chargedCredits,
           },
         });
       }
       if (practiceRun.status !== "STARTED") {
+        const canStartFresh = ["FAILED", "REFUNDED"].includes(
+          practiceRun.status
+        );
         return NextResponse.json(
           {
             success: false,
             message: "Yêu cầu khởi tạo này đã kết thúc hoặc được hoàn tiền",
+            code: canStartFresh ? "START_REQUEST_TERMINATED" : "RUN_CONFLICT",
+            resetIdempotency: canStartFresh,
           },
           { status: 409 }
         );
@@ -517,12 +507,6 @@ async function POSTHandler(
         `AI backend returned ${questions.length}/${questionCount} questions`
       );
     }
-    const audio = await firstQuestionAudio(
-      questions[0].text,
-      language,
-      voiceId
-    );
-
     const dbSession = await mongoose.startSession();
     try {
       await dbSession.withTransaction(
@@ -625,7 +609,6 @@ async function POSTHandler(
       runId: createdRunId,
       questions,
       questionCount,
-      firstQuestionAudio: audio,
       quote: {
         totalCredits: chargedCredits,
         remainingCredits: charge.remainingCredits,
@@ -717,6 +700,8 @@ async function POSTHandler(
     return NextResponse.json(
       {
         success: false,
+        code: "START_FAILED",
+        resetIdempotency: true,
         message:
           "Không thể khởi tạo buổi luyện tập AI. Credits đã được hoàn nếu có phát sinh trừ tiền.",
       },

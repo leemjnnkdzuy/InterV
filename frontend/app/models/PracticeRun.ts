@@ -53,7 +53,7 @@ const practiceRunSchema = new Schema<IPracticeRun>(
     },
     voiceId: {
       type: String,
-      default: "vi-VN-HoaiMyNeural",
+      default: "hn_female_ngochuyen_full_48k-fhg",
     },
     difficulty: {
       type: String,
@@ -70,6 +70,7 @@ const practiceRunSchema = new Schema<IPracticeRun>(
         {
           id: { type: String, required: true },
           text: { type: String, required: true },
+          ttsText: { type: String, default: "" },
           competency: { type: String, default: "" },
           difficulty: { type: String, default: "" },
           expectedSignals: { type: [String], default: [] },
@@ -134,6 +135,7 @@ practiceRunSchema.index(
   { unique: true }
 );
 practiceRunSchema.index({ status: 1, startLeaseExpiresAt: 1 });
+practiceRunSchema.index({ userId: 1, updatedAt: -1 });
 
 if (mongoose.models.PracticeRun) {
   delete mongoose.models.PracticeRun;

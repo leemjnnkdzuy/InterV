@@ -9,6 +9,7 @@ export * from "./CreditLog";
 export * from "./AiUsage";
 export * from "./PracticeSession";
 export * from "./PracticeRun";
+export * from "./PracticeHistory";
 export * from "./PracticeAudio";
 export * from "./DifficultyLevel";
 export * from "./AiPersonality";

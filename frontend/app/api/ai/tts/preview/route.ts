@@ -10,7 +10,7 @@ import {
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
 
-const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
+const SUPPORTED_LANGUAGES = new Set(["vi-VN"]);
 
 async function POSTHandler(request: NextRequest) {
   try {
@@ -71,9 +71,11 @@ async function POSTHandler(request: NextRequest) {
       error instanceof AiBackendError
         ? error.message
         : "Không thể tạo audio nghe thử";
+    const status =
+      error instanceof AiBackendError && error.status === 3 ? 400 : 502;
     return NextResponse.json(
       { success: false, message },
-      { status: 502 }
+      { status }
     );
   }
 }

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/app/lib/Auth";
 import { aiBackend } from "@/app/lib/AiBackend";
 
-const SUPPORTED_LANGUAGES = new Set(["vi-VN", "en-US", "zh-CN"]);
+const SUPPORTED_LANGUAGES = new Set(["vi-VN"]);
 
 async function GETHandler(request: NextRequest) {
   try {
@@ -23,10 +23,18 @@ async function GETHandler(request: NextRequest) {
     }
     const data = await aiBackend.listVoices(language);
 
-    return NextResponse.json({
-      success: true,
-      voices: data.voices,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        provider: "vbee",
+        voices: data.voices,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
+    );
   } catch (error: unknown) {
     console.error("GET /api/ai/voices error:", error);
     return NextResponse.json(

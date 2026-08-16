@@ -93,7 +93,7 @@ export default function CreateRecruitmentInterviewPage() {
     jobDescription: "",
     topic: "",
     language: "vi-VN",
-    voiceId: "vi-VN-HoaiMyNeural",
+    voiceId: "hn_female_ngochuyen_full_48k-fhg",
     difficulty: "Middle",
     questionCount: 5,
     maxAttempts: 1,
@@ -113,7 +113,7 @@ export default function CreateRecruitmentInterviewPage() {
       setLoadingVoices(true);
       try {
         const response = (await dashboardRequest<VoiceResponse>(
-          `/api/ai/voices?language=${encodeURIComponent(form.language)}`
+          `/api/ai/voices?language=${encodeURIComponent(form.language)}&provider=vbee-v2`
         )) as VoiceResponse;
         if (cancelled) return;
         setVoices(response.voices);

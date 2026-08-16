@@ -66,11 +66,13 @@ export interface InterviewVoice {
   locale: string;
   gender?: string;
   description?: string;
+  demoUrl?: string;
 }
 
 export interface GeneratedInterviewQuestion {
   id: string;
   text: string;
+  ttsText?: string;
   competency: string;
   difficulty?: string;
   expectedSignals?: string[];
@@ -180,6 +182,15 @@ export interface InterviewAnalysisResult {
     vocalDelivery: number;
     dominantEmotion: string;
     observations: string[];
+    recommendations?: string[];
+    speakingRateWpm?: number;
+    paceConsistency?: number;
+    pauseRatio?: number;
+    volumeStability?: number;
+    fillerWordCount?: number;
+    averageAnswerDurationSec?: number;
+    analyzedAnswerCount?: number;
+    totalWordCount?: number;
     provider: string;
   };
   questions: Array<{

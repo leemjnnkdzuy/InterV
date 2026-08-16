@@ -1,5 +1,5 @@
 import React from "react";
-import PracticeProjectPage from "@/app/pages/PracticeProjectPage";
+import PracticeHistoryPage from "@/app/pages/PracticeHistoryPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <PracticeProjectPage />;
+  return <PracticeHistoryPage />;
 }

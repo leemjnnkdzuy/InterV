@@ -5,7 +5,10 @@ export const aiService = {
   getVoices: async (
     language: string
   ): Promise<{ success: boolean; voices: InterviewVoice[]; message?: string }> => {
-    const response = await api.get(`/ai/voices?language=${encodeURIComponent(language)}`);
+    const response = await api.get(
+      `/ai/voices?language=${encodeURIComponent(language)}&provider=vbee-v2`,
+      { headers: { "Cache-Control": "no-cache" } }
+    );
     return response.data;
   },
 
@@ -21,7 +24,7 @@ export const aiService = {
     message?: string;
   }> => {
     const response = await api.post("/ai/tts/preview", data, {
-      timeout: 90_000,
+      timeout: 100_000,
     });
     return response.data;
   },
@@ -80,6 +83,7 @@ export const aiService = {
     expiresInSeconds: number;
     websocketUrl: string;
     speechModel: string;
+    languageCode: string;
     sampleRate: number;
     message?: string;
   }> => {

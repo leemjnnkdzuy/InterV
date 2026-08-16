@@ -147,6 +147,9 @@ export function useRealtimeInterviewRecorder(runId: string) {
     url.searchParams.set("token", tokenResponse.token);
     url.searchParams.set("sample_rate", String(tokenResponse.sampleRate));
     url.searchParams.set("speech_model", tokenResponse.speechModel);
+    if (tokenResponse.languageCode) {
+      url.searchParams.set("language_code", tokenResponse.languageCode);
+    }
 
     await new Promise<void>((resolve, reject) => {
       const socket = new WebSocket(url);

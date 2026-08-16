@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -16,7 +16,6 @@ import {
   Videocamera as Video,
   Code,
   Suitcase as Briefcase,
-  Stars as Sparkles,
 } from "@solar-icons/react";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import api from "@/app/lib/Client";
@@ -34,6 +33,7 @@ const EMPTY_DASHBOARD: HomeDashboardResponse = {
 
 export default function HomePage() {
   const { user } = useAuthContext();
+  const router = useRouter();
   const { language, t } = useLanguage();
   const [dashboard, setDashboard] =
     useState<HomeDashboardResponse>(EMPTY_DASHBOARD);
@@ -87,21 +87,21 @@ export default function HomePage() {
       value: dashboard.stats.totalInterviews.toLocaleString(numberLocale),
       description: t("home.statsInterviewsDesc"),
       icon: MessageSquareCode,
-      color: "from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+      color: "text-blue-600 dark:text-blue-400",
     },
     {
       title: t("home.statsAvgScore"),
       value: dashboard.stats.averageScore.toFixed(1),
       description: t("home.statsAvgScoreDesc"),
       icon: Award,
-      color: "from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+      color: "text-emerald-600 dark:text-emerald-400",
     },
     {
       title: t("home.statsDuration"),
       value: formatDuration(dashboard.stats.totalDurationSec),
       description: t("home.statsDurationDesc"),
       icon: Clock,
-      color: "from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+      color: "text-amber-600 dark:text-amber-400",
     },
   ];
 
@@ -179,8 +179,8 @@ export default function HomePage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-xl border bg-gradient-to-br ${stat.color}`}>
-                <stat.icon className="h-5 w-5" />
+              <div className={stat.color}>
+                <stat.icon className="h-7 w-7" />
               </div>
             </CardHeader>
             <CardContent className="text-left">
@@ -206,10 +206,6 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-4 max-w-lg z-10">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary border border-primary/20">
-                <Sparkles className="h-3.5 w-3.5" />
-                {t("home.ctaBadge")}
-              </div>
               <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
                 {t("home.ctaTitle")}
               </h2>
@@ -219,11 +215,9 @@ export default function HomePage() {
             </div>
 
             <div className="mt-8 z-10">
-              <Button asChild size="default" className="rounded-xl px-6 py-5 shadow-lg shadow-primary/20 bg-primary text-background hover:bg-primary/95 text-base font-semibold group transition-all duration-300">
-                <Link href="/practice">
+              <Button type="button" size="default" onClick={() => router.push("/practice")} className="rounded-xl px-6 py-5 shadow-lg shadow-primary/20 bg-primary text-background hover:bg-primary/95 text-base font-semibold group transition-all duration-300">
                   {t("home.ctaButton")}
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
               </Button>
             </div>
           </Card>
@@ -236,8 +230,8 @@ export default function HomePage() {
             {quickTracks.map((track, i) => (
               <Card key={i} className="hover:border-foreground/20 hover:bg-card/90 transition-all duration-200 cursor-pointer border bg-card/60 backdrop-blur-md">
                 <CardHeader className="flex flex-row items-start gap-4 pb-2">
-                  <div className={`p-2 rounded-xl bg-muted border ${track.color}`}>
-                    <track.icon className="h-5 w-5" />
+                  <div className={track.color}>
+                    <track.icon className="h-7 w-7" />
                   </div>
                   <div className="space-y-1">
                     <CardTitle className="text-sm font-semibold">{track.title}</CardTitle>
@@ -256,10 +250,10 @@ export default function HomePage() {
       <motion.div variants={itemVariants} className="space-y-4 text-left">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold tracking-tight text-foreground">{t("home.recentHistory")}</h3>
-          <Link href="/history" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+          <button type="button" onClick={() => router.push("/history")} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
             {t("home.viewAll")}
             <ArrowRight className="h-4 w-4" />
-          </Link>
+          </button>
         </div>
 
         <Card className="border bg-card/60 backdrop-blur-md overflow-hidden">
@@ -278,12 +272,13 @@ export default function HomePage() {
                 {dashboard.recentSessions.map((session) => (
                   <tr key={session.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4 font-medium text-foreground">
-                      <Link
-                        href={`/practice/${encodeURIComponent(session.sessionId)}/analysis?runId=${encodeURIComponent(session.id)}`}
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/practice/${encodeURIComponent(session.sessionId)}/analysis?runId=${encodeURIComponent(session.id)}`)}
                         className="hover:text-primary"
                       >
                         {session.position}
-                      </Link>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {dateFormatter.format(new Date(session.date))}

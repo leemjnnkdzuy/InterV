@@ -71,7 +71,7 @@ const recruitmentCampaignSchema = new Schema<IRecruitmentCampaign>(
       type: String,
       required: true,
       maxlength: 120,
-      default: "vi-VN-HoaiMyNeural",
+      default: "hn_female_ngochuyen_full_48k-fhg",
     },
     difficulty: {
       type: String,

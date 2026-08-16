@@ -45,7 +45,10 @@ async function GETHandler(request: NextRequest) {
 
     await connectDB();
 
-    const sessions = await PracticeSession.find({ userId: payload.userId })
+    const sessions = await PracticeSession.find({
+      userId: payload.userId,
+      archivedAt: { $exists: false },
+    })
       .sort({ updatedAt: -1 })
       .limit(100)
       .lean<LeanPracticeSession[]>();
@@ -168,7 +171,7 @@ async function POSTHandler(request: NextRequest) {
       jobDescription,
       topic,
       language: "vi-VN",
-      voiceId: "vi-VN-HoaiMyNeural",
+      voiceId: "hn_female_ngochuyen_full_48k-fhg",
       difficulty: "Middle",
       questionCount: 5,
       tags: uniqueTags,
