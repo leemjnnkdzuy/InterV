@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import hmac
 import re
+import shutil
 import tempfile
 from collections import Counter
 from dataclasses import dataclass
@@ -37,6 +38,15 @@ class SenseVoiceTags:
 
 
 _sensevoice_model = None
+
+
+def _require_ffmpeg() -> None:
+    """Fail startup with an actionable error when audio decoding is unavailable."""
+    if shutil.which("ffmpeg") is None:
+        raise RuntimeError(
+            "SenseVoice audio analysis requires ffmpeg on PATH. "
+            "Install ffmpeg and restart the AI backend."
+        )
 
 
 def _score_baseline(samples: list[AudioSample]) -> tuple[int, int, int, list[str]]:
@@ -237,4 +247,5 @@ async def analyze_audio_behavior(samples: list[AudioSample]) -> AudioBehaviorRes
 
 
 async def warmup_sensevoice() -> None:
+    _require_ffmpeg()
     await asyncio.to_thread(_load_sensevoice)

@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -64,6 +65,7 @@ export default function InterviewPhase({
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
   const startedAtRef = useRef<number | null>(null);
+  const finishInFlightRef = useRef(false);
   const audioCacheRef = useRef(
     new Map<string, { audioBase64: string; contentType: string }>()
   );
@@ -100,6 +102,19 @@ export default function InterviewPhase({
   } = useRealtimeInterviewRecorder(runId);
 
   const currentQuestion = questions[currentStep];
+  const questionTextSize = currentQuestion
+    ? currentQuestion.text.length > 650
+      ? "text-sm md:text-base lg:text-lg"
+      : currentQuestion.text.length > 480
+        ? "text-base md:text-lg lg:text-xl"
+        : currentQuestion.text.length > 320
+          ? "text-lg md:text-xl lg:text-2xl"
+          : "text-xl md:text-2xl lg:text-3xl"
+    : "text-xl md:text-2xl lg:text-3xl";
+  const questionLeading =
+    currentQuestion && currentQuestion.text.length > 320
+      ? "leading-snug"
+      : "leading-relaxed";
   const getQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
       const key = audioKey(question);
@@ -270,6 +285,9 @@ export default function InterviewPhase({
   );
 
   const finishInterview = useCallback(async () => {
+    if (finishInFlightRef.current) return;
+    finishInFlightRef.current = true;
+
     try {
       setStage("finishing");
       setFinishLog([]);
@@ -309,12 +327,19 @@ export default function InterviewPhase({
       );
     } catch (error: unknown) {
       console.error(error);
+      const responseMessage = axios.isAxiosError(error)
+        ? (error.response?.data as { message?: unknown } | undefined)?.message
+        : undefined;
       toast.error(
-        error instanceof Error
-          ? error.message
-          : t("interview.evaluationFailed")
+        typeof responseMessage === "string"
+          ? responseMessage
+          : error instanceof Error
+            ? error.message
+            : t("interview.evaluationFailed")
       );
       setStage("reviewing");
+    } finally {
+      finishInFlightRef.current = false;
     }
   }, [cancelRecording, practiceId, router, runId, t]);
 
@@ -477,8 +502,8 @@ export default function InterviewPhase({
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-5 pb-10 text-center md:px-8">
-        <div className="w-full space-y-6">
+      <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col items-center justify-center overflow-hidden px-5 pb-10 text-center md:px-8">
+        <div className="min-h-0 w-full space-y-6">
           <div className="flex min-h-8 items-center justify-center">
             {stage === "preparing" || stage === "submitting" ? (
               <div className="flex items-center gap-2 text-xs font-bold text-primary">
@@ -504,7 +529,9 @@ export default function InterviewPhase({
             ) : null}
           </div>
 
-          <h1 className="font-question mx-auto max-w-3xl select-text text-xl font-medium leading-relaxed tracking-normal selection:bg-primary/20 md:text-2xl lg:text-3xl">
+          <h1
+            className={`font-question mx-auto max-w-3xl px-2 select-text font-medium tracking-normal selection:bg-primary/20 ${questionLeading} ${questionTextSize}`}
+          >
             {currentQuestion.text}
           </h1>
 
@@ -514,7 +541,7 @@ export default function InterviewPhase({
                 <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">
                   {t("interview.liveTranscript")}
                 </p>
-                <p className="select-text text-sm leading-relaxed text-foreground/85 md:text-base">
+                <p className="max-h-28 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/85 md:text-base">
                   {liveTranscript || t("interview.listening")}
                 </p>
               </div>
@@ -546,7 +573,7 @@ export default function InterviewPhase({
                 </p>
               </div>
 
-              <p className="select-text text-sm leading-relaxed text-foreground/90 md:text-base">
+              <p className="max-h-32 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/90 md:text-base">
                 {answer || t("interview.answerPlaceholder")}
               </p>
 

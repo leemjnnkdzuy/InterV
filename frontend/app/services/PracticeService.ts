@@ -10,6 +10,7 @@ import type {
 } from "@/app/types";
 
 const START_RECOVERY_TIMEOUT_MS = 380_000;
+const FINISH_RECOVERY_TIMEOUT_MS = 600_000;
 
 function wait(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -94,10 +95,48 @@ export const practiceService = {
       duration: string;
     }
   ) => {
-    const response = await api.post(`/ai/interview/${runId}/finish`, data, {
-      timeout: 600_000,
-    });
-    return response.data;
+    const deadline = Date.now() + FINISH_RECOVERY_TIMEOUT_MS;
+
+    while (true) {
+      try {
+        const response = await api.post(`/ai/interview/${runId}/finish`, data, {
+          timeout: FINISH_RECOVERY_TIMEOUT_MS,
+        });
+        return response.data;
+      } catch (error: unknown) {
+        if (
+          !axios.isAxiosError(error) ||
+          error.response?.status !== 409 ||
+          (error.response.data as { evaluating?: unknown } | undefined)
+            ?.evaluating !== true
+        ) {
+          throw error;
+        }
+
+        if (Date.now() >= deadline) throw error;
+        await wait(2_000);
+
+        try {
+          const resultResponse = await api.get(`/ai/interview/${runId}/result`, {
+            timeout: 30_000,
+          });
+          if (resultResponse.data?.success) {
+            return {
+              success: true,
+              result: resultResponse.data.run?.result,
+              alreadyCompleted: true,
+            };
+          }
+        } catch (resultError: unknown) {
+          if (
+            !axios.isAxiosError(resultError) ||
+            resultError.response?.status !== 409
+          ) {
+            throw resultError;
+          }
+        }
+      }
+    }
   },
 
   getInterviewResult: async (
