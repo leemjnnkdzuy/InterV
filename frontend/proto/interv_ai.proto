@@ -11,6 +11,7 @@ service IntervAi {
   rpc TranscribeAudio(TranscribeAudioRequest) returns (TranscribeAudioResponse);
   rpc SubmitAnswer(InterviewAnswerRequest) returns (InterviewAnswerResponse);
   rpc EvaluateInterview(InterviewEvaluateRequest) returns (InterviewEvaluateResponse);
+  rpc ExtractCandidateProfile(CandidateProfileRequest) returns (CandidateProfileResponse);
   rpc CreateStreamingToken(StreamingTokenRequest) returns (StreamingTokenResponse);
   rpc AnalyzeInterview(stream AudioAnalysisChunk) returns (AudioAnalysisResponse);
   rpc GetRagStatus(RagStatusRequest) returns (RagStatusResponse);
@@ -219,6 +220,27 @@ message InterviewEvaluateRequest {
 message InterviewEvaluateResponse {
   bool success = 1;
   InterviewEvaluation evaluation = 2;
+  string provider = 3;
+  DeepSeekUsage usage = 4;
+}
+
+message CandidateProfileRequest {
+  string transcript = 1;
+  string title = 2;
+  string job_description = 3;
+  string language = 4;
+}
+
+message CandidateProfileItem {
+  string category = 1;
+  string label = 2;
+  string value = 3;
+  repeated string evidence = 4;
+}
+
+message CandidateProfileResponse {
+  bool success = 1;
+  repeated CandidateProfileItem items = 2;
   string provider = 3;
   DeepSeekUsage usage = 4;
 }

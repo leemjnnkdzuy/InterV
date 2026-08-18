@@ -8,6 +8,7 @@ import {
   aiBackend,
   type GrpcAudioAnalysisChunk,
   type GrpcAudioBehaviorAnalysis,
+  type GrpcDeepSeekUsage,
   type GrpcQaPair,
 } from "@/app/lib/AiBackend";
 import PracticeAudio from "@/app/models/PracticeAudio";
@@ -23,6 +24,7 @@ import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
+import type { CandidateIntroItem } from "@/app/types/PracticeRun";
 
 interface FinishPayload {
   practiceId?: string;
@@ -92,6 +94,7 @@ async function POSTHandler(
   let usageSessionId = "";
   let usageAiRunId = "";
   let usageEventKey = "";
+  let profileUsageEventKey = "";
   try {
     const { runId } = await params;
     if (!runId || !/^[0-9a-fA-F]{24}$/.test(runId)) {
@@ -201,9 +204,13 @@ async function POSTHandler(
       );
     }
 
+    // Opening context is intentionally excluded from both scoring and delivery
+    // analysis. Only audio attached to the configured knowledge questions is
+    // eligible for the evaluation pipeline.
     const audioDocuments = await PracticeAudio.find({
       runId: run._id,
       userId: tokenPayload.userId,
+      questionId: { $in: requiredQuestions.map((question) => question.id) },
     })
       .select("+audioData +audioBase64")
       .lean();
@@ -293,13 +300,6 @@ async function POSTHandler(
     claimedRunId = run._id.toString();
     usageSessionId = run.sessionId.toString();
 
-    const analysisResponse = await aiBackend.analyzeInterview(audioChunks);
-    const audioAnalysis: GrpcAudioBehaviorAnalysis =
-      analysisResponse.analysis;
-    if (audioAnalysis.provider !== "sensevoice") {
-      throw new Error("The mandatory delivery analysis did not complete");
-    }
-
     const context = {
       sessionId: run.sessionId.toString(),
       title: session.title,
@@ -314,14 +314,64 @@ async function POSTHandler(
         session.voiceId ||
         "hn_female_ngochuyen_full_48k-fhg",
     };
+
+    type ProfileExtractionOutcome = {
+      attempted: boolean;
+      items?: CandidateIntroItem[];
+      usage?: GrpcDeepSeekUsage;
+      error?: unknown;
+    };
+    const isRecruitmentInterview = session.source === "recruitment";
+    const existingProfileItems = run.candidateIntro?.items;
+    const hasCandidateIntro = Boolean(run.candidateIntro?.transcript?.trim());
+    const profileExtractionPromise: Promise<ProfileExtractionOutcome> =
+      !isRecruitmentInterview || !hasCandidateIntro
+        ? Promise.resolve({ attempted: false })
+        : existingProfileItems && existingProfileItems.length > 0
+          ? Promise.resolve({
+              attempted: false,
+              items: existingProfileItems as CandidateIntroItem[],
+            })
+          : (() => {
+              profileUsageEventKey = `interview-profile-extract:${run._id.toString()}:${claimStartedAt.toISOString()}`;
+              return aiBackend
+                .extractCandidateProfile({
+                  transcript: run.candidateIntro!.transcript,
+                  title: session.title,
+                  jobDescription: session.jobDescription || "",
+                  language: run.language || session.language || "vi-VN",
+                })
+                .then((response) => ({
+                  attempted: true,
+                  items: response.items as CandidateIntroItem[],
+                  usage: response.usage,
+                }))
+                .catch((error: unknown) => ({
+                  attempted: true,
+                  error,
+                }));
+            })();
+
+    // The recruiter-only profile extraction starts before delivery analysis and
+    // runs alongside the expensive evaluation request when possible.
+    const analysisResponse = await aiBackend.analyzeInterview(audioChunks);
+    const audioAnalysis: GrpcAudioBehaviorAnalysis =
+      analysisResponse.analysis;
+    if (audioAnalysis.provider !== "sensevoice") {
+      throw new Error("The mandatory delivery analysis did not complete");
+    }
+
     usageAiRunId = aiRunId;
     usageEventKey = `interview-evaluate:${claimedRunId}:${claimStartedAt.toISOString()}`;
-    const aiResponse = await aiBackend.evaluateInterview({
+    const [aiResponse, profileOutcome] = await Promise.all([
+      aiBackend.evaluateInterview({
       runId: aiRunId,
       context,
       qaHistory,
       audioAnalysis,
-    });
+      }),
+      profileExtractionPromise,
+    ]);
     if (aiResponse.usage) {
       after(() =>
         recordDeepSeekUsageSafely({
@@ -337,7 +387,59 @@ async function POSTHandler(
       );
     }
 
+    if (profileOutcome.attempted) {
+      const profileError = profileOutcome.error;
+      if (profileOutcome.usage) {
+        after(() =>
+          recordDeepSeekUsageSafely({
+            eventKey: profileUsageEventKey,
+            userId: usageUserId,
+            sessionId: usageSessionId,
+            practiceRunId: claimedRunId,
+            aiRunId: usageAiRunId,
+            operation: "interview_profile_extract",
+            status: "SUCCESS",
+            usage: profileOutcome.usage!,
+          })
+        );
+      } else if (profileError instanceof AiBackendError && profileError.usage) {
+        const profileUsage = profileError.usage;
+        after(() =>
+          recordDeepSeekUsageSafely({
+            eventKey: profileUsageEventKey,
+            userId: usageUserId,
+            sessionId: usageSessionId,
+            practiceRunId: claimedRunId,
+            aiRunId: usageAiRunId,
+            operation: "interview_profile_extract",
+            status: "FAILED",
+            usage: profileUsage,
+            errorCode: String(profileError.status),
+            errorMessage: profileError.message,
+          })
+        );
+      }
+      if (profileError) {
+        console.warn(
+          "Recruiter candidate profile extraction failed; using transcript fallback:",
+          profileError instanceof Error ? profileError.message : profileError
+        );
+      }
+    }
+
     const evaluation = aiResponse.evaluation;
+    const candidateIntroItems = isRecruitmentInterview && hasCandidateIntro
+      ? profileOutcome.items && profileOutcome.items.length > 0
+        ? profileOutcome.items
+        : [
+            {
+              category: "other",
+              label: "Nội dung giới thiệu",
+              value: run.candidateIntro!.transcript.trim(),
+              evidence: [run.candidateIntro!.transcript.trim().slice(0, 500)],
+            },
+          ]
+      : undefined;
     const durationSec = Math.round(
       run.answers.reduce(
         (total, answer) => total + (answer.audioDurationSec || 0),
@@ -349,6 +451,15 @@ async function POSTHandler(
       duration: body.duration || "10 phút",
       durationSec,
       feedback: evaluation.feedback,
+      candidateIntro: run.candidateIntro
+        ? {
+            prompt: run.candidateIntro.prompt,
+            transcript: run.candidateIntro.transcript,
+            audioDurationSec: run.candidateIntro.audioDurationSec,
+            transcriptionProvider: run.candidateIntro.transcriptionProvider,
+          }
+        : undefined,
+      candidateIntroItems,
       ratings: evaluation.ratings,
       strengths: evaluation.strengths,
       weaknesses: evaluation.weaknesses,
@@ -383,6 +494,9 @@ async function POSTHandler(
                 status: "COMPLETED",
                 questionCount,
                 evaluation: result,
+                ...(candidateIntroItems
+                  ? { "candidateIntro.items": candidateIntroItems }
+                  : {}),
               },
               $unset: { evaluationStartedAt: "" },
             },

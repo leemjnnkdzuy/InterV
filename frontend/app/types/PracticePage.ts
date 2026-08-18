@@ -1,3 +1,5 @@
+import type { CandidateIntroItem } from "./PracticeRun";
+
 export interface PracticeRouter {
   push: (href: string) => void;
 }
@@ -19,6 +21,8 @@ export interface PracticeSessionDetails {
   industry?: string;
   language?: string;
   voiceId?: string;
+  autoTurnTaking?: boolean;
+  textAnswerEnabled?: boolean;
   difficulty?: string;
   questionCount?: number;
 }
@@ -48,6 +52,10 @@ export interface SetupPhaseProps {
   setLanguage: (language: string) => void;
   voiceId: string;
   setVoiceId: (voiceId: string) => void;
+  autoTurnTaking: boolean;
+  setAutoTurnTaking: (enabled: boolean) => void;
+  textAnswerEnabled: boolean;
+  setTextAnswerEnabled: (enabled: boolean) => void;
   isSavingSetup: boolean;
   recruitmentMode?: boolean;
   recruitmentExpiresAt?: string;
@@ -57,7 +65,10 @@ export interface SetupPhaseProps {
 export interface PracticeStartOptions {
   language: string;
   voiceId: string;
+  voiceName: string;
   hasUploadedJdFile: boolean;
+  autoTurnTaking: boolean;
+  textAnswerEnabled: boolean;
 }
 
 export interface InterviewVoice {
@@ -108,6 +119,8 @@ export interface PracticeStartPayload extends PracticeQuotePayload {
   jobDescription: string;
   topic: string;
   idempotencyKey: string;
+  autoTurnTaking: boolean;
+  textAnswerEnabled: boolean;
 }
 
 export interface PracticeStartResponse {
@@ -148,6 +161,17 @@ export interface InterviewPhaseProps {
   questionCount: number;
   jobDescription: string;
   topic: string;
+  voiceName?: string;
+  autoTurnTaking: boolean;
+  textAnswerEnabled: boolean;
+}
+
+export interface PracticeOpeningPayload {
+  prompt: string;
+  transcript: string;
+  durationSec?: number;
+  assemblySessionId?: string;
+  transcriptionProvider: string;
 }
 
 export interface InterviewAnswerResponse {
@@ -164,6 +188,13 @@ export interface InterviewAnalysisResult {
   score: number;
   duration: string;
   feedback: string;
+  candidateIntro?: {
+    prompt: string;
+    transcript: string;
+    audioDurationSec?: number;
+    transcriptionProvider?: string;
+  };
+  candidateIntroItems?: CandidateIntroItem[];
   ratings: {
     communication: number;
     knowledge: number;
@@ -218,6 +249,13 @@ export interface InterviewResultResponse {
     status: string;
     answeredCount: number;
     questionCount: number;
+    candidateIntro?: {
+      prompt: string;
+      transcript: string;
+      audioDurationSec?: number;
+      transcriptionProvider?: string;
+    };
+    candidateIntroItems?: CandidateIntroItem[];
     result: InterviewAnalysisResult;
     completedAt: string;
   };

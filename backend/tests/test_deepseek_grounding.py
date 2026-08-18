@@ -4,11 +4,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from app.schemas import (
+    CandidateProfileRequest,
     InterviewEvaluateRequest,
     InterviewFollowUpRequest,
     InterviewStartRequest,
 )
 from app.services.deepseek import (
+    extract_candidate_profile,
     evaluate_interview,
     generate_follow_up,
     generate_questions,
@@ -34,6 +36,54 @@ class FakeGrounding:
 
 
 class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_candidate_profile_keeps_only_transcript_evidence(self):
+        completion = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "category": "experience",
+                        "label": "Kinh nghiệm",
+                        "value": "3 năm backend",
+                        "evidence": ["Tôi có 3 năm backend"],
+                    },
+                    {
+                        "category": "age",
+                        "label": "Tuổi",
+                        "value": "28",
+                        "evidence": ["Tôi có 3 năm backend"],
+                    },
+                    {
+                        "category": "skills",
+                        "label": "Kỹ năng",
+                        "value": "Kubernetes",
+                        "evidence": ["Tôi từng làm mobile"],
+                    },
+                ]
+            }
+        )
+        with (
+            patch(
+                "app.services.deepseek.get_settings",
+                return_value=SimpleNamespace(deepseek_fast_model="test-model"),
+            ),
+            patch(
+                "app.services.deepseek._json_completion",
+                new=completion,
+            ),
+        ):
+            items, provider = await extract_candidate_profile(
+                CandidateProfileRequest(
+                    transcript="Tôi có 3 năm backend và từng làm mobile.",
+                    title="Backend Engineer",
+                    language="vi-VN",
+                )
+            )
+
+        self.assertEqual(provider, "deepseek")
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].category, "experience")
+        self.assertEqual(items[0].evidence, ["Tôi có 3 năm backend"])
+
     async def test_generation_includes_total_floor_and_validates_grounding(self):
         completion = AsyncMock(
             return_value={

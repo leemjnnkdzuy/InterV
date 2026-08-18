@@ -8,6 +8,7 @@ import interv_ai_pb2
 import interv_ai_pb2_grpc
 from app.grpc_server import IntervAiService
 from app.schemas import (
+    CandidateProfileItem,
     GeneratedQuestion,
     InterviewEvaluation,
 )
@@ -344,6 +345,34 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
             session_id="session-1",
             run_id="",
         )
+
+    async def test_candidate_profile_extraction_returns_structured_items(self):
+        items = [
+            CandidateProfileItem(
+                category="experience",
+                label="Kinh nghiệm",
+                value="3 năm backend",
+                evidence=["Tôi có 3 năm backend"],
+            )
+        ]
+        with patch(
+            "app.grpc_server.extract_candidate_profile",
+            new=AsyncMock(return_value=(items, "deepseek")),
+        ):
+            response = await self.stub.ExtractCandidateProfile(
+                interv_ai_pb2.CandidateProfileRequest(
+                    transcript="Tôi có 3 năm backend.",
+                    title="Backend Engineer",
+                    job_description="Xây dựng API.",
+                    language="vi-VN",
+                ),
+                metadata=self.metadata,
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.provider, "deepseek")
+        self.assertEqual(response.items[0].category, "experience")
+        self.assertEqual(response.items[0].value, "3 năm backend")
 
 
 class SenseVoiceInvariantTests(unittest.IsolatedAsyncioTestCase):

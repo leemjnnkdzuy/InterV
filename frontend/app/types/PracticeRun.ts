@@ -22,6 +22,23 @@ export interface IPracticeRunAnswer {
   groundingIds?: string[];
 }
 
+export interface CandidateIntroItem {
+  category: string;
+  label: string;
+  value: string;
+  evidence: string[];
+}
+
+export interface IPracticeRunCandidateIntro {
+  prompt: string;
+  transcript: string;
+  audioDurationSec?: number;
+  assemblySessionId?: string;
+  transcriptionProvider?: string;
+  items?: CandidateIntroItem[];
+  createdAt: Date;
+}
+
 export interface IPracticeRun extends Document {
   userId: mongoose.Types.ObjectId;
   sessionId: mongoose.Types.ObjectId;
@@ -39,10 +56,13 @@ export interface IPracticeRun extends Document {
   startRequestHash?: string;
   language: string;
   voiceId: string;
+  autoTurnTaking: boolean;
+  textAnswerEnabled: boolean;
   difficulty: string;
   questionCount: number;
   questions: IPracticeRunQuestion[];
   answers: IPracticeRunAnswer[];
+  candidateIntro?: IPracticeRunCandidateIntro;
   servedQuestionIds: string[];
   evaluation?: unknown;
   creditUsage: {

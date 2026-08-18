@@ -146,6 +146,7 @@ const operationLabels: Record<string, string> = {
   interview_start: "Khởi tạo",
   interview_follow_up: "Câu hỏi tiếp",
   interview_evaluate: "Chấm điểm",
+  interview_profile_extract: "Trích xuất hồ sơ",
 };
 
 function usd(value: number, compact = false) {
@@ -539,6 +540,10 @@ export default function AdminAiPage() {
                 { value: "interview_start", label: "Khởi tạo" },
                 { value: "interview_follow_up", label: "Câu hỏi tiếp" },
                 { value: "interview_evaluate", label: "Chấm điểm" },
+                {
+                  value: "interview_profile_extract",
+                  label: "Trích xuất hồ sơ",
+                },
               ]}
             />
             <DashboardSelect

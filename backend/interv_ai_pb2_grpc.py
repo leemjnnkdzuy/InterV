@@ -74,6 +74,11 @@ class IntervAiStub:
                 request_serializer=interv__ai__pb2.InterviewEvaluateRequest.SerializeToString,
                 response_deserializer=interv__ai__pb2.InterviewEvaluateResponse.FromString,
                 _registered_method=True)
+        self.ExtractCandidateProfile = channel.unary_unary(
+                '/interv.ai.v1.IntervAi/ExtractCandidateProfile',
+                request_serializer=interv__ai__pb2.CandidateProfileRequest.SerializeToString,
+                response_deserializer=interv__ai__pb2.CandidateProfileResponse.FromString,
+                _registered_method=True)
         self.CreateStreamingToken = channel.unary_unary(
                 '/interv.ai.v1.IntervAi/CreateStreamingToken',
                 request_serializer=interv__ai__pb2.StreamingTokenRequest.SerializeToString,
@@ -157,6 +162,12 @@ class IntervAiServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ExtractCandidateProfile(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def CreateStreamingToken(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -235,6 +246,11 @@ def add_IntervAiServicer_to_server(servicer, server):
                     servicer.EvaluateInterview,
                     request_deserializer=interv__ai__pb2.InterviewEvaluateRequest.FromString,
                     response_serializer=interv__ai__pb2.InterviewEvaluateResponse.SerializeToString,
+            ),
+            'ExtractCandidateProfile': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExtractCandidateProfile,
+                    request_deserializer=interv__ai__pb2.CandidateProfileRequest.FromString,
+                    response_serializer=interv__ai__pb2.CandidateProfileResponse.SerializeToString,
             ),
             'CreateStreamingToken': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateStreamingToken,
@@ -483,6 +499,33 @@ class IntervAi:
             '/interv.ai.v1.IntervAi/EvaluateInterview',
             interv__ai__pb2.InterviewEvaluateRequest.SerializeToString,
             interv__ai__pb2.InterviewEvaluateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExtractCandidateProfile(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/interv.ai.v1.IntervAi/ExtractCandidateProfile',
+            interv__ai__pb2.CandidateProfileRequest.SerializeToString,
+            interv__ai__pb2.CandidateProfileResponse.FromString,
             options,
             channel_credentials,
             insecure,

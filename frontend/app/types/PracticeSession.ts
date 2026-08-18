@@ -1,4 +1,5 @@
 import mongoose, { Document } from "mongoose";
+import type { CandidateIntroItem } from "./PracticeRun";
 
 export interface IPracticeSession extends Document {
   userId: mongoose.Types.ObjectId;
@@ -17,6 +18,8 @@ export interface IPracticeSession extends Document {
   industry?: string;
   language?: string;
   voiceId?: string;
+  autoTurnTaking?: boolean;
+  textAnswerEnabled?: boolean;
   difficulty?: string;
   questionCount?: number;
   tags?: string[];
@@ -27,6 +30,13 @@ export interface IPracticeSession extends Document {
     duration: string;
     durationSec?: number;
     feedback: string;
+    candidateIntro?: {
+      prompt: string;
+      transcript: string;
+      audioDurationSec?: number;
+      transcriptionProvider?: string;
+    };
+    candidateIntroItems?: CandidateIntroItem[];
     ratings: {
       communication: number;
       knowledge: number;

@@ -40,7 +40,7 @@ function createIdempotencyKey() {
 
 export default function PracticePage({ practiceId }: PracticePageProps) {
   const router = useRouter();
-  const { refreshUser } = useAuthContext();
+  const { user, loading: authLoading, refreshUser } = useAuthContext();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [activePhase, setActivePhase] = useState<
@@ -55,6 +55,9 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
   const [duration, setDuration] = useState(DEFAULT_INTERVIEW_QUESTIONS);
   const [language, setLanguage] = useState(DEFAULT_LANGUAGE);
   const [voiceId, setVoiceId] = useState(DEFAULT_VOICE);
+  const [voiceName, setVoiceName] = useState("");
+  const [autoTurnTaking, setAutoTurnTaking] = useState(false);
+  const [textAnswerEnabled, setTextAnswerEnabled] = useState(false);
   const [isSavingSetup, setIsSavingSetup] = useState(false);
   const [recruitmentMode, setRecruitmentMode] = useState(false);
   const [recruitmentExpiresAt, setRecruitmentExpiresAt] = useState<
@@ -85,13 +88,24 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         setDuration(normalizeInterviewQuestionCount(session.questionCount));
         setLanguage(DEFAULT_LANGUAGE);
         setVoiceId(session.voiceId || DEFAULT_VOICE);
-        setRecruitmentMode(session.source === "recruitment");
+        const isRecruitmentSession = session.source === "recruitment";
+        setAutoTurnTaking(
+          !isRecruitmentSession && session.autoTurnTaking === true
+        );
+        setTextAnswerEnabled(
+          !isRecruitmentSession && session.textAnswerEnabled === true
+        );
+        setRecruitmentMode(isRecruitmentSession);
         setRecruitmentExpiresAt(session.expiresAt);
       } else {
         toast.error(t("practiceSetup.loadSessionFailed"));
         router.push("/practice");
       }
     } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        router.replace("/login");
+        return;
+      }
       console.error(err);
       toast.error(t("practiceSetup.serverConnectionError"));
       router.push("/practice");
@@ -101,17 +115,28 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
   }, [practiceId, router, t]);
 
   useEffect(() => {
+    if (!authLoading && !user?.id) {
+      router.replace("/login");
+    }
+  }, [authLoading, router, user?.id]);
+
+  useEffect(() => {
+    if (authLoading || !user?.id) return;
+
     const timeoutId = window.setTimeout(() => {
       void fetchSessionDetails();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [fetchSessionDetails]);
+  }, [authLoading, fetchSessionDetails, user?.id]);
 
   const handleStartInterview = async ({
     language: selectedLanguage,
     voiceId: selectedVoiceId,
+    voiceName: selectedVoiceName,
     hasUploadedJdFile,
+    autoTurnTaking: selectedAutoTurnTaking,
+    textAnswerEnabled: selectedTextAnswerEnabled,
   }: PracticeStartOptions) => {
     if (!title.trim()) {
       toast.error(t("practiceSetup.titleRequired"));
@@ -128,12 +153,23 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
       setIsSavingSetup(true);
       setActivePhase("preparing");
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("Microphone is not supported");
+        if (!selectedTextAnswerEnabled) {
+          throw new Error("Microphone is not supported");
+        }
+      } else {
+        try {
+          const permissionStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          permissionStream.getTracks().forEach((track) => track.stop());
+        } catch (microphoneError) {
+          if (!selectedTextAnswerEnabled) throw microphoneError;
+          console.warn(
+            "Microphone unavailable; continuing with text-answer fallback:",
+            microphoneError
+          );
+        }
       }
-      const permissionStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      permissionStream.getTracks().forEach((track) => track.stop());
       const startPayload = {
         title: title.trim(),
         industry,
@@ -144,6 +180,8 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         language: selectedLanguage,
         voiceId: selectedVoiceId,
         hasUploadedJdFile,
+        autoTurnTaking: selectedAutoTurnTaking,
+        textAnswerEnabled: selectedTextAnswerEnabled,
       };
       const fingerprint = JSON.stringify(startPayload);
       if (startAttemptRef.current?.fingerprint !== fingerprint) {
@@ -195,10 +233,15 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
       setQuestionsList(data.questions);
       setLanguage(selectedLanguage);
       setVoiceId(selectedVoiceId);
+      setVoiceName(selectedVoiceName);
       setInitialQuestionAudio(firstQuestionAudio);
       setActivePhase("interview");
       void refreshUser();
     } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        router.replace("/login");
+        return;
+      }
       console.error(err);
       if (
         axios.isAxiosError(err) &&
@@ -223,7 +266,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || !user?.id || isLoading) {
     return (
       <div className="flex h-screen w-screen bg-background relative overflow-hidden">
         <SilkBackground fadeBottom bottomColor="var(--background)" />
@@ -255,6 +298,9 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
                 difficulty={difficulty}
                 language={language}
                 voiceId={voiceId}
+                voiceName={voiceName}
+                autoTurnTaking={autoTurnTaking}
+                textAnswerEnabled={textAnswerEnabled}
                 questionsList={questionsList}
                 initialQuestionAudio={initialQuestionAudio}
                 questionCount={duration}
@@ -301,6 +347,10 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
                 setLanguage={setLanguage}
                 voiceId={voiceId}
                 setVoiceId={setVoiceId}
+                autoTurnTaking={autoTurnTaking}
+                setAutoTurnTaking={setAutoTurnTaking}
+                textAnswerEnabled={textAnswerEnabled}
+                setTextAnswerEnabled={setTextAnswerEnabled}
                 isSavingSetup={isSavingSetup}
                 recruitmentMode={recruitmentMode}
                 recruitmentExpiresAt={recruitmentExpiresAt}

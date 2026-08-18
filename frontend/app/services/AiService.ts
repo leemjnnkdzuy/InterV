@@ -29,6 +29,23 @@ export const aiService = {
     return response.data;
   },
 
+  previewVoice: async (data: {
+    text: string;
+    language: string;
+    voiceId: string;
+  }): Promise<{
+    success: boolean;
+    audioBase64: string;
+    contentType: string;
+    cached: boolean;
+    message?: string;
+  }> => {
+    const response = await api.post("/ai/voices/preview", data, {
+      timeout: 100_000,
+    });
+    return response.data;
+  },
+
   extractJd: async (
     file: File,
     onUploadProgress?: (progress: number) => void

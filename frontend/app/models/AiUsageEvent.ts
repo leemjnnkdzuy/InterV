@@ -48,6 +48,7 @@ const aiUsageEventSchema = new Schema<IAiUsageEvent>(
         "interview_start",
         "interview_follow_up",
         "interview_evaluate",
+        "interview_profile_extract",
       ],
       required: true,
       index: true,

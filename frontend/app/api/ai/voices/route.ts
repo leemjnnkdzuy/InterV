@@ -1,7 +1,7 @@
 import { withApiLogging } from "@/app/lib/ApiLogging";
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/app/lib/Auth";
-import { aiBackend } from "@/app/lib/AiBackend";
+import { AiBackendError, aiBackend } from "@/app/lib/AiBackend";
 
 const SUPPORTED_LANGUAGES = new Set(["vi-VN"]);
 
@@ -37,6 +37,22 @@ async function GETHandler(request: NextRequest) {
     );
   } catch (error: unknown) {
     console.error("GET /api/ai/voices error:", error);
+    if (error instanceof AiBackendError) {
+      const status =
+        error.status === 3
+          ? 400
+          : error.status === 4
+            ? 504
+            : error.status === 16
+              ? 503
+              : error.status === 14
+                ? 503
+                : 502;
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status }
+      );
+    }
     return NextResponse.json(
       { success: false, message: "Không thể lấy danh sách giọng đọc" },
       { status: 502 }

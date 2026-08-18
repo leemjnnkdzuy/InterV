@@ -23,6 +23,7 @@ import {
 } from "@solar-icons/react";
 import { aiService, practiceService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
+import { Textarea } from "@/app/components/ui/textarea";
 import logoSrc from "@/app/assets/logo.svg";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import {
@@ -44,11 +45,17 @@ import { cn } from "@/app/lib/Utils";
 
 type InterviewStage =
   | "preparing"
+  | "openingSpeaking"
+  | "openingConnecting"
+  | "openingRecording"
+  | "openingReviewing"
+  | "openingSubmitting"
   | "speaking"
   | "connecting"
   | "recording"
   | "reviewing"
   | "submitting"
+  | "closing"
   | "finishing"
   | "error";
 
@@ -80,23 +87,32 @@ async function waitForServerAudio<T>(request: Promise<T>): Promise<T> {
 export default function InterviewPhase({
   practiceId,
   runId,
+  voiceName,
   language,
   voiceId,
   questionsList,
   initialQuestionAudio,
   questionCount,
+  autoTurnTaking,
+  textAnswerEnabled,
 }: InterviewPhaseProps) {
   const router = useRouter();
   const { t } = useLanguage();
   const [questions, setQuestions] =
     useState<GeneratedInterviewQuestion[]>(questionsList);
   const [currentStep, setCurrentStep] = useState(0);
+  const [openingCompleted, setOpeningCompleted] = useState(false);
+  const [openingAttempt, setOpeningAttempt] = useState(0);
   const [stage, setStage] = useState<InterviewStage>("preparing");
   const [answer, setAnswer] = useState("");
+  const [answerInputMode, setAnswerInputMode] = useState<"voice" | "text">(
+    "voice"
+  );
+  const textOnlyModeRef = useRef(false);
   const [recordingResult, setRecordingResult] =
     useState<RealtimeRecordingResult | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
-  const [finishLog, setFinishLog] = useState<string[]>([]);
+  const [finishingStep, setFinishingStep] = useState(0);
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
   const [historyEntries, setHistoryEntries] =
@@ -107,6 +123,11 @@ export default function InterviewPhase({
   );
   const startedAtRef = useRef<number | null>(null);
   const finishInFlightRef = useRef(false);
+  const autoFinalizedTurnRef = useRef("");
+  const autoSubmittedAnswerRef = useRef("");
+  const autoSubmissionRetryRef = useRef({ key: "", count: 0 });
+  const autoStopInFlightRef = useRef(false);
+  const transitionGenerationRef = useRef(0);
   const audioCacheRef = useRef(
     new Map<string, { audioBase64: string; contentType: string }>()
   );
@@ -133,27 +154,44 @@ export default function InterviewPhase({
   }, [audioKey, initialQuestionAudio, questionsList]);
 
   const {
+    status: recorderStatus,
     liveTranscript,
     soundLevel,
     errorMessage,
+    finalTurn,
+    getActiveSegmentId,
     prepare: prepareRecording,
     start: startRecording,
     stop: stopRecording,
     cancel: cancelRecording,
-  } = useRealtimeInterviewRecorder(runId);
+  } = useRealtimeInterviewRecorder(runId, {
+    autoTurnTaking,
+    languageCode: language,
+    persistentSession: autoTurnTaking,
+  });
 
   const currentQuestion = questions[currentStep];
-  const questionTextSize = currentQuestion
-    ? currentQuestion.text.length > 650
+  const openingPrompt = t("interview.openingPrompt", {
+    voice: voiceName || t("interview.defaultInterviewerName"),
+  });
+  const closingPrompt = t("interview.closingPrompt");
+  const displayPrompt =
+    stage === "closing"
+      ? closingPrompt
+      : openingCompleted
+        ? currentQuestion?.text
+        : openingPrompt;
+  const questionTextSize = displayPrompt
+    ? displayPrompt.length > 650
       ? "text-sm md:text-base lg:text-lg"
-      : currentQuestion.text.length > 480
+      : displayPrompt.length > 480
         ? "text-base md:text-lg lg:text-xl"
-        : currentQuestion.text.length > 320
+        : displayPrompt.length > 320
           ? "text-lg md:text-xl lg:text-2xl"
           : "text-xl md:text-2xl lg:text-3xl"
     : "text-xl md:text-2xl lg:text-3xl";
   const questionLeading =
-    currentQuestion && currentQuestion.text.length > 320
+    displayPrompt && displayPrompt.length > 320
       ? "leading-snug"
       : "leading-relaxed";
   const getQuestionAudio = useCallback(
@@ -203,28 +241,142 @@ export default function InterviewPhase({
     [getQuestionAudio, language]
   );
 
+  const playPromptAudio = useCallback(
+    async (text: string) => {
+      try {
+        const data = await waitForServerAudio(
+          aiService.previewTts({
+            text: text.slice(0, 500),
+            language,
+            voiceId,
+          })
+        );
+        if (!data.audioBase64) throw new Error("TTS did not return audio");
+        await playInterviewAudio(data.audioBase64, data.contentType);
+      } catch (error) {
+        console.warn("Server TTS unavailable, using browser voice:", error);
+        await speakInterviewText(text, language);
+      }
+    },
+    [language, voiceId]
+  );
+
   useEffect(() => {
-    if (!currentQuestion) return;
+    if (openingCompleted) return;
 
     let cancelled = false;
+    const transitionGeneration = transitionGenerationRef.current;
+    const startOpening = async () => {
+      const textOnlyMode = textOnlyModeRef.current;
+      if (startedAtRef.current === null) startedAtRef.current = Date.now();
+      autoFinalizedTurnRef.current = "";
+      autoSubmittedAnswerRef.current = "";
+      autoSubmissionRetryRef.current = { key: "", count: 0 };
+      autoStopInFlightRef.current = false;
+      setAnswer("");
+      setAnswerInputMode(textOnlyMode ? "text" : "voice");
+      setRecordingResult(null);
+      setFailureMessage("");
+
+      let preparationError: unknown;
+      const recorderPreparation = textOnlyMode
+        ? Promise.resolve()
+        : prepareRecording().catch((error) => {
+            preparationError = error;
+          });
+      try {
+        setStage("openingSpeaking");
+        await playPromptAudio(openingPrompt);
+        if (
+          cancelled ||
+          transitionGeneration !== transitionGenerationRef.current
+        ) {
+          return;
+        }
+
+        setStage("openingConnecting");
+        await recorderPreparation;
+        if (preparationError) throw preparationError;
+        if (
+          cancelled ||
+          transitionGeneration !== transitionGenerationRef.current
+        ) {
+          return;
+        }
+        if (textOnlyMode) {
+          setStage("openingReviewing");
+          return;
+        }
+        await startRecording();
+        if (
+          !cancelled &&
+          transitionGeneration === transitionGenerationRef.current
+        ) {
+          setStage("openingRecording");
+        }
+      } catch (error: unknown) {
+        console.error(error);
+        if (
+          !cancelled &&
+          transitionGeneration === transitionGenerationRef.current
+        ) {
+          setFailureMessage(
+            error instanceof Error ? error.message : t("interview.micAccessFailed")
+          );
+          setStage("error");
+        }
+      }
+    };
+
+    void startOpening();
+    return () => {
+      cancelled = true;
+      stopInterviewAudio();
+    };
+  }, [
+    openingAttempt,
+    openingCompleted,
+    openingPrompt,
+    playPromptAudio,
+    prepareRecording,
+    startRecording,
+    t,
+  ]);
+
+  useEffect(() => {
+    if (!openingCompleted || !currentQuestion) return;
+
+    let cancelled = false;
+    const transitionGeneration = transitionGenerationRef.current;
     const askQuestion = async () => {
+      const textOnlyMode = textOnlyModeRef.current;
       if (startedAtRef.current === null) {
         startedAtRef.current = Date.now();
       }
+      autoFinalizedTurnRef.current = "";
+      autoSubmittedAnswerRef.current = "";
+      autoSubmissionRetryRef.current = { key: "", count: 0 };
+      autoStopInFlightRef.current = false;
       setAnswer("");
+      setAnswerInputMode(textOnlyMode ? "text" : "voice");
       setRecordingResult(null);
       setFailureMessage("");
       setStage("preparing");
 
       let preparationError: unknown;
-      const recorderPreparation = prepareRecording().catch((error) => {
-        preparationError = error;
-      });
+      const recorderPreparation = textOnlyMode
+        ? Promise.resolve()
+        : prepareRecording().catch((error) => {
+            preparationError = error;
+          });
       try {
         setStage("speaking");
         await playQuestionAudio(currentQuestion);
       } catch (error: unknown) {
-        if (!cancelled) {
+        if (
+          !cancelled &&
+          transitionGeneration === transitionGenerationRef.current
+        ) {
           const message =
             error instanceof Error ? error.message : t("interview.ttsFailed");
           setFailureMessage(message);
@@ -233,24 +385,47 @@ export default function InterviewPhase({
         return;
       }
 
-      if (cancelled) return;
+      if (
+        cancelled ||
+        transitionGeneration !== transitionGenerationRef.current
+      ) {
+        return;
+      }
       setStage("connecting");
       try {
         await recorderPreparation;
         if (preparationError) {
           throw preparationError;
         }
+        if (
+          cancelled ||
+          transitionGeneration !== transitionGenerationRef.current
+        ) {
+          return;
+        }
+        if (textOnlyMode) {
+          setStage("reviewing");
+          return;
+        }
         await startRecording();
-        if (!cancelled) {
+        if (
+          !cancelled &&
+          transitionGeneration === transitionGenerationRef.current
+        ) {
           setStage("recording");
-          const nextQuestion = questions[currentStep + 1];
-          if (nextQuestion) {
-            void getQuestionAudio(nextQuestion).catch(() => undefined);
+          for (const upcomingQuestion of questions.slice(
+            currentStep + 1,
+            currentStep + 3
+          )) {
+            void getQuestionAudio(upcomingQuestion).catch(() => undefined);
           }
         }
       } catch (error: unknown) {
         console.error(error);
-        if (!cancelled) {
+        if (
+          !cancelled &&
+          transitionGeneration === transitionGenerationRef.current
+        ) {
           const message =
             error instanceof Error
               ? error.message
@@ -270,6 +445,7 @@ export default function InterviewPhase({
     currentQuestion,
     currentStep,
     getQuestionAudio,
+    openingCompleted,
     playQuestionAudio,
     prepareRecording,
     questionAttempt,
@@ -278,12 +454,68 @@ export default function InterviewPhase({
     t,
   ]);
 
+  const stopOpeningRecording = useCallback(async () => {
+    if (stage !== "openingRecording" && stage !== "openingConnecting") return;
+
+    const transitionGeneration = transitionGenerationRef.current;
+    setStage("openingConnecting");
+    const result = await stopRecording();
+    if (transitionGeneration !== transitionGenerationRef.current) return;
+    if (!result) {
+      setStage("openingReviewing");
+      return;
+    }
+
+    // In real-interview mode the microphone and STT socket remain warm for
+    // the next question. Manual mode still prewarms a fresh session here.
+    void prepareRecording().catch((error) => {
+      console.warn("Could not prewarm the first answer recorder:", error);
+    });
+
+    let transcript = result.transcript.trim();
+    let provider = result.transcriptionProvider;
+    if (!transcript && result.audio.size > 0) {
+      try {
+        const recovered = await aiService.transcribeAnswer(runId, result.audio);
+        transcript = recovered.transcript?.trim() || "";
+        provider =
+          recovered.provider === "faster-whisper"
+            ? "faster-whisper"
+            : provider;
+      } catch (error) {
+        console.error("Server opening transcription failed:", error);
+      }
+    }
+    if (transitionGeneration !== transitionGenerationRef.current) return;
+
+    setRecordingResult({
+      ...result,
+      transcript,
+      transcriptionProvider: provider,
+    });
+    setAnswer(transcript);
+    if (!transcript && textAnswerEnabled) {
+      setAnswerInputMode("text");
+    }
+    setStage("openingReviewing");
+    if (!transcript) toast.warning(t("interview.transcriptMissing"));
+  }, [
+    prepareRecording,
+    runId,
+    stage,
+    stopRecording,
+    t,
+    textAnswerEnabled,
+  ]);
+
   const stopCurrentRecording = useCallback(
     async () => {
       if (stage !== "recording" && stage !== "connecting") return;
 
+      const transitionGeneration = transitionGenerationRef.current;
       setStage("connecting");
       const result = await stopRecording();
+      if (transitionGeneration !== transitionGenerationRef.current) return;
       if (!result) {
         setStage("reviewing");
         return;
@@ -303,6 +535,7 @@ export default function InterviewPhase({
           console.error("Server transcription failed:", error);
         }
       }
+      if (transitionGeneration !== transitionGenerationRef.current) return;
 
       setRecordingResult({
         ...result,
@@ -310,6 +543,9 @@ export default function InterviewPhase({
         transcriptionProvider: provider,
       });
       setAnswer(transcript);
+      if (!transcript && textAnswerEnabled) {
+        setAnswerInputMode("text");
+      }
       setStage("reviewing");
       if (currentStep + 1 < questionCount) {
         void prepareRecording().catch(() => undefined);
@@ -327,24 +563,113 @@ export default function InterviewPhase({
       stage,
       stopRecording,
       t,
+      textAnswerEnabled,
     ]
   );
 
-  const finishInterview = useCallback(async () => {
+  useEffect(() => {
+    if (!autoTurnTaking || !finalTurn) return;
+    if (stage !== "recording" && stage !== "openingRecording") return;
+    if (
+      typeof finalTurn.segmentId === "number" &&
+      finalTurn.segmentId !== getActiveSegmentId()
+    ) {
+      return;
+    }
+
+    const turnKey = `${finalTurn.turnOrder ?? "unknown"}:${finalTurn.transcript}`;
+    if (autoFinalizedTurnRef.current === turnKey) return;
+    autoFinalizedTurnRef.current = turnKey;
+
+    const timeoutId = window.setTimeout(() => {
+      if (autoStopInFlightRef.current) return;
+      autoStopInFlightRef.current = true;
+      void (openingCompleted
+        ? stopCurrentRecording()
+        : stopOpeningRecording()).finally(() => {
+        autoStopInFlightRef.current = false;
+      });
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    autoTurnTaking,
+    finalTurn,
+    getActiveSegmentId,
+    openingCompleted,
+    stage,
+    stopCurrentRecording,
+    stopOpeningRecording,
+  ]);
+
+  useEffect(() => {
+    if (
+      recorderStatus !== "error" ||
+      (stage !== "recording" && stage !== "openingRecording")
+    ) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => {
+      setFailureMessage(errorMessage || t("interview.micAccessFailed"));
+      setStage("error");
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [errorMessage, recorderStatus, stage, t]);
+
+  const submitOpening = useCallback(async () => {
+    const normalizedAnswer = answer.trim();
+    if (!normalizedAnswer) {
+      toast.error(t("interview.answerRequired"));
+      return;
+    }
+
+    let answerAccepted = false;
+    try {
+      setStage("openingSubmitting");
+      const response = await practiceService.submitOpening(runId, {
+        prompt: openingPrompt,
+        transcript: normalizedAnswer,
+        durationSec: recordingResult?.durationSec,
+        assemblySessionId: recordingResult?.assemblySessionId,
+        transcriptionProvider:
+          recordingResult?.transcriptionProvider || "manual",
+      });
+      if (!response.success) {
+        throw new Error(response.message || t("interview.saveResultError"));
+      }
+      answerAccepted = true;
+      setOpeningCompleted(true);
+      setAnswer("");
+      setAnswerInputMode("voice");
+      setRecordingResult(null);
+      setStage("preparing");
+    } catch (error: unknown) {
+      console.error(error);
+      const submissionKey = `opening:${normalizedAnswer}`;
+      if (
+        !answerAccepted &&
+        autoSubmissionRetryRef.current.key === submissionKey &&
+        autoSubmissionRetryRef.current.count < 1
+      ) {
+        autoSubmissionRetryRef.current.count += 1;
+        autoSubmittedAnswerRef.current = "";
+      }
+      toast.error(
+        error instanceof Error ? error.message : t("interview.saveResultError")
+      );
+      setStage("openingReviewing");
+    }
+  }, [answer, openingPrompt, recordingResult, runId, t]);
+
+  const finishInterview = useCallback(async (withClosing = false) => {
     if (finishInFlightRef.current) return;
     finishInFlightRef.current = true;
+    transitionGenerationRef.current += 1;
+    stopInterviewAudio();
 
     try {
-      setStage("finishing");
-      setFinishLog([]);
+      setStage(withClosing ? "closing" : "finishing");
+      setFinishingStep(1);
       cancelRecording();
-
-      const logs = [
-        t("interview.finishLogNormalize"),
-        t("interview.finishLogAudio"),
-        t("interview.finishLogEvaluate"),
-      ];
-      setFinishLog(logs);
 
       const elapsedMinutes = Math.max(
         1,
@@ -352,21 +677,30 @@ export default function InterviewPhase({
           (Date.now() - (startedAtRef.current || Date.now())) / 60_000
         )
       );
-      const data = await practiceService.finishInterview(runId, {
+      const evaluationRequest = practiceService.finishInterview(runId, {
         practiceId,
         duration: t("interview.durationMinutes", {
           minutes: elapsedMinutes,
         }),
       });
+      let data;
+      if (withClosing) {
+        const closingAudioRequest = playPromptAudio(closingPrompt)
+          .catch((error) => {
+            console.warn("Closing TTS unavailable:", error);
+          });
+        data = (
+          await Promise.all([evaluationRequest, closingAudioRequest])
+        )[0];
+      } else {
+        data = await evaluationRequest;
+      }
 
       if (!data.success) {
         throw new Error(data.message || t("interview.saveResultError"));
       }
 
-      setFinishLog((previous) => [
-        ...previous,
-        t("interview.finishLogSave"),
-      ]);
+      setFinishingStep(4);
       router.push(
         `/practice/${encodeURIComponent(practiceId)}/analysis?runId=${encodeURIComponent(runId)}`
       );
@@ -386,7 +720,15 @@ export default function InterviewPhase({
     } finally {
       finishInFlightRef.current = false;
     }
-  }, [cancelRecording, practiceId, router, runId, t]);
+  }, [
+    cancelRecording,
+    closingPrompt,
+    playPromptAudio,
+    practiceId,
+    router,
+    runId,
+    t,
+  ]);
 
   const submitAnswer = useCallback(async () => {
     const normalizedAnswer = answer.trim();
@@ -395,6 +737,7 @@ export default function InterviewPhase({
       return;
     }
 
+    let answerAccepted = false;
     try {
       setStage("submitting");
       const response = await aiService.submitInterviewAnswer(runId, {
@@ -410,6 +753,7 @@ export default function InterviewPhase({
       if (!response.success) {
         throw new Error(response.message || t("interview.saveResultError"));
       }
+      answerAccepted = true;
 
       setHistoryEntries((previous) => {
         const entry: InterviewHistoryEntry = {
@@ -428,7 +772,7 @@ export default function InterviewPhase({
       setExpandedHistoryId(currentQuestion.id);
       setAnsweredCount(response.answeredCount);
       if (response.completed || !response.nextQuestion) {
-        await finishInterview();
+        await finishInterview(true);
         return;
       }
 
@@ -449,6 +793,15 @@ export default function InterviewPhase({
       setStage("preparing");
     } catch (error: unknown) {
       console.error(error);
+      const submissionKey = `${currentQuestion.id}:${normalizedAnswer}`;
+      if (
+        !answerAccepted &&
+        autoSubmissionRetryRef.current.key === submissionKey &&
+        autoSubmissionRetryRef.current.count < 1
+      ) {
+        autoSubmissionRetryRef.current.count += 1;
+        autoSubmittedAnswerRef.current = "";
+      }
       toast.error(
         error instanceof Error ? error.message : t("interview.saveResultError")
       );
@@ -464,27 +817,85 @@ export default function InterviewPhase({
     t,
   ]);
 
+  useEffect(() => {
+    if (
+      !autoTurnTaking ||
+      answerInputMode !== "voice" ||
+      !answer.trim() ||
+      (stage !== "reviewing" && stage !== "openingReviewing")
+    ) {
+      return;
+    }
+
+    const scope = openingCompleted ? currentQuestion?.id : "opening";
+    if (!scope) return;
+    const submissionKey = `${scope}:${answer.trim()}`;
+    if (autoSubmissionRetryRef.current.key !== submissionKey) {
+      autoSubmissionRetryRef.current = { key: submissionKey, count: 0 };
+    }
+    if (autoSubmittedAnswerRef.current === submissionKey) return;
+    autoSubmittedAnswerRef.current = submissionKey;
+
+    const timeoutId = window.setTimeout(() => {
+      void (openingCompleted ? submitAnswer() : submitOpening());
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    answer,
+    answerInputMode,
+    autoTurnTaking,
+    currentQuestion,
+    openingCompleted,
+    stage,
+    submitAnswer,
+    submitOpening,
+  ]);
+
   const reRecord = useCallback(async () => {
+    textOnlyModeRef.current = false;
+    const transitionGeneration = ++transitionGenerationRef.current;
+    stopInterviewAudio();
     setAnswer("");
+    setAnswerInputMode("voice");
     setRecordingResult(null);
-    setStage("connecting");
+    setStage(openingCompleted ? "connecting" : "openingConnecting");
     try {
       await startRecording();
-      setStage("recording");
+      if (transitionGeneration !== transitionGenerationRef.current) return;
+      setStage(openingCompleted ? "recording" : "openingRecording");
     } catch (error: unknown) {
       console.error(error);
+      if (transitionGeneration !== transitionGenerationRef.current) return;
       setFailureMessage(
         error instanceof Error ? error.message : t("interview.micAccessFailed")
       );
       setStage("error");
     }
-  }, [startRecording, t]);
+  }, [openingCompleted, startRecording, t]);
+
+  const switchToTextAnswer = useCallback((forceTextOnly = false) => {
+    if (!textAnswerEnabled) return;
+    if (forceTextOnly) textOnlyModeRef.current = true;
+    transitionGenerationRef.current += 1;
+    stopInterviewAudio();
+    cancelRecording();
+    setAnswer("");
+    setRecordingResult(null);
+    setAnswerInputMode("text");
+    setStage(openingCompleted ? "reviewing" : "openingReviewing");
+  }, [cancelRecording, openingCompleted, textAnswerEnabled]);
 
   const retryCurrentQuestion = useCallback(() => {
+    transitionGenerationRef.current += 1;
+    stopInterviewAudio();
     cancelRecording();
     setFailureMessage("");
-    setQuestionAttempt((previous) => previous + 1);
-  }, [cancelRecording]);
+    if (openingCompleted) {
+      setQuestionAttempt((previous) => previous + 1);
+    } else {
+      setOpeningAttempt((previous) => previous + 1);
+    }
+  }, [cancelRecording, openingCompleted]);
 
   if (!currentQuestion) {
     return (
@@ -505,7 +916,7 @@ export default function InterviewPhase({
           exit={{ opacity: 0, filter: "blur(14px)", scale: 1.025 }}
           transition={{ duration: 0.55, ease: "easeInOut" }}
         >
-          <FinishingPhase completedSteps={finishLog.length} />
+          <FinishingPhase completedSteps={finishingStep} />
         </motion.div>
       ) : (
         <motion.div
@@ -682,17 +1093,30 @@ export default function InterviewPhase({
               aria-hidden="true"
             />
             <span>
-              {t("interview.questionProgress", {
-                current: Math.min(currentStep + 1, questionCount),
-                total: questionCount,
-              })}
+              {openingCompleted
+                ? t("interview.questionProgress", {
+                    current: Math.min(currentStep + 1, questionCount),
+                    total: questionCount,
+                  })
+                : t("interview.openingProgress")}
             </span>
           </div>
 
           <button
             type="button"
             onClick={() => void finishInterview()}
-            disabled={stage === "submitting"}
+            disabled={
+              !openingCompleted ||
+              [
+                "submitting",
+                "openingSpeaking",
+                "openingConnecting",
+                "openingRecording",
+                "openingReviewing",
+                "openingSubmitting",
+                "closing",
+              ].includes(stage)
+            }
             className="text-muted-foreground transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={
               answeredCount > 0
@@ -717,24 +1141,7 @@ export default function InterviewPhase({
       <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col items-center justify-center overflow-hidden px-5 pb-10 text-center md:px-8">
         <div className="min-h-0 w-full space-y-6">
           <div className="flex min-h-8 items-center justify-center">
-            {stage === "preparing" || stage === "submitting" ? (
-              <div className="flex items-center gap-2 text-xs font-bold text-primary">
-                <Spinner className="h-4 w-4" />
-                <span>
-                  {stage === "submitting"
-                    ? t("interview.savingAnswer")
-                    : t("interview.aiPreparing")}
-                </span>
-              </div>
-            ) : stage === "speaking" ? (
-              <span className="text-xs font-bold text-primary">
-                {t("interview.aiSpeaking")}
-              </span>
-            ) : stage === "connecting" ? (
-              <span className="text-xs font-bold text-muted-foreground">
-                {t("interview.connectingMic")}
-              </span>
-            ) : stage === "error" ? (
+            {stage === "error" ? (
               <span className="text-xs font-bold text-red-400">
                 {t("interview.requiredServiceError")}
               </span>
@@ -744,17 +1151,19 @@ export default function InterviewPhase({
           <h1
             className={`font-question mx-auto max-w-3xl px-2 select-text font-medium tracking-normal selection:bg-primary/20 ${questionLeading} ${questionTextSize}`}
           >
-            {currentQuestion.text}
+            {displayPrompt}
           </h1>
 
-          {stage === "recording" && (
+          {(stage === "recording" || stage === "openingRecording") && (
             <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
               <div className="min-h-20 w-full border-t border-border/50 pt-4">
                 <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">
-                  {t("interview.liveTranscript")}
+                  {openingCompleted
+                    ? t("interview.liveTranscript")
+                    : t("interview.openingTranscript")}
                 </p>
                 <p className="max-h-28 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/85 md:text-base">
-                  {liveTranscript || t("interview.listening")}
+                  {liveTranscript}
                 </p>
               </div>
 
@@ -762,32 +1171,62 @@ export default function InterviewPhase({
                 <p className="text-xs text-amber-500">{errorMessage}</p>
               )}
 
-              <button
-                type="button"
-                onClick={() => void stopCurrentRecording()}
-                className="flex h-11 items-center gap-2 rounded-full bg-red-500 px-6 text-xs font-bold text-white transition-colors hover:bg-red-600"
-              >
-                <StopCircle
-                  className="h-4 w-4"
-                  weight="BoldDuotone"
-                  aria-hidden="true"
-                />
-                <span>{t("interview.doneAnswering")}</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {textAnswerEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => switchToTextAnswer()}
+                    className="flex h-10 items-center gap-2 rounded-full bg-muted px-5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                  >
+                    <MessageSquareText className="h-4 w-4" aria-hidden="true" />
+                    <span>{t("interview.typeAnswer")}</span>
+                  </button>
+                )}
+                {!autoTurnTaking && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void (openingCompleted
+                        ? stopCurrentRecording()
+                        : stopOpeningRecording())
+                    }
+                    className="flex h-11 items-center gap-2 rounded-full bg-red-500 px-6 text-xs font-bold text-white transition-colors hover:bg-red-600"
+                  >
+                    <StopCircle
+                      className="h-4 w-4"
+                      weight="BoldDuotone"
+                      aria-hidden="true"
+                    />
+                    <span>{t("interview.doneAnswering")}</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          {stage === "reviewing" && (
+          {(stage === "reviewing" || stage === "openingReviewing") && (
             <div className="mx-auto w-full max-w-2xl border-t border-border/50 pt-5 text-left">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-[10px] font-black uppercase text-muted-foreground">
-                  {t("interview.answerTranscript")}
+                  {openingCompleted
+                    ? t("interview.answerTranscript")
+                    : t("interview.openingTranscript")}
                 </p>
               </div>
 
-              <p className="max-h-32 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/90 md:text-base">
-                {answer || t("interview.answerPlaceholder")}
-              </p>
+              {answerInputMode === "text" ? (
+                <Textarea
+                  autoFocus
+                  value={answer}
+                  onChange={(event) => setAnswer(event.target.value)}
+                  placeholder={t("interview.textAnswerPlaceholder")}
+                  className="min-h-32 resize-y rounded-2xl border-border/50 bg-background/40 text-sm leading-relaxed md:text-base"
+                />
+              ) : (
+                <p className="max-h-32 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/90 md:text-base">
+                  {answer || t("interview.answerPlaceholder")}
+                </p>
+              )}
 
               <div className="mt-5 flex items-center justify-center gap-3">
                 <button
@@ -800,11 +1239,17 @@ export default function InterviewPhase({
                     weight="BoldDuotone"
                     aria-hidden="true"
                   />
-                  <span>{t("interview.reRecord")}</span>
+                  <span>
+                    {answerInputMode === "text"
+                      ? t("interview.voiceAnswer")
+                      : t("interview.reRecord")}
+                  </span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => void submitAnswer()}
+                  onClick={() =>
+                    void (openingCompleted ? submitAnswer() : submitOpening())
+                  }
                   disabled={!answer.trim()}
                   className="flex h-10 items-center gap-2 rounded-full bg-primary px-6 text-xs font-black text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -813,7 +1258,11 @@ export default function InterviewPhase({
                     weight="BoldDuotone"
                     aria-hidden="true"
                   />
-                  <span>{t("interview.sendAnswer")}</span>
+                  <span>
+                    {openingCompleted
+                      ? t("interview.sendAnswer")
+                      : t("interview.openingSend")}
+                  </span>
                 </button>
               </div>
             </div>
@@ -824,6 +1273,16 @@ export default function InterviewPhase({
               <p className="select-text text-sm leading-relaxed text-red-400">
                 {failureMessage || t("interview.requiredServiceError")}
               </p>
+              {textAnswerEnabled && (
+                <button
+                  type="button"
+                  onClick={() => switchToTextAnswer(true)}
+                  className="flex h-10 items-center gap-2 rounded-full bg-muted px-5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  <MessageSquareText className="h-4 w-4" aria-hidden="true" />
+                  <span>{t("interview.typeAnswer")}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={retryCurrentQuestion}
@@ -842,8 +1301,15 @@ export default function InterviewPhase({
       </main>
 
       <ThreeWaveform
-        soundLevel={stage === "speaking" ? 42 : soundLevel}
-        isActive={stage === "recording" || stage === "speaking"}
+        soundLevel={
+          stage === "speaking" || stage === "openingSpeaking" ? 42 : soundLevel
+        }
+        isActive={
+          stage === "recording" ||
+          stage === "speaking" ||
+          stage === "openingRecording" ||
+          stage === "openingSpeaking"
+        }
       />
           </div>
         </motion.div>

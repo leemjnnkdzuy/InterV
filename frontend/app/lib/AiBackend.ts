@@ -208,6 +208,13 @@ export interface GrpcDeepSeekUsage {
   requestIds: string[];
 }
 
+export interface GrpcCandidateProfileItem {
+  category: string;
+  label: string;
+  value: string;
+  evidence: string[];
+}
+
 export interface GrpcDeepSeekBalance {
   success: boolean;
   isAvailable: boolean;
@@ -336,6 +343,20 @@ interface IntervAiClient extends grpc.Client {
         audioAnalysis?: GrpcAudioBehaviorAnalysis;
         groundingIds: string[];
       };
+    }
+  >;
+  extractCandidateProfile: UnaryMethod<
+    {
+      transcript: string;
+      title: string;
+      jobDescription: string;
+      language: string;
+    },
+    {
+      success: boolean;
+      items: GrpcCandidateProfileItem[];
+      provider: string;
+      usage: GrpcDeepSeekUsage;
     }
   >;
   createStreamingToken: UnaryMethod<
@@ -616,6 +637,13 @@ export const aiBackend = {
     qaHistory: GrpcQaPair[];
     audioAnalysis?: GrpcAudioBehaviorAnalysis;
   }) => unary(getClient().evaluateInterview, request, 300_000),
+
+  extractCandidateProfile: (request: {
+    transcript: string;
+    title: string;
+    jobDescription: string;
+    language: string;
+  }) => unary(getClient().extractCandidateProfile, request, 90_000),
 
   createStreamingToken: (request: {
     expiresInSeconds: number;

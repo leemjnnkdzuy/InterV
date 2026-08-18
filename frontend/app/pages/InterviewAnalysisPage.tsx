@@ -257,6 +257,20 @@ export default function InterviewAnalysisPage({
           </button>
         </header>
 
+        {run.candidateIntro?.transcript && (
+          <section className="border-b border-border/60 py-7">
+            <h2 className="text-base font-black">
+              {t("analysis.candidateIntroTitle")}
+            </h2>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t("analysis.candidateIntroDescription")}
+            </p>
+            <p className="mt-4 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-foreground/80">
+              {run.candidateIntro.transcript}
+            </p>
+          </section>
+        )}
+
         <section className="grid gap-8 border-b border-border/60 py-8 lg:grid-cols-[240px_1fr]">
           <div className="flex flex-col items-center justify-center border-b border-border/60 pb-8 lg:border-r lg:border-b-0 lg:pb-0">
             <span className="text-xs font-bold uppercase text-muted-foreground">

@@ -46,6 +46,8 @@ function createStartRequestHash(input: {
   voiceId: string;
   questionCount: number;
   hasUploadedJdFile: boolean;
+  autoTurnTaking: boolean;
+  textAnswerEnabled: boolean;
 }) {
   return createHash("sha256")
     .update(JSON.stringify(input))
@@ -112,6 +114,8 @@ async function POSTHandler(
     let voiceId =
       boundedString(body.voiceId, 120) || "hn_female_ngochuyen_full_48k-fhg";
     let questionCount = normalizeInterviewQuestionCount(body.duration);
+    let autoTurnTaking = body.autoTurnTaking === true;
+    let textAnswerEnabled = body.textAnswerEnabled === true;
     const idempotencyKey = boundedString(body.idempotencyKey, 80);
     let hasUploadedJdFile = body.hasUploadedJdFile === true;
     if (!/^[a-zA-Z0-9-]{16,80}$/.test(idempotencyKey)) {
@@ -229,6 +233,8 @@ async function POSTHandler(
         : "hn_female_ngochuyen_full_48k-fhg";
       questionCount = normalizeInterviewQuestionCount(session.questionCount);
       hasUploadedJdFile = false;
+      autoTurnTaking = false;
+      textAnswerEnabled = false;
     }
     if (!title || !/^[a-z]{2,3}-[A-Z]{2}$/.test(language)) {
       return NextResponse.json(
@@ -246,6 +252,8 @@ async function POSTHandler(
       voiceId,
       questionCount,
       hasUploadedJdFile,
+      autoTurnTaking,
+      textAnswerEnabled,
     });
 
     const existingRun = await PracticeRun.findOne({
@@ -327,6 +335,8 @@ async function POSTHandler(
           questionCount ||
         practiceRun.language !== language ||
         practiceRun.voiceId !== voiceId ||
+        (practiceRun.autoTurnTaking === true) !== autoTurnTaking ||
+        (practiceRun.textAnswerEnabled === true) !== textAnswerEnabled ||
         practiceRun.difficulty !== difficulty ||
         practiceRun.creditUsage.quotedCredits !== quote.totalCredits;
       if (requestChanged) {
@@ -387,6 +397,8 @@ async function POSTHandler(
           startRequestHash,
           language,
           voiceId,
+          autoTurnTaking,
+          textAnswerEnabled,
           difficulty,
           questionCount,
           questions: [],
@@ -442,6 +454,8 @@ async function POSTHandler(
               language,
               voiceId,
               hasUploadedJdFile,
+              autoTurnTaking,
+              textAnswerEnabled,
             },
           });
     if (charge.outcome === "insufficient") {
@@ -522,6 +536,8 @@ async function POSTHandler(
               $set: {
                 aiRunId: aiStart.runId,
                 status: "IN_PROGRESS",
+                autoTurnTaking,
+                textAnswerEnabled,
                 questionCount,
                 questions,
                 servedQuestionIds: [questions[0].id],
@@ -546,6 +562,8 @@ async function POSTHandler(
                 topic,
                 language,
                 voiceId,
+                autoTurnTaking,
+                textAnswerEnabled,
                 difficulty,
                 questionCount,
               },

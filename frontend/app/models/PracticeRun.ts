@@ -55,6 +55,14 @@ const practiceRunSchema = new Schema<IPracticeRun>(
       type: String,
       default: "hn_female_ngochuyen_full_48k-fhg",
     },
+    autoTurnTaking: {
+      type: Boolean,
+      default: false,
+    },
+    textAnswerEnabled: {
+      type: Boolean,
+      default: false,
+    },
     difficulty: {
       type: String,
       default: "Middle",
@@ -94,6 +102,25 @@ const practiceRunSchema = new Schema<IPracticeRun>(
         },
       ],
       default: [],
+    },
+    candidateIntro: {
+      prompt: { type: String, default: "" },
+      transcript: { type: String, default: "" },
+      audioDurationSec: { type: Number },
+      assemblySessionId: { type: String, default: "" },
+      transcriptionProvider: { type: String, default: "" },
+      items: {
+        type: [
+          {
+            category: { type: String, required: true },
+            label: { type: String, required: true },
+            value: { type: String, required: true },
+            evidence: { type: [String], default: [] },
+          },
+        ],
+        default: undefined,
+      },
+      createdAt: { type: Date, default: Date.now },
     },
     servedQuestionIds: {
       type: [String],

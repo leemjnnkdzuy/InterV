@@ -7,6 +7,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "eslint",
+		"test:realtime-transcript": "node --experimental-strip-types --test tests/RealtimeTranscript.test.ts",
 		"check:api-logging": "node scripts/check-api-logging.mjs",
 		"test:e2e-smoke": "node scripts/e2e-smoke.mjs",
 		"test:recruitment-e2e": "node scripts/e2e-smoke.mjs --mode=recruitment",

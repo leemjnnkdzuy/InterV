@@ -158,3 +158,17 @@ class InterviewEvaluateResponse(BaseModel):
     success: bool = True
     evaluation: InterviewEvaluation
     provider: Literal["deepseek"] = "deepseek"
+
+
+class CandidateProfileItem(BaseModel):
+    category: str = Field(min_length=1, max_length=60)
+    label: str = Field(min_length=1, max_length=100)
+    value: str = Field(min_length=1, max_length=1_500)
+    evidence: list[str] = Field(default_factory=list, max_length=5)
+
+
+class CandidateProfileRequest(BaseModel):
+    transcript: str = Field(min_length=1, max_length=20_000)
+    title: str = Field(min_length=1, max_length=200)
+    job_description: str = Field(default="", max_length=50_000)
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)

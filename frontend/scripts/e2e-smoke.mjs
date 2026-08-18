@@ -405,7 +405,7 @@ async function main() {
     difficulty: "Middle",
     duration: 5,
     language: "vi-VN",
-    voiceId: "vi-VN-HoaiMyNeural",
+    voiceId: "hn_female_ngochuyen_full_48k-fhg",
     hasUploadedJdFile: false,
     idempotencyKey,
   };
@@ -432,12 +432,36 @@ async function main() {
   const firstStart = await firstStartPromise;
   const started =
     firstStart.status === 200 ? firstStart : concurrentStart;
+  if (
+    started.status === 200 &&
+    started.data.success &&
+    started.data.questions?.[0] &&
+    !started.data.firstQuestionAudio
+  ) {
+    const firstQuestion = started.data.questions[0];
+    const firstAudio = await api("/api/ai/tts/preview", {
+      method: "POST",
+      body: {
+        text: (firstQuestion.ttsText || firstQuestion.text).slice(0, 500),
+        language: "vi-VN",
+        voiceId: startPayload.voiceId,
+      },
+    });
+    if (firstAudio.status === 200 && firstAudio.data.success) {
+      started.data.firstQuestionAudio = {
+        audioBase64: firstAudio.data.audioBase64,
+        contentType: firstAudio.data.contentType,
+      };
+    }
+  }
   assert(
     started.status === 200 &&
       started.data.success &&
       started.data.questions?.length === 5 &&
       started.data.firstQuestionAudio?.audioBase64,
-    "Interview start failed"
+    `Interview start failed: status=${started.status} message=${String(
+      started.data?.message || "missing first question audio"
+    ).slice(0, 200)}`
   );
   const startElapsedMs = Date.now() - startAt;
   runId = started.data.runId;
@@ -497,6 +521,30 @@ async function main() {
       streamToken.data.token &&
       streamToken.data.websocketUrl,
     "AssemblyAI streaming token creation failed"
+  );
+
+  const opening = await api(`/api/ai/interview/${runId}/opening`, {
+    method: "POST",
+    body: {
+      prompt: "Opening smoke prompt",
+      transcript: "Tôi là kỹ sư backend và đã xây dựng nhiều dịch vụ production.",
+      durationSec: 5,
+      transcriptionProvider: "manual",
+    },
+  });
+  assert(
+    opening.status === 200 && opening.data.success,
+    "Interview opening was not persisted"
+  );
+  const persistedOpening = await db.collection("practiceruns").findOne(
+    { _id: new mongoose.Types.ObjectId(runId), userId },
+    { projection: { candidateIntro: 1, answers: 1, questionCount: 1 } }
+  );
+  assert(
+    persistedOpening?.candidateIntro?.transcript &&
+      persistedOpening.answers?.length === 0 &&
+      persistedOpening.questionCount === 5,
+    "Opening was incorrectly counted as a knowledge answer"
   );
 
   tempDirectory = await mkdtemp(path.join(os.tmpdir(), "interv-e2e-"));
@@ -607,7 +655,10 @@ async function main() {
     result.status === 200 &&
       result.data.success &&
       result.data.run?.status === "COMPLETED" &&
-      result.data.run?.answeredCount === 5,
+      result.data.run?.answeredCount === 5 &&
+      (!IS_RECRUITMENT ||
+        (Array.isArray(result.data.run?.result?.candidateIntroItems) &&
+          result.data.run.result.candidateIntroItems.length > 0)),
     "Persisted interview result is invalid"
   );
 
@@ -639,6 +690,7 @@ async function main() {
     if (
       operations.has("interview_start") &&
       operations.has("interview_evaluate") &&
+      (!IS_RECRUITMENT || operations.has("interview_profile_extract")) &&
       persistedRun?.tokenUsage?.totalTokens > 0
     ) {
       break;
@@ -658,7 +710,8 @@ async function main() {
   );
   assert(
     trackedOperations.has("interview_start") &&
-      trackedOperations.has("interview_evaluate"),
+      trackedOperations.has("interview_evaluate") &&
+      (!IS_RECRUITMENT || trackedOperations.has("interview_profile_extract")),
     "DeepSeek start/evaluation usage was not persisted"
   );
   assert(
@@ -689,6 +742,8 @@ async function main() {
     assert(
       recruiterHistory.status === 200 &&
         historyItem?.result &&
+        Array.isArray(historyItem.result.candidateIntroItems) &&
+        historyItem.result.candidateIntroItems.length > 0 &&
         Number.isFinite(historyItem.score),
       "Completed result is missing from recruiter history"
     );
@@ -701,7 +756,9 @@ async function main() {
     assert(
       campaignDetail.status === 200 &&
         detailInvitation?.status === "COMPLETED" &&
-        detailInvitation.latestResult,
+        detailInvitation.latestResult &&
+        Array.isArray(detailInvitation.latestResult.candidateIntroItems) &&
+        detailInvitation.latestResult.candidateIntroItems.length > 0,
       "Completed result is missing from recruiter campaign detail"
     );
   }

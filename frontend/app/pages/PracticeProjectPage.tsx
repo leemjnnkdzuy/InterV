@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,6 +20,7 @@ import { CreatePracticeDialog, ConfirmDeleteDialog } from "@/app/components/comm
 import ResultPracticeDrawer from "@/app/components/common/Drawer/ResultPracticeDrawer";
 import { practiceService } from "@/app/services";
 import { useLanguage } from "@/app/hooks/useLanguage";
+import { useAuthContext } from "@/app/contexts/AuthContext";
 import { translateIndustry } from "@/app/lib/Localization";
 import type {
   PracticeMutationResponse,
@@ -29,6 +31,7 @@ import type {
 export default function PracticeProjectPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { user, loading: authLoading } = useAuthContext();
   const [sessions, setSessions] = useState<PracticeProjectSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -54,20 +57,32 @@ export default function PracticeProjectPage() {
         toast.error(t("practiceList.loadFailed"));
       }
     } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        router.replace("/login");
+        return;
+      }
       console.error(err);
       toast.error(t("practiceSetup.serverConnectionError"));
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [router, t]);
 
   useEffect(() => {
+    if (!authLoading && !user?.id) {
+      router.replace("/login");
+    }
+  }, [authLoading, router, user?.id]);
+
+  useEffect(() => {
+    if (authLoading || !user?.id) return;
+
     const timeoutId = window.setTimeout(() => {
       void fetchSessions();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [fetchSessions]);
+  }, [authLoading, fetchSessions, user?.id]);
 
   const handleCreateSuccess = (newSession: PracticeProjectSession) => {
     setSessions((prev) => [newSession, ...prev]);

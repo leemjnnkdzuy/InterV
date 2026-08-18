@@ -33,7 +33,7 @@ async function GETHandler(
       userId: tokenPayload.userId,
     })
       .select(
-        "sessionId status evaluation questionCount answers createdAt updatedAt"
+        "sessionId status evaluation questionCount answers candidateIntro createdAt updatedAt"
       )
       .lean();
     if (!run) {
@@ -68,6 +68,14 @@ async function GETHandler(
         status: run.status,
         answeredCount: run.answers.length,
         questionCount: normalizeInterviewQuestionCount(run.questionCount),
+        candidateIntro: run.candidateIntro
+          ? {
+              prompt: run.candidateIntro.prompt,
+              transcript: run.candidateIntro.transcript,
+              audioDurationSec: run.candidateIntro.audioDurationSec,
+              transcriptionProvider: run.candidateIntro.transcriptionProvider,
+            }
+          : undefined,
         result: run.evaluation,
         completedAt: run.updatedAt,
       },

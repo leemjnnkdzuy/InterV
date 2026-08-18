@@ -22,6 +22,7 @@ const OPERATIONS = new Set([
   "interview_start",
   "interview_follow_up",
   "interview_evaluate",
+  "interview_profile_extract",
 ]);
 const STATUSES = new Set(["SUCCESS", "FAILED"]);
 const ALLOWED_DAYS = new Set([7, 30, 90]);

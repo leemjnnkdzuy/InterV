@@ -33,6 +33,7 @@ export * from "./HomeDashboard";
 export * from "./Recruitment";
 export * from "./UserInterview";
 export * from "./ApiLog";
+export * from "./VoicePreviewAudio";
 
 
 

@@ -12,6 +12,8 @@ from app.config import get_settings
 from app.lib.vbee_pronunciation import prepare_vbee_tts_text
 from app.schemas import (
     EvaluationQuestion,
+    CandidateProfileItem,
+    CandidateProfileRequest,
     GeneratedQuestion,
     InterviewEvaluateRequest,
     InterviewEvaluation,
@@ -33,6 +35,35 @@ RATING_ALIASES = (
     ("jdFit", "jd_fit"),
     ("composure",),
     ("vocalDelivery", "vocal_delivery"),
+)
+
+CANDIDATE_PROFILE_CATEGORIES = frozenset(
+    {
+        "identity",
+        "current_role",
+        "experience",
+        "skills",
+        "education",
+        "achievements",
+        "motivation",
+        "availability",
+        "language",
+        "other",
+    }
+)
+
+SENSITIVE_PROFILE_CATEGORIES = frozenset(
+    {
+        "age",
+        "address",
+        "financial",
+        "gender",
+        "health",
+        "marital_status",
+        "nationality",
+        "religion",
+        "ethnicity",
+    }
 )
 
 
@@ -385,6 +416,56 @@ def _validate_follow_up_question_response(
     return question
 
 
+def _validate_candidate_profile_response(
+    response: dict[str, Any],
+    payload: CandidateProfileRequest,
+) -> list[CandidateProfileItem]:
+    raw_items = response.get("items", [])
+    if not isinstance(raw_items, list):
+        return []
+
+    selected: list[CandidateProfileItem] = []
+    seen: set[tuple[str, str]] = set()
+    for raw_item in raw_items[:20]:
+        if not isinstance(raw_item, dict):
+            continue
+        try:
+            item = CandidateProfileItem(**raw_item)
+        except (TypeError, ValueError):
+            continue
+
+        category = _normalized_text(item.category).replace(" ", "_")
+        if category in SENSITIVE_PROFILE_CATEGORIES:
+            continue
+        item.category = (
+            category if category in CANDIDATE_PROFILE_CATEGORIES else "other"
+        )
+        item.label = item.label.strip()
+        item.value = item.value.strip()
+        if not item.label or not item.value:
+            continue
+
+        valid_evidence = [
+            excerpt.strip()
+            for excerpt in item.evidence[:5]
+            if isinstance(excerpt, str)
+            and 0 < len(excerpt.strip()) <= 500
+            and _is_answer_excerpt(excerpt, payload.transcript)
+        ]
+        if not valid_evidence:
+            continue
+        item.evidence = valid_evidence
+
+        dedupe_key = (item.category, _normalized_text(item.value))
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        selected.append(item)
+        if len(selected) >= 12:
+            break
+    return selected
+
+
 def validate_deepseek_configuration() -> None:
     settings = get_settings()
     if not settings.deepseek_api_key:
@@ -685,6 +766,47 @@ async def generate_follow_up(
                 f"{repair_error}"
             ) from repair_error
     return question, "deepseek"
+
+
+async def extract_candidate_profile(
+    payload: CandidateProfileRequest,
+) -> tuple[list[CandidateProfileItem], str]:
+    settings = get_settings()
+    completion_payload = {
+        "title": payload.title,
+        "jobDescription": payload.job_description,
+        "language": _language_name(payload.language),
+        "candidateIntroductionTranscript": payload.transcript,
+        "jsonShape": {
+            "items": [
+                {
+                    "category": "experience",
+                    "label": "Kinh nghiệm",
+                    "value": "3 năm phát triển backend",
+                    "evidence": ["Tôi có 3 năm phát triển backend"],
+                }
+            ]
+        },
+    }
+    response = await _json_completion(
+        model=settings.deepseek_fast_model,
+        thinking=False,
+        max_tokens=2_048,
+        system=(
+            "You are InterV's recruiter-side candidate introduction extractor. Return only "
+            "valid JSON. Extract a concise list of facts explicitly stated by the candidate "
+            "in candidateIntroductionTranscript. Never infer, guess, embellish, or use the "
+            "job description to fill a missing fact. Every item must include an exact "
+            "contiguous evidence excerpt copied from the transcript. Use only these categories: "
+            "identity, current_role, experience, skills, education, achievements, motivation, "
+            "availability, language, other. Do not extract or repeat sensitive personal data "
+            "such as age, gender, ethnicity, nationality, religion, health, marital status, "
+            "exact address, or financial information. Omit any uncertain or unsupported item. "
+            "Return at most 12 items and keep each value recruiter-useful and concise."
+        ),
+        payload=completion_payload,
+    )
+    return _validate_candidate_profile_response(response, payload), "deepseek"
 
 
 async def evaluate_interview(

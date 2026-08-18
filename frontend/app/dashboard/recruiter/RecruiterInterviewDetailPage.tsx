@@ -48,6 +48,15 @@ interface InterviewResult {
   score: number;
   duration?: string;
   feedback?: string;
+  candidateIntro?: {
+    transcript: string;
+  };
+  candidateIntroItems?: Array<{
+    category: string;
+    label: string;
+    value: string;
+    evidence?: string[];
+  }>;
   ratings?: Record<string, number>;
   strengths?: string[];
   weaknesses?: string[];
@@ -771,6 +780,41 @@ export default function RecruiterInterviewDetailPage({
                   </h4>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
                     {selectedResult.latestResult.feedback}
+                  </p>
+                </div>
+              )}
+              {selectedResult.latestResult.candidateIntroItems &&
+                selectedResult.latestResult.candidateIntroItems.length > 0 && (
+                  <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+                    <h4 className="text-xs font-bold uppercase text-muted-foreground">
+                      Thông tin trích xuất từ phần giới thiệu
+                    </h4>
+                    <dl className="mt-3 divide-y divide-border/60">
+                      {selectedResult.latestResult.candidateIntroItems.map(
+                        (item, index) => (
+                          <div
+                            key={`${item.category}-${item.label}-${index}`}
+                            className="grid gap-1 py-2 first:pt-0 last:pb-0 sm:grid-cols-[10rem_1fr] sm:gap-3"
+                          >
+                            <dt className="text-xs font-semibold text-muted-foreground">
+                              {item.label}
+                            </dt>
+                            <dd className="whitespace-pre-wrap text-sm leading-6">
+                              {item.value}
+                            </dd>
+                          </div>
+                        )
+                      )}
+                    </dl>
+                  </div>
+                )}
+              {selectedResult.latestResult.candidateIntro?.transcript && (
+                <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+                  <h4 className="text-xs font-bold uppercase text-muted-foreground">
+                    Giới thiệu ứng viên
+                  </h4>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
+                    {selectedResult.latestResult.candidateIntro.transcript}
                   </p>
                 </div>
               )}

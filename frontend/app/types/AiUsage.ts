@@ -3,7 +3,8 @@ import mongoose, { Document } from "mongoose";
 export type AiUsageOperation =
   | "interview_start"
   | "interview_follow_up"
-  | "interview_evaluate";
+  | "interview_evaluate"
+  | "interview_profile_extract";
 
 export interface IAiUsageEvent {
   _id: mongoose.Types.ObjectId;

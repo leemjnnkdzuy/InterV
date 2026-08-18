@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import { toast } from "sonner";
 import { BriefcaseBusiness, Languages, LockKeyhole, Volume2, VolumeX } from "lucide-react";
 import { aiService, practiceService } from "@/app/services";
@@ -12,6 +13,7 @@ import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Card } from "@/app/components/ui/card";
+import { Switch } from "@/app/components/ui/switch";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { translateIndustry } from "@/app/lib/Localization";
 import {
@@ -69,6 +71,10 @@ export default function SetupPhase({
   setLanguage,
   voiceId,
   setVoiceId,
+  autoTurnTaking,
+  setAutoTurnTaking,
+  textAnswerEnabled,
+  setTextAnswerEnabled,
   isSavingSetup,
   recruitmentMode = false,
   recruitmentExpiresAt,
@@ -159,6 +165,7 @@ export default function SetupPhase({
   };
 
   useEffect(() => {
+    if (!user?.id) return;
     if (loadedVoiceLanguageRef.current === language) return;
     let cancelled = false;
 
@@ -175,6 +182,9 @@ export default function SetupPhase({
           setVoiceId(nextVoices[0]?.id || DEFAULT_VOICE_BY_LANGUAGE[language] || "");
         }
       } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          return;
+        }
         console.error(error);
         if (!cancelled) {
           setVoices([]);
@@ -193,7 +203,7 @@ export default function SetupPhase({
     return () => {
       cancelled = true;
     };
-  }, [language, setVoiceId, t, voiceId]);
+  }, [language, setVoiceId, t, user?.id, voiceId]);
 
   useEffect(() => {
     if (!industry) return;
@@ -224,14 +234,15 @@ export default function SetupPhase({
       return;
     }
 
-    setPreparedVoicePreviewKey("");
-    setIsPreviewingVoice(true);
+    queueMicrotask(() => {
+      if (!cancelled) setIsPreviewingVoice(true);
+    });
 
     const existingRequest = voicePreviewRequestRef.current.get(key);
     const request =
       existingRequest ??
       aiService
-        .previewTts({
+        .previewVoice({
           text: selectedLanguageSample,
           language,
           voiceId,
@@ -448,7 +459,10 @@ export default function SetupPhase({
     handleStartInterview({
       language,
       voiceId,
+      voiceName: selectedVoice?.name || "",
       hasUploadedJdFile: recruitmentMode ? false : Boolean(uploadFile),
+      autoTurnTaking,
+      textAnswerEnabled,
     });
   };
 
@@ -765,6 +779,47 @@ export default function SetupPhase({
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border/10">
+                  <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">
+                    {t("practiceSetup.interactionModes")}
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold text-foreground">
+                          {t("practiceSetup.realInterviewMode")}
+                        </p>
+                        <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
+                          {t("practiceSetup.realInterviewModeDescription")}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={autoTurnTaking}
+                        onCheckedChange={setAutoTurnTaking}
+                        disabled={recruitmentMode}
+                        aria-label={t("practiceSetup.realInterviewMode")}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold text-foreground">
+                          {t("practiceSetup.textAnswerMode")}
+                        </p>
+                        <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
+                          {t("practiceSetup.textAnswerModeDescription")}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={textAnswerEnabled}
+                        onCheckedChange={setTextAnswerEnabled}
+                        disabled={recruitmentMode}
+                        aria-label={t("practiceSetup.textAnswerMode")}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

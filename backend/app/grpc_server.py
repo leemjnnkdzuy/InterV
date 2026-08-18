@@ -22,6 +22,7 @@ from app.observability import (
     valid_request_id,
 )
 from app.schemas import (
+    CandidateProfileRequest,
     InterviewEvaluateRequest,
     InterviewFollowUpRequest,
     InterviewStartRequest,
@@ -35,6 +36,7 @@ from app.services.deepseek import (
     DeepSeekUsage,
     begin_deepseek_usage,
     end_deepseek_usage,
+    extract_candidate_profile,
     evaluate_interview,
     generate_follow_up,
     generate_questions,
@@ -676,6 +678,37 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 ),
                 grounding_ids=evaluation.grounding_ids,
             ),
+        )
+
+    async def ExtractCandidateProfile(self, request, context):
+        await _authorize(context)
+        usage_token = begin_deepseek_usage("interview_profile_extract")
+        try:
+            payload = CandidateProfileRequest(
+                transcript=request.transcript,
+                title=request.title,
+                job_description=request.job_description,
+                language=request.language or "vi-VN",
+            )
+            items, provider = await extract_candidate_profile(payload)
+        except Exception as error:
+            usage = end_deepseek_usage(usage_token)
+            _set_usage_metadata(context, usage)
+            await _abort_for_error(context, error)
+        usage = end_deepseek_usage(usage_token)
+        return interv_ai_pb2.CandidateProfileResponse(
+            success=True,
+            provider=provider,
+            usage=_deepseek_usage_message(usage),
+            items=[
+                interv_ai_pb2.CandidateProfileItem(
+                    category=item.category,
+                    label=item.label,
+                    value=item.value,
+                    evidence=item.evidence,
+                )
+                for item in items
+            ],
         )
 
     async def CreateStreamingToken(self, request, context):
