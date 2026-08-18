@@ -8,17 +8,18 @@ import {
   AltArrowRight,
   Bag,
   CalendarDate,
-  CheckCircle,
+  ClipboardList,
   ClockCircle,
   DangerCircle,
+  Hourglass,
   Inbox,
   LetterUnread,
+  ListCheck,
   MapPoint,
   MedalStar,
   PlayCircle,
   Refresh,
   User,
-  Videocamera,
 } from "@solar-icons/react";
 
 import { Button } from "@/app/components/ui/button";
@@ -162,7 +163,7 @@ function StatTile({
   value,
   tone,
 }: {
-  icon: typeof Videocamera;
+  icon: typeof ClipboardList;
   label: string;
   value: number;
   tone: string;
@@ -173,9 +174,7 @@ function StatTile({
         <p className="text-xs font-semibold text-muted-foreground">{label}</p>
         <p className="mt-1 text-3xl font-extrabold tracking-normal">{value}</p>
       </div>
-      <div className={cn("flex size-10 items-center justify-center rounded-lg", tone)}>
-        <Icon className="size-5" weight="BoldDuotone" />
-      </div>
+      <Icon className={cn("size-7 shrink-0", tone)} weight="BoldDuotone" />
     </div>
   );
 }
@@ -484,26 +483,26 @@ export default function UserInterviewsPage() {
     {
       label: "Tổng lời mời",
       value: data.stats.total,
-      icon: Videocamera,
-      tone: "bg-blue-500/12 text-blue-400",
+      icon: ClipboardList,
+      tone: "text-blue-400",
     },
     {
       label: "Chờ tham gia",
       value: data.stats.pending,
-      icon: LetterUnread,
-      tone: "bg-cyan-500/12 text-cyan-400",
+      icon: Hourglass,
+      tone: "text-cyan-400",
     },
     {
       label: "Đang thực hiện",
       value: data.stats.inProgress,
-      icon: ClockCircle,
-      tone: "bg-amber-500/12 text-amber-400",
+      icon: PlayCircle,
+      tone: "text-amber-400",
     },
     {
       label: "Đã hoàn thành",
       value: data.stats.completed,
-      icon: CheckCircle,
-      tone: "bg-emerald-500/12 text-emerald-400",
+      icon: ListCheck,
+      tone: "text-emerald-400",
     },
   ];
 
@@ -511,10 +510,6 @@ export default function UserInterviewsPage() {
     <div className="mx-auto w-full max-w-7xl space-y-7 pb-10 text-left">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-primary">
-            <Videocamera className="size-4" weight="BoldDuotone" />
-            Không gian ứng viên
-          </div>
           <h1 className="text-3xl font-extrabold tracking-normal lg:text-4xl">
             Buổi phỏng vấn
           </h1>

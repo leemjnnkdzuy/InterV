@@ -8,6 +8,7 @@ service IntervAi {
   rpc ListVoices(ListVoicesRequest) returns (ListVoicesResponse);
   rpc SynthesizeTts(TtsRequest) returns (TtsResponse);
   rpc StartInterview(InterviewStartRequest) returns (InterviewStartResponse);
+  rpc GenerateOpeningTurn(InterviewOpeningRequest) returns (InterviewTurnResponse);
   rpc TranscribeAudio(TranscribeAudioRequest) returns (TranscribeAudioResponse);
   rpc SubmitAnswer(InterviewAnswerRequest) returns (InterviewAnswerResponse);
   rpc EvaluateInterview(InterviewEvaluateRequest) returns (InterviewEvaluateResponse);
@@ -121,6 +122,25 @@ message InterviewStartResponse {
   DeepSeekUsage usage = 5;
 }
 
+message InterviewOpeningRequest {
+  string run_id = 1;
+  InterviewContext context = 2;
+  string opening_prompt = 3;
+  string opening_transcript = 4;
+}
+
+message InterviewTurnResponse {
+  bool success = 1;
+  bool has_next_question = 2;
+  InterviewQuestion next_question = 3;
+  string acknowledgement_text = 4;
+  string transition_text = 5;
+  string spoken_text = 6;
+  string transition_type = 7;
+  string provider = 8;
+  DeepSeekUsage usage = 9;
+}
+
 message TranscribeAudioRequest {
   bytes audio = 1;
   string filename = 2;
@@ -159,6 +179,10 @@ message InterviewAnswerResponse {
   InterviewQuestion next_question = 4;
   string provider = 5;
   DeepSeekUsage usage = 6;
+  string acknowledgement_text = 7;
+  string transition_text = 8;
+  string spoken_text = 9;
+  string transition_type = 10;
 }
 
 message EvaluationQuestion {

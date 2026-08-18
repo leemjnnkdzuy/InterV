@@ -6,7 +6,11 @@ export type CreditLogAction =
   | "REGISTER_BONUS"
   | "ADMIN_ADJUST";
 
-export type CreditTransactionStatus = "PENDING" | "PAID" | "CANCELLED";
+export type CreditTransactionStatus =
+  | "PENDING"
+  | "PAID"
+  | "CANCELLED"
+  | "EXPIRED";
 
 export interface CreditLogItem {
   id: string;
@@ -21,10 +25,13 @@ export interface CreditLogItem {
 export interface CreditTransactionItem {
   id: string;
   orderCode: number;
+  packageId?: string;
   amount: number;
   credits: number;
   status: CreditTransactionStatus;
   createdAt: string;
+  paidAt?: string;
+  expiresAt?: string;
 }
 
 export interface CreditHistoryResponse {
@@ -54,6 +61,7 @@ export interface RechargeCreditPageProps {
 }
 
 export interface RechargePackage {
+  id: string;
   amount: number;
   credit: number;
   bonus: number;
@@ -63,17 +71,38 @@ export interface RechargePackage {
 export interface RechargeDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onPendingPaymentChange?: (hasPendingPayment: boolean) => void;
+  resumePendingPayment?: boolean;
 }
 
 export interface CreatePaymentResponse {
   success: boolean;
-  paymentUrl: string;
+  paymentUrl?: string;
   orderCode: number;
+  amount: number;
+  credits: number;
+  packageId?: string;
+  accountNumber?: string;
+  accountName?: string;
+  description?: string;
+  bin?: string;
+  qrCode?: string;
+  qrImageUrl?: string;
+  checkoutUrl?: string;
+  expiredAt: number;
+  message?: string;
+}
+
+export interface PendingPaymentResponse {
+  success: boolean;
+  paymentData: CreatePaymentResponse | null;
   message?: string;
 }
 
 export interface VerifyPaymentResponse {
   success: boolean;
-  status: string;
+  status: "PENDING" | "PAID" | "CANCELLED" | "EXPIRED";
+  providerStatus?: string;
+  balance?: number;
   message?: string;
 }

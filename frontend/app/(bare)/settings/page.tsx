@@ -27,9 +27,9 @@ export default function SettingsPage() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex min-h-screen w-full bg-transparent">
           <AppSidebar variant="settings" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <SidebarInset className="flex flex-col flex-1">
+          <SidebarInset className="flex flex-col flex-1 bg-transparent">
             {/* Main Workspace content */}
             <main className="flex-1 p-6 lg:p-12 overflow-y-auto bg-background/40 flex justify-center">
               <div className="w-full max-w-4xl">

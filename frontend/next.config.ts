@@ -6,6 +6,15 @@ const glslLoader = fileURLToPath(
 );
 
 const nextConfig: NextConfig = {
+	images: {
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "img.vietqr.io",
+				pathname: "/image/**",
+			},
+		],
+	},
 	experimental: {
 		cpus: 2,
 	},

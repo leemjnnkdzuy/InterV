@@ -268,7 +268,6 @@ export default function AdminApiLogsPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="API Operations"
         title="Nhật ký API"
         description="Theo dõi lưu lượng, lỗi, độ trễ và request ID xuyên suốt hệ thống."
         actions={

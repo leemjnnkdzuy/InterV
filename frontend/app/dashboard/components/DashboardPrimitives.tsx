@@ -22,12 +22,10 @@ import { cn } from "@/app/lib/Utils";
 const EMPTY_SELECT_VALUE = "__dashboard_select_empty__";
 
 export function DashboardPageHeader({
-  eyebrow,
   title,
   description,
   actions,
 }: {
-  eyebrow?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
@@ -35,11 +33,6 @@ export function DashboardPageHeader({
   return (
     <div className="mb-6 flex flex-col justify-between gap-4 border-b border-border/70 pb-5 lg:flex-row lg:items-end">
       <div className="min-w-0">
-        {eyebrow && (
-          <p className="mb-1 text-xs font-bold uppercase text-primary">
-            {eyebrow}
-          </p>
-        )}
         <h2 className="text-2xl font-extrabold text-foreground">{title}</h2>
         {description && (
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">

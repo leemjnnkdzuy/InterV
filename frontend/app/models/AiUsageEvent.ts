@@ -46,6 +46,7 @@ const aiUsageEventSchema = new Schema<IAiUsageEvent>(
       type: String,
       enum: [
         "interview_start",
+        "interview_opening_turn",
         "interview_follow_up",
         "interview_evaluate",
         "interview_profile_extract",

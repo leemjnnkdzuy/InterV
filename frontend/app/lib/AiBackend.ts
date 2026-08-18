@@ -133,6 +133,18 @@ export interface GrpcQuestion {
   groundingIds: string[];
 }
 
+export interface GrpcInterviewTurn {
+  success: boolean;
+  hasNextQuestion: boolean;
+  nextQuestion?: GrpcQuestion;
+  acknowledgementText: string;
+  transitionText: string;
+  spokenText: string;
+  transitionType: string;
+  provider: string;
+  usage: GrpcDeepSeekUsage;
+}
+
 export interface GrpcInterviewContext {
   sessionId: string;
   title: string;
@@ -302,6 +314,10 @@ interface IntervAiClient extends grpc.Client {
       feedbackHint: string;
       hasNextQuestion: boolean;
       nextQuestion?: GrpcQuestion;
+      acknowledgementText?: string;
+      transitionText?: string;
+      spokenText?: string;
+      transitionType?: string;
       provider: string;
       usage: GrpcDeepSeekUsage;
     }
@@ -358,6 +374,15 @@ interface IntervAiClient extends grpc.Client {
       provider: string;
       usage: GrpcDeepSeekUsage;
     }
+  >;
+  generateOpeningTurn: UnaryMethod<
+    {
+      runId: string;
+      context: GrpcInterviewContext;
+      openingPrompt: string;
+      openingTranscript: string;
+    },
+    GrpcInterviewTurn
   >;
   createStreamingToken: UnaryMethod<
     { expiresInSeconds: number; maxSessionDurationSeconds: number },
@@ -615,6 +640,13 @@ export const aiBackend = {
 
   startInterview: (context: GrpcInterviewContext) =>
     unary(getClient().startInterview, { context }, 300_000),
+
+  generateOpeningTurn: (request: {
+    runId: string;
+    context: GrpcInterviewContext;
+    openingPrompt: string;
+    openingTranscript: string;
+  }) => unary(getClient().generateOpeningTurn, request, 120_000),
 
   transcribeAudio: (request: {
     audio: Buffer;

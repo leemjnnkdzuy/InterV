@@ -105,7 +105,6 @@ export default function AdminRecruitmentPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Recruitment Governance"
         title="Giám sát hoạt động tuyển dụng"
         description="Theo dõi chiến dịch, tiến độ ứng viên và lỗi gửi thư trên toàn hệ thống."
         actions={

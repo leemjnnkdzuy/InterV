@@ -7,10 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ChevronDown,
   MessageSquareText,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 import {
   ClockCircle,
@@ -36,12 +33,11 @@ import type {
 } from "@/app/types";
 import {
   playInterviewAudio,
-  speakInterviewText,
   stopInterviewAudio,
 } from "@/app/lib/InterviewAudio";
+import { getInterviewVoiceName } from "@/app/lib/InterviewVoice";
 import FinishingPhase from "./FinishingPhase";
 import ThreeWaveform from "./ThreeWaveform";
-import { cn } from "@/app/lib/Utils";
 
 type InterviewStage =
   | "preparing"
@@ -58,12 +54,6 @@ type InterviewStage =
   | "closing"
   | "finishing"
   | "error";
-
-type InterviewHistoryEntry = {
-  questionId: string;
-  question: string;
-  answer: string;
-};
 
 const SERVER_TTS_WAIT_MS = 7_000;
 
@@ -90,6 +80,7 @@ export default function InterviewPhase({
   voiceName,
   language,
   voiceId,
+  initialOpeningAudio,
   questionsList,
   initialQuestionAudio,
   questionCount,
@@ -104,6 +95,8 @@ export default function InterviewPhase({
   const [openingCompleted, setOpeningCompleted] = useState(false);
   const [openingAttempt, setOpeningAttempt] = useState(0);
   const [stage, setStage] = useState<InterviewStage>("preparing");
+  const [promptAudioReady, setPromptAudioReady] = useState(false);
+  const [autoSubmissionPending, setAutoSubmissionPending] = useState(false);
   const [answer, setAnswer] = useState("");
   const [answerInputMode, setAnswerInputMode] = useState<"voice" | "text">(
     "voice"
@@ -115,12 +108,6 @@ export default function InterviewPhase({
   const [finishingStep, setFinishingStep] = useState(0);
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
-  const [historyEntries, setHistoryEntries] =
-    useState<InterviewHistoryEntry[]>([]);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
-  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(
-    null
-  );
   const startedAtRef = useRef<number | null>(null);
   const finishInFlightRef = useRef(false);
   const autoFinalizedTurnRef = useRef("");
@@ -140,7 +127,7 @@ export default function InterviewPhase({
 
   const audioKey = useCallback(
     (question: GeneratedInterviewQuestion) =>
-      `${language}:${voiceId}:${question.id}:${question.ttsText || question.text}`,
+      `${language}:${voiceId}:${question.id}:${question.spokenText || question.ttsText || question.text}`,
     [language, voiceId]
   );
 
@@ -171,16 +158,21 @@ export default function InterviewPhase({
   });
 
   const currentQuestion = questions[currentStep];
+  const interviewerName = getInterviewVoiceName(voiceName);
   const openingPrompt = t("interview.openingPrompt", {
-    voice: voiceName || t("interview.defaultInterviewerName"),
+    voice: interviewerName || t("interview.defaultInterviewerName"),
   });
   const closingPrompt = t("interview.closingPrompt");
   const displayPrompt =
     stage === "closing"
       ? closingPrompt
       : openingCompleted
-        ? currentQuestion?.text
-        : openingPrompt;
+        ? promptAudioReady
+          ? currentQuestion?.text
+          : ""
+        : promptAudioReady
+          ? openingPrompt
+          : "";
   const questionTextSize = displayPrompt
     ? displayPrompt.length > 650
       ? "text-sm md:text-base lg:text-lg"
@@ -194,6 +186,28 @@ export default function InterviewPhase({
     displayPrompt && displayPrompt.length > 320
       ? "leading-snug"
       : "leading-relaxed";
+  const isRecordingStage =
+    stage === "recording" || stage === "openingRecording";
+  const isAutoProcessingStage =
+    autoTurnTaking &&
+    [
+      "connecting",
+      "submitting",
+      "openingConnecting",
+      "openingSubmitting",
+    ].includes(stage);
+  const isAutoReviewPending =
+    autoTurnTaking &&
+    autoSubmissionPending &&
+    (stage === "reviewing" || stage === "openingReviewing");
+  const showRealtimeTranscript =
+    isRecordingStage || isAutoProcessingStage || isAutoReviewPending;
+  const realtimeTranscriptLabel =
+    isAutoProcessingStage || isAutoReviewPending
+      ? t("interview.savingAnswer")
+      : openingCompleted
+        ? t("interview.liveTranscript")
+        : t("interview.openingTranscript");
   const getQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
       const key = audioKey(question);
@@ -204,7 +218,11 @@ export default function InterviewPhase({
 
       const request = aiService
         .previewTts({
-          text: (question.ttsText || question.text).slice(0, 500),
+          text: (
+            question.spokenText ||
+            question.ttsText ||
+            question.text
+          ).slice(0, 1_200),
           language,
           voiceId,
         })
@@ -230,33 +248,32 @@ export default function InterviewPhase({
 
   const playQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
-      try {
-        const data = await waitForServerAudio(getQuestionAudio(question));
-        await playInterviewAudio(data.audioBase64, data.contentType);
-      } catch (error) {
-        console.warn("Server TTS unavailable, using browser voice:", error);
-        await speakInterviewText(question.text, language);
-      }
+      const data = await waitForServerAudio(getQuestionAudio(question));
+      await playInterviewAudio(data.audioBase64, data.contentType, () =>
+        setPromptAudioReady(true)
+      );
     },
-    [getQuestionAudio, language]
+    [getQuestionAudio]
   );
 
   const playPromptAudio = useCallback(
-    async (text: string) => {
-      try {
-        const data = await waitForServerAudio(
+    async (
+      text: string,
+      preparedAudio?: { audioBase64: string; contentType: string }
+    ) => {
+      const data =
+        preparedAudio ||
+        (await waitForServerAudio(
           aiService.previewTts({
-            text: text.slice(0, 500),
+            text: text.slice(0, 1_200),
             language,
             voiceId,
           })
-        );
-        if (!data.audioBase64) throw new Error("TTS did not return audio");
-        await playInterviewAudio(data.audioBase64, data.contentType);
-      } catch (error) {
-        console.warn("Server TTS unavailable, using browser voice:", error);
-        await speakInterviewText(text, language);
-      }
+        ));
+      if (!data.audioBase64) throw new Error("TTS did not return audio");
+      await playInterviewAudio(data.audioBase64, data.contentType, () =>
+        setPromptAudioReady(true)
+      );
     },
     [language, voiceId]
   );
@@ -277,6 +294,8 @@ export default function InterviewPhase({
       setAnswerInputMode(textOnlyMode ? "text" : "voice");
       setRecordingResult(null);
       setFailureMessage("");
+      setPromptAudioReady(false);
+      setAutoSubmissionPending(false);
 
       let preparationError: unknown;
       const recorderPreparation = textOnlyMode
@@ -286,7 +305,7 @@ export default function InterviewPhase({
           });
       try {
         setStage("openingSpeaking");
-        await playPromptAudio(openingPrompt);
+        await playPromptAudio(openingPrompt, initialOpeningAudio);
         if (
           cancelled ||
           transitionGeneration !== transitionGenerationRef.current
@@ -341,6 +360,7 @@ export default function InterviewPhase({
     prepareRecording,
     startRecording,
     t,
+    initialOpeningAudio,
   ]);
 
   useEffect(() => {
@@ -361,6 +381,8 @@ export default function InterviewPhase({
       setAnswerInputMode(textOnlyMode ? "text" : "voice");
       setRecordingResult(null);
       setFailureMessage("");
+      setPromptAudioReady(false);
+      setAutoSubmissionPending(false);
       setStage("preparing");
 
       let preparationError: unknown;
@@ -497,9 +519,11 @@ export default function InterviewPhase({
     if (!transcript && textAnswerEnabled) {
       setAnswerInputMode("text");
     }
+    setAutoSubmissionPending(autoTurnTaking);
     setStage("openingReviewing");
     if (!transcript) toast.warning(t("interview.transcriptMissing"));
   }, [
+    autoTurnTaking,
     prepareRecording,
     runId,
     stage,
@@ -543,10 +567,11 @@ export default function InterviewPhase({
         transcriptionProvider: provider,
       });
       setAnswer(transcript);
-      if (!transcript && textAnswerEnabled) {
-        setAnswerInputMode("text");
-      }
-      setStage("reviewing");
+    if (!transcript && textAnswerEnabled) {
+      setAnswerInputMode("text");
+    }
+    setAutoSubmissionPending(autoTurnTaking);
+    setStage("reviewing");
       if (currentStep + 1 < questionCount) {
         void prepareRecording().catch(() => undefined);
       }
@@ -556,6 +581,7 @@ export default function InterviewPhase({
       }
     },
     [
+      autoTurnTaking,
       currentStep,
       prepareRecording,
       questionCount,
@@ -637,10 +663,30 @@ export default function InterviewPhase({
         throw new Error(response.message || t("interview.saveResultError"));
       }
       answerAccepted = true;
+      setAutoSubmissionPending(false);
+      if (response.nextQuestion) {
+        setQuestions((previous) =>
+          previous.map((question, index) =>
+            index === 0
+              ? {
+                  ...question,
+                  ...response.nextQuestion,
+                }
+            : question
+          )
+        );
+        if (response.nextQuestionAudio) {
+          audioCacheRef.current.set(
+            audioKey(response.nextQuestion),
+            response.nextQuestionAudio
+          );
+        }
+      }
       setOpeningCompleted(true);
       setAnswer("");
       setAnswerInputMode("voice");
       setRecordingResult(null);
+      setPromptAudioReady(false);
       setStage("preparing");
     } catch (error: unknown) {
       console.error(error);
@@ -656,9 +702,10 @@ export default function InterviewPhase({
       toast.error(
         error instanceof Error ? error.message : t("interview.saveResultError")
       );
+      setAutoSubmissionPending(false);
       setStage("openingReviewing");
     }
-  }, [answer, openingPrompt, recordingResult, runId, t]);
+  }, [answer, audioKey, openingPrompt, recordingResult, runId, t]);
 
   const finishInterview = useCallback(async (withClosing = false) => {
     if (finishInFlightRef.current) return;
@@ -755,23 +802,9 @@ export default function InterviewPhase({
       }
       answerAccepted = true;
 
-      setHistoryEntries((previous) => {
-        const entry: InterviewHistoryEntry = {
-          questionId: currentQuestion.id,
-          question: currentQuestion.text,
-          answer: normalizedAnswer,
-        };
-        const existingIndex = previous.findIndex(
-          (item) => item.questionId === currentQuestion.id
-        );
-        if (existingIndex < 0) return [...previous, entry];
-        return previous.map((item, index) =>
-          index === existingIndex ? entry : item
-        );
-      });
-      setExpandedHistoryId(currentQuestion.id);
       setAnsweredCount(response.answeredCount);
       if (response.completed || !response.nextQuestion) {
+        setAutoSubmissionPending(false);
         await finishInterview(true);
         return;
       }
@@ -790,6 +823,7 @@ export default function InterviewPhase({
       });
       void getQuestionAudio(response.nextQuestion).catch(() => undefined);
       setCurrentStep(response.answeredCount);
+      setAutoSubmissionPending(false);
       setStage("preparing");
     } catch (error: unknown) {
       console.error(error);
@@ -805,6 +839,7 @@ export default function InterviewPhase({
       toast.error(
         error instanceof Error ? error.message : t("interview.saveResultError")
       );
+      setAutoSubmissionPending(false);
       setStage("reviewing");
     }
   }, [
@@ -858,6 +893,7 @@ export default function InterviewPhase({
     setAnswer("");
     setAnswerInputMode("voice");
     setRecordingResult(null);
+    setAutoSubmissionPending(false);
     setStage(openingCompleted ? "connecting" : "openingConnecting");
     try {
       await startRecording();
@@ -882,6 +918,7 @@ export default function InterviewPhase({
     setAnswer("");
     setRecordingResult(null);
     setAnswerInputMode("text");
+    setAutoSubmissionPending(false);
     setStage(openingCompleted ? "reviewing" : "openingReviewing");
   }, [cancelRecording, openingCompleted, textAnswerEnabled]);
 
@@ -890,6 +927,7 @@ export default function InterviewPhase({
     stopInterviewAudio();
     cancelRecording();
     setFailureMessage("");
+    setAutoSubmissionPending(false);
     if (openingCompleted) {
       setQuestionAttempt((previous) => previous + 1);
     } else {
@@ -927,140 +965,9 @@ export default function InterviewPhase({
           exit={{ opacity: 0, filter: "blur(12px)", scale: 1.015 }}
           transition={{ duration: 0.45, ease: "easeInOut" }}
         >
-          <AnimatePresence initial={false}>
-            {isHistoryOpen && (
-              <motion.aside
-                key="interview-history"
-                initial={{ x: "-100%", opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: "-100%", opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="absolute inset-y-0 left-0 z-40 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col border-r border-border/60 bg-background/95 shadow-2xl backdrop-blur-2xl"
-              >
-                <div className="flex h-20 shrink-0 items-center justify-between border-b border-border/50 px-5">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <MessageSquareText className="h-4 w-4 text-primary" />
-                      <h2 className="truncate text-sm font-extrabold">
-                        {t("interview.historyTitle")}
-                      </h2>
-                    </div>
-                    <p className="mt-1 text-[11px] font-medium text-muted-foreground">
-                      {t("interview.historyProgress", {
-                        answered: historyEntries.length,
-                        total: questionCount,
-                      })}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsHistoryOpen(false)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    aria-label={t("interview.closeHistory")}
-                    title={t("interview.closeHistory")}
-                  >
-                    <PanelLeftClose className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-3">
-                  {historyEntries.map((entry, index) => {
-                    const isExpanded = expandedHistoryId === entry.questionId;
-                    return (
-                      <button
-                        key={entry.questionId}
-                        type="button"
-                        onClick={() =>
-                          setExpandedHistoryId((current) =>
-                            current === entry.questionId ? null : entry.questionId
-                          )
-                        }
-                        aria-expanded={isExpanded}
-                        className={cn(
-                          "w-full rounded-2xl border px-3.5 py-3 text-left transition-colors",
-                          isExpanded
-                            ? "border-primary/30 bg-primary/10"
-                            : "border-transparent hover:border-border/60 hover:bg-muted/60"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="flex h-6 min-w-6 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
-                            {index + 1}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p
-                              className={cn(
-                                "select-text text-xs font-bold leading-relaxed",
-                                !isExpanded && "line-clamp-2"
-                              )}
-                            >
-                              {entry.question}
-                            </p>
-                            <p className="mt-1 text-[10px] font-semibold text-primary">
-                              {t("interview.answered")}
-                            </p>
-                          </div>
-                          <ChevronDown
-                            className={cn(
-                              "mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                              isExpanded && "rotate-180"
-                            )}
-                          />
-                        </div>
-
-                        {isExpanded && (
-                          <div className="mt-3 border-t border-border/50 pt-3">
-                            <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-muted-foreground">
-                              {t("interview.yourPreviousAnswer")}
-                            </p>
-                            <p className="whitespace-pre-wrap select-text text-xs leading-relaxed text-foreground/85">
-                              {entry.answer}
-                            </p>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  <div className="rounded-2xl border border-primary/35 bg-primary/10 px-3.5 py-3 text-left shadow-sm shadow-primary/5">
-                    <div className="flex items-start gap-3">
-                      <span className="flex h-6 min-w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-primary-foreground">
-                        {currentStep + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-3 select-text text-xs font-bold leading-relaxed">
-                          {currentQuestion.text}
-                        </p>
-                        <p className="mt-1 text-[10px] font-semibold text-primary">
-                          {t("interview.currentQuestion")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.aside>
-            )}
-          </AnimatePresence>
-
-          <div
-            className={cn(
-              "flex h-full min-w-0 flex-1 flex-col transition-[padding] duration-300",
-              isHistoryOpen && "lg:pl-80"
-            )}
-          >
+          <div className="flex h-full min-w-0 flex-1 flex-col">
       <header className="z-20 flex w-full shrink-0 items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
-          {!isHistoryOpen && (
-            <button
-              type="button"
-              onClick={() => setIsHistoryOpen(true)}
-              className="mr-1 flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-background/70 text-muted-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-muted hover:text-foreground"
-              aria-label={t("interview.openHistory")}
-              title={t("interview.openHistory")}
-            >
-              <PanelLeftOpen className="h-4 w-4" />
-            </button>
-          )}
           <div
             className="relative flex h-8 w-8 items-center justify-center transition-transform duration-100"
             style={{
@@ -1154,16 +1061,14 @@ export default function InterviewPhase({
             {displayPrompt}
           </h1>
 
-          {(stage === "recording" || stage === "openingRecording") && (
+          {showRealtimeTranscript && (
             <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
               <div className="min-h-20 w-full border-t border-border/50 pt-4">
                 <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">
-                  {openingCompleted
-                    ? t("interview.liveTranscript")
-                    : t("interview.openingTranscript")}
+                  {realtimeTranscriptLabel}
                 </p>
                 <p className="max-h-28 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/85 md:text-base">
-                  {liveTranscript}
+                  {answer || liveTranscript}
                 </p>
               </div>
 
@@ -1172,7 +1077,7 @@ export default function InterviewPhase({
               )}
 
               <div className="flex flex-wrap items-center justify-center gap-3">
-                {textAnswerEnabled && (
+                {isRecordingStage && textAnswerEnabled && (
                   <button
                     type="button"
                     onClick={() => switchToTextAnswer()}
@@ -1182,7 +1087,7 @@ export default function InterviewPhase({
                     <span>{t("interview.typeAnswer")}</span>
                   </button>
                 )}
-                {!autoTurnTaking && (
+                {isRecordingStage && !autoTurnTaking && (
                   <button
                     type="button"
                     onClick={() =>
@@ -1204,7 +1109,8 @@ export default function InterviewPhase({
             </div>
           )}
 
-          {(stage === "reviewing" || stage === "openingReviewing") && (
+          {(stage === "reviewing" || stage === "openingReviewing") &&
+            (!autoTurnTaking || !autoSubmissionPending) && (
             <div className="mx-auto w-full max-w-2xl border-t border-border/50 pt-5 text-left">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-[10px] font-black uppercase text-muted-foreground">

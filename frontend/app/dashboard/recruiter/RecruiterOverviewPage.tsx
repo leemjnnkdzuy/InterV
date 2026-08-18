@@ -100,7 +100,6 @@ export default function RecruiterOverviewPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Recruitment Workspace"
         title="Tổng quan tuyển dụng"
         description="Tiến độ chiến dịch, chuyển đổi ứng viên và kết quả phỏng vấn mới nhất."
         actions={

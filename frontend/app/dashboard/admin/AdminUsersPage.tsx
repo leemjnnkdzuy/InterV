@@ -155,7 +155,6 @@ export default function AdminUsersPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Identity & Access"
         title="Người dùng & phân quyền"
         description="Quản lý trạng thái tài khoản và cấp quyền nhà tuyển dụng. Mọi thay đổi quyền đều thu hồi phiên đăng nhập hiện tại."
         actions={

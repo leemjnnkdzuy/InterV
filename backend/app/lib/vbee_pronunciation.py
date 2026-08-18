@@ -238,6 +238,8 @@ PRONUNCIATION_SETS: dict[str, tuple[PronunciationEntry, ...]] = {
         ("JSON mode", "giây-sần mô-đ"),
     ),
     "product_business": (
+        ("InterV", "in-tờ vi"),
+        ("Inter V", "in-tờ vi"),
         ("Minimum Viable Product", "mi-ni-mầm vai-ờ-bồ pro-đấc"), ("MVP", "em vi pi"),
         ("proof of concept", "pru-ợp cờn-sept"), ("PoC", "pi ô xi"),
         ("key performance indicator", "ki pờ-pho-mần in-đi-kây-tờ"), ("KPI", "kay pi ai"),

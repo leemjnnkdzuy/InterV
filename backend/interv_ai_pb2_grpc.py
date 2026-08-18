@@ -59,6 +59,11 @@ class IntervAiStub:
                 request_serializer=interv__ai__pb2.InterviewStartRequest.SerializeToString,
                 response_deserializer=interv__ai__pb2.InterviewStartResponse.FromString,
                 _registered_method=True)
+        self.GenerateOpeningTurn = channel.unary_unary(
+                '/interv.ai.v1.IntervAi/GenerateOpeningTurn',
+                request_serializer=interv__ai__pb2.InterviewOpeningRequest.SerializeToString,
+                response_deserializer=interv__ai__pb2.InterviewTurnResponse.FromString,
+                _registered_method=True)
         self.TranscribeAudio = channel.unary_unary(
                 '/interv.ai.v1.IntervAi/TranscribeAudio',
                 request_serializer=interv__ai__pb2.TranscribeAudioRequest.SerializeToString,
@@ -139,6 +144,12 @@ class IntervAiServicer:
         raise NotImplementedError('Method not implemented!')
 
     def StartInterview(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GenerateOpeningTurn(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -231,6 +242,11 @@ def add_IntervAiServicer_to_server(servicer, server):
                     servicer.StartInterview,
                     request_deserializer=interv__ai__pb2.InterviewStartRequest.FromString,
                     response_serializer=interv__ai__pb2.InterviewStartResponse.SerializeToString,
+            ),
+            'GenerateOpeningTurn': grpc.unary_unary_rpc_method_handler(
+                    servicer.GenerateOpeningTurn,
+                    request_deserializer=interv__ai__pb2.InterviewOpeningRequest.FromString,
+                    response_serializer=interv__ai__pb2.InterviewTurnResponse.SerializeToString,
             ),
             'TranscribeAudio': grpc.unary_unary_rpc_method_handler(
                     servicer.TranscribeAudio,
@@ -418,6 +434,33 @@ class IntervAi:
             '/interv.ai.v1.IntervAi/StartInterview',
             interv__ai__pb2.InterviewStartRequest.SerializeToString,
             interv__ai__pb2.InterviewStartResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GenerateOpeningTurn(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/interv.ai.v1.IntervAi/GenerateOpeningTurn',
+            interv__ai__pb2.InterviewOpeningRequest.SerializeToString,
+            interv__ai__pb2.InterviewTurnResponse.FromString,
             options,
             channel_credentials,
             insecure,

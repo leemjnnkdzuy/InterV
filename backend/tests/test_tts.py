@@ -123,6 +123,11 @@ class TtsPreviewTests(unittest.IsolatedAsyncioTestCase):
             "ri-ác giây-ét, ri-ác giây-ét, ri-ác giây-ét và phích-mờ giúp xây dựng giao diện.",
         )
 
+    def test_interv_brand_keeps_the_final_v_sound(self):
+        spoken_text = prepare_vbee_tts_text("Chào mừng bạn đến với InterV.")
+
+        self.assertEqual(spoken_text, "Chào mừng bạn đến với in-tờ vi.")
+
     def test_pronunciation_library_has_broad_domain_coverage(self):
         self.assertGreaterEqual(pronunciation_entry_count(), 250)
         self.assertGreaterEqual(len(PRONUNCIATION_SETS), 10)

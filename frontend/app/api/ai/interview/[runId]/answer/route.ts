@@ -25,6 +25,72 @@ const TRANSCRIPTION_PROVIDERS = new Set([
   "faster-whisper",
 ]);
 
+function toQuestionRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as { toObject?: () => unknown };
+  const plain =
+    typeof candidate.toObject === "function" ? candidate.toObject() : value;
+  return plain && typeof plain === "object"
+    ? { ...(plain as Record<string, unknown>) }
+    : null;
+}
+
+function hasQuestionTransition(value: unknown): boolean {
+  const question = toQuestionRecord(value);
+  return Boolean(
+    question &&
+      typeof question.spokenText === "string" &&
+      question.spokenText.trim() &&
+      typeof question.transitionType === "string" &&
+      question.transitionType.trim()
+  );
+}
+
+function ensureQuestionTransition(
+  value: unknown,
+  previousValue: unknown
+): Record<string, unknown> | null {
+  const question = toQuestionRecord(value);
+  if (!question) return null;
+  if (hasQuestionTransition(question)) return question;
+
+  const previous = toQuestionRecord(previousValue);
+  const questionText =
+    typeof question.text === "string" ? question.text.trim() : "";
+  const ttsText =
+    typeof question.ttsText === "string" && question.ttsText.trim()
+      ? question.ttsText.trim()
+      : questionText;
+  if (!questionText || !ttsText) return question;
+
+  const currentCompetency =
+    typeof previous?.competency === "string"
+      ? previous.competency.trim().toLowerCase()
+      : "";
+  const nextCompetency =
+    typeof question.competency === "string"
+      ? question.competency.trim().toLowerCase()
+      : "";
+  const sameCompetency =
+    Boolean(currentCompetency) &&
+    Boolean(nextCompetency) &&
+    currentCompetency === nextCompetency;
+  const transitionText = sameCompetency
+    ? "Từ phần này, mình muốn làm rõ thêm cách bạn kiểm chứng kết quả."
+    : "Từ phần bạn vừa chia sẻ, mình chuyển sang một khía cạnh khác để nhìn toàn diện hơn về cách bạn làm việc.";
+  const transitionType = sameCompetency
+    ? "continue_competency"
+    : "bridge_to_next_competency";
+
+  return {
+    ...question,
+    acknowledgementText: "Cảm ơn bạn đã chia sẻ.",
+    transitionText,
+    spokenText: ["Cảm ơn bạn đã chia sẻ.", transitionText, ttsText].join(" "),
+    transitionType,
+  };
+}
+
 function formString(formData: FormData, key: string, maxLength: number): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -133,7 +199,10 @@ async function POSTHandler(
     );
     if (existingIndex >= 0) {
       const nextIndex = existingIndex + 1;
-      const nextQuestion = run.questions[nextIndex] || null;
+      const nextQuestion = ensureQuestionTransition(
+        run.questions[nextIndex] || null,
+        run.questions[existingIndex] || null
+      );
       return NextResponse.json({
         success: true,
         completed: nextIndex >= questionCount,
@@ -308,8 +377,34 @@ async function POSTHandler(
     const finalizedRun = await PracticeRun.findById(run._id)
       .select("questions")
       .lean();
-    const nextQuestion =
+    const rawNextQuestion =
       finalizedRun?.questions?.[nextQuestionIndex] || null;
+    const nextQuestion = ensureQuestionTransition(
+      rawNextQuestion,
+      finalizedRun?.questions?.[currentIndex] || currentQuestion
+    );
+    if (rawNextQuestion && nextQuestion && !hasQuestionTransition(rawNextQuestion)) {
+      await PracticeRun.updateOne(
+        {
+          _id: run._id,
+          userId: tokenPayload.userId,
+          status: "IN_PROGRESS",
+          [`questions.${nextQuestionIndex}.id`]: nextQuestion.id,
+        },
+        {
+          $set: {
+            [`questions.${nextQuestionIndex}.acknowledgementText`]:
+              nextQuestion.acknowledgementText,
+            [`questions.${nextQuestionIndex}.transitionText`]:
+              nextQuestion.transitionText,
+            [`questions.${nextQuestionIndex}.spokenText`]:
+              nextQuestion.spokenText,
+            [`questions.${nextQuestionIndex}.transitionType`]:
+              nextQuestion.transitionType,
+          },
+        }
+      );
+    }
     return NextResponse.json({
       success: true,
       completed: nextQuestionIndex >= questionCount,

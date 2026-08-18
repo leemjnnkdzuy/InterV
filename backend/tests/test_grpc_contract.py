@@ -11,6 +11,7 @@ from app.schemas import (
     CandidateProfileItem,
     GeneratedQuestion,
     InterviewEvaluation,
+    InterviewTransition,
 )
 from app.services.audio_analysis import AudioBehaviorResult, analyze_audio_behavior
 from app.rag.models import RagHealth
@@ -170,9 +171,21 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
             difficulty="Middle",
             expected_signals=["metric"],
         )
+        transition = InterviewTransition(
+            acknowledgement_text="Cảm ơn bạn đã chia sẻ.",
+            transition_text="Mình muốn làm rõ thêm cách bạn kiểm chứng kết quả.",
+            transition_type="probe_gap",
+        )
         with patch(
             "app.grpc_server.generate_follow_up",
-            new=AsyncMock(return_value=(generated, "deepseek")),
+            new=AsyncMock(
+                return_value=(
+                    generated,
+                    transition,
+                    "Cảm ơn bạn đã chia sẻ. Mình muốn làm rõ thêm cách bạn kiểm chứng kết quả. Kết quả đo lường cụ thể của thay đổi đó là gì?",
+                    "deepseek",
+                )
+            ),
         ):
             response = await self.stub.SubmitAnswer(
                 interv_ai_pb2.InterviewAnswerRequest(
@@ -203,10 +216,63 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(response.has_next_question)
         self.assertEqual(response.next_question.id, "q_2")
         self.assertIn("kết quả", response.next_question.text.lower())
+        self.assertEqual(response.transition_type, "probe_gap")
+        self.assertIn("kiểm chứng", response.transition_text)
+        self.assertIn("Kết quả", response.spoken_text)
         self.assertEqual(
             self.rag_agent.index_turn.await_count,
             1,
         )
+
+    async def test_generate_opening_turn_returns_transition_and_first_question(self):
+        generated = GeneratedQuestion(
+            id="q_1",
+            text="Hãy kể về một dự án gần đây bạn trực tiếp phụ trách.",
+            competency="role_understanding",
+            difficulty="Middle",
+            expected_signals=["vai trò cá nhân", "kết quả đo được"],
+        )
+        transition = InterviewTransition(
+            acknowledgement_text="Cảm ơn bạn đã chia sẻ về kinh nghiệm backend.",
+            transition_text="Mình muốn bắt đầu bằng cách tìm hiểu sâu hơn về vai trò của bạn trong một dự án cụ thể.",
+            transition_type="opening_to_first",
+        )
+        with patch(
+            "app.grpc_server.generate_opening_turn",
+            new=AsyncMock(
+                return_value=(
+                    generated,
+                    transition,
+                    "Cảm ơn bạn đã chia sẻ về kinh nghiệm backend. Mình muốn bắt đầu bằng cách tìm hiểu sâu hơn về vai trò của bạn trong một dự án cụ thể. Hãy kể về một dự án gần đây bạn trực tiếp phụ trách.",
+                    "deepseek",
+                )
+            ),
+        ) as generate:
+            response = await self.stub.GenerateOpeningTurn(
+                interv_ai_pb2.InterviewOpeningRequest(
+                    run_id="run-1",
+                    context=interv_ai_pb2.InterviewContext(
+                        session_id="session-1",
+                        title="Backend Engineer",
+                        industry="Công nghệ thông tin",
+                        difficulty="Middle",
+                        question_count=5,
+                        language="vi-VN",
+                    ),
+                    opening_prompt="Hãy giới thiệu về bản thân.",
+                    opening_transcript="Tôi có kinh nghiệm backend và từng phụ trách API cho một sản phẩm.",
+                ),
+                metadata=self.metadata,
+            )
+
+        self.assertTrue(response.success)
+        self.assertTrue(response.has_next_question)
+        self.assertEqual(response.next_question.id, "q_1")
+        self.assertEqual(response.transition_type, "opening_to_first")
+        self.assertIn("backend", response.acknowledgement_text.lower())
+        self.assertIn("dự án", response.transition_text.lower())
+        self.assertIn("Hãy kể", response.spoken_text)
+        generate.assert_awaited_once()
 
     async def test_audio_analysis_stream_returns_sensevoice_result(self):
         expected = AudioBehaviorResult(

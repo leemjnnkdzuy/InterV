@@ -311,7 +311,6 @@ export default function RecruiterInterviewDetailPage({
   return (
     <>
       <DashboardPageHeader
-        eyebrow={campaign.jobTitle}
         title={campaign.title}
         description={`${campaign.industry}${campaign.department ? ` · ${campaign.department}` : ""}`}
         actions={

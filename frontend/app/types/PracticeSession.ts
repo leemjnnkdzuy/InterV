@@ -14,6 +14,7 @@ export interface IPracticeSession extends Document {
   archivedAt?: Date;
   title: string;
   jobDescription?: string;
+  jobDescriptionSource?: "upload" | "paste";
   topic?: string;
   industry?: string;
   language?: string;

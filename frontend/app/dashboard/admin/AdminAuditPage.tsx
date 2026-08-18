@@ -95,7 +95,6 @@ export default function AdminAuditPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Security Audit"
         title="Nhật ký quản trị"
         description="Dấu vết bất biến của các thay đổi quyền, trạng thái tài khoản và nghiệp vụ tuyển dụng."
         actions={

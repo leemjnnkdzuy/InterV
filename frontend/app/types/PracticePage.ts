@@ -1,5 +1,7 @@
 import type { CandidateIntroItem } from "./PracticeRun";
 
+export type PracticeJobDescriptionSource = "upload" | "paste";
+
 export interface PracticeRouter {
   push: (href: string) => void;
 }
@@ -17,6 +19,7 @@ export interface PracticeSessionDetails {
   maxAttempts?: number;
   title?: string;
   jobDescription?: string;
+  jobDescriptionSource?: PracticeJobDescriptionSource;
   topic?: string;
   industry?: string;
   language?: string;
@@ -41,6 +44,8 @@ export interface SetupPhaseProps {
   industry: string;
   setIndustry: (i: string) => void;
   jobDescription: string;
+  jobDescriptionSource?: PracticeJobDescriptionSource;
+  setJobDescriptionSource: (source: PracticeJobDescriptionSource) => void;
   setJobDescription: (jd: string) => void;
   topic: string;
   setTopic: (tp: string) => void;
@@ -66,9 +71,11 @@ export interface PracticeStartOptions {
   language: string;
   voiceId: string;
   voiceName: string;
+  openingPrompt: string;
   hasUploadedJdFile: boolean;
   autoTurnTaking: boolean;
   textAnswerEnabled: boolean;
+  jobDescriptionSource: PracticeJobDescriptionSource;
 }
 
 export interface InterviewVoice {
@@ -84,6 +91,14 @@ export interface GeneratedInterviewQuestion {
   id: string;
   text: string;
   ttsText?: string;
+  acknowledgementText?: string;
+  transitionText?: string;
+  spokenText?: string;
+  transitionType?:
+    | "opening_to_first"
+    | "continue_competency"
+    | "probe_gap"
+    | "bridge_to_next_competency";
   competency: string;
   difficulty?: string;
   expectedSignals?: string[];
@@ -118,9 +133,12 @@ export interface PracticeStartPayload extends PracticeQuotePayload {
   industry: string;
   jobDescription: string;
   topic: string;
+  openingPrompt: string;
+  voiceName?: string;
   idempotencyKey: string;
   autoTurnTaking: boolean;
   textAnswerEnabled: boolean;
+  jobDescriptionSource: PracticeJobDescriptionSource;
 }
 
 export interface PracticeStartResponse {
@@ -129,6 +147,9 @@ export interface PracticeStartResponse {
   runId?: string;
   questions?: GeneratedInterviewQuestion[];
   questionCount?: number;
+  language?: string;
+  voiceId?: string;
+  openingAudio?: InterviewQuestionAudio;
   firstQuestionAudio?: InterviewQuestionAudio;
   quote?: {
     totalCredits: number;
@@ -156,6 +177,7 @@ export interface InterviewPhaseProps {
   difficulty: string;
   language: string;
   voiceId: string;
+  initialOpeningAudio?: InterviewQuestionAudio;
   questionsList: GeneratedInterviewQuestion[];
   initialQuestionAudio?: InterviewQuestionAudio;
   questionCount: number;
@@ -174,6 +196,18 @@ export interface PracticeOpeningPayload {
   transcriptionProvider: string;
 }
 
+export interface PracticeOpeningResponse {
+  success: boolean;
+  message?: string;
+  alreadySaved?: boolean;
+  nextQuestion?: GeneratedInterviewQuestion | null;
+  nextQuestionAudio?: InterviewQuestionAudio;
+  acknowledgementText?: string;
+  transitionText?: string;
+  spokenText?: string;
+  transitionType?: GeneratedInterviewQuestion["transitionType"];
+}
+
 export interface InterviewAnswerResponse {
   success: boolean;
   message?: string;
@@ -181,6 +215,10 @@ export interface InterviewAnswerResponse {
   answeredCount: number;
   questionCount: number;
   nextQuestion: GeneratedInterviewQuestion | null;
+  acknowledgementText?: string;
+  transitionText?: string;
+  spokenText?: string;
+  transitionType?: GeneratedInterviewQuestion["transitionType"];
   provider?: string;
 }
 

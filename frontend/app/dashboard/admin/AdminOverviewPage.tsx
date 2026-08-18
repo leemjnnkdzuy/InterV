@@ -98,7 +98,6 @@ export default function AdminOverviewPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Control Center"
         title="Tổng quan hệ thống"
         description="Tình trạng người dùng, hoạt động tuyển dụng và sự kiện quản trị gần nhất."
       />

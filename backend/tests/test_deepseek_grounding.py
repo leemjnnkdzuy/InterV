@@ -7,12 +7,14 @@ from app.schemas import (
     CandidateProfileRequest,
     InterviewEvaluateRequest,
     InterviewFollowUpRequest,
+    InterviewOpeningRequest,
     InterviewStartRequest,
 )
 from app.services.deepseek import (
     extract_candidate_profile,
     evaluate_interview,
     generate_follow_up,
+    generate_opening_turn,
     generate_questions,
 )
 
@@ -244,6 +246,11 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
     async def test_follow_up_is_grounded_and_keeps_five_question_floor(self):
         completion = AsyncMock(
             return_value={
+                "transition": {
+                    "acknowledgement_text": "Cảm ơn bạn đã chia sẻ.",
+                    "transition_text": "Mình muốn làm rõ thêm cách bạn kiểm chứng kết quả.",
+                    "transition_type": "probe_gap",
+                },
                 "question": {
                     "id": "ignored",
                     "text": "Bạn đã dùng metric nào để xác nhận nguyên nhân incident?",
@@ -268,7 +275,7 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
                 new=completion,
             ),
         ):
-            question, _ = await generate_follow_up(
+            question, transition, spoken_text, _ = await generate_follow_up(
                 InterviewFollowUpRequest(
                     run_id="run-1",
                     session_id="session-1",
@@ -291,9 +298,66 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
             )
         self.assertEqual(question.id, "q_2")
         self.assertEqual(question.grounding_ids, [PROFILE_ID, EVIDENCE_ID])
+        self.assertEqual(transition.transition_type, "probe_gap")
+        self.assertIn("kiểm chứng", spoken_text)
         self.assertEqual(
             completion.await_args.kwargs["payload"]["questionCount"],
             5,
+        )
+
+    async def test_opening_turn_uses_intro_and_returns_valid_transition(self):
+        completion = AsyncMock(
+            return_value={
+                "transition": {
+                    "acknowledgement_text": "Cảm ơn bạn đã chia sẻ về backend.",
+                    "transition_text": "Mình muốn bắt đầu bằng một ví dụ dự án cụ thể.",
+                    "transition_type": "opening_to_first",
+                },
+                "question": {
+                    "id": "ignored",
+                    "text": "Hãy kể về một dự án gần đây bạn trực tiếp phụ trách.",
+                    "competency": "role_understanding",
+                    "difficulty": "Middle",
+                    "expected_signals": ["vai trò cá nhân", "kết quả"],
+                    "grounding_ids": [PROFILE_ID, EVIDENCE_ID],
+                },
+            }
+        )
+        with (
+            patch(
+                "app.services.deepseek.get_settings",
+                return_value=SimpleNamespace(deepseek_fast_model="test-model"),
+            ),
+            patch(
+                "app.services.deepseek.prepare_grounding",
+                new=AsyncMock(return_value=FakeGrounding()),
+            ),
+            patch(
+                "app.services.deepseek._json_completion",
+                new=completion,
+            ),
+        ):
+            question, transition, spoken_text, provider = await generate_opening_turn(
+                InterviewOpeningRequest(
+                    run_id="run-1",
+                    session_id="session-1",
+                    title="Backend Engineer",
+                    industry="Công nghệ thông tin",
+                    difficulty="Middle",
+                    question_count=5,
+                    language="vi-VN",
+                    opening_prompt="Hãy giới thiệu về bản thân.",
+                    opening_transcript="Tôi có kinh nghiệm backend và từng phụ trách API.",
+                )
+            )
+
+        self.assertEqual(provider, "deepseek")
+        self.assertEqual(question.id, "q_1")
+        self.assertEqual(transition.transition_type, "opening_to_first")
+        self.assertIn("backend", spoken_text.lower())
+        self.assertEqual(
+            completion.await_args.kwargs["payload"]["openingTranscript"],
+            "Tôi có kinh nghiệm backend và từng phụ trách API.",
         )
 
     async def test_follow_up_repairs_missing_evidence_id_once(self):
@@ -307,12 +371,22 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
         completion = AsyncMock(
             side_effect=[
                 {
+                    "transition": {
+                        "acknowledgement_text": "Cảm ơn bạn đã chia sẻ.",
+                        "transition_text": "Mình muốn làm rõ thêm cách bạn kiểm chứng kết quả.",
+                        "transition_type": "probe_gap",
+                    },
                     "question": {
                         **base_question,
                         "grounding_ids": [PROFILE_ID],
                     }
                 },
                 {
+                    "transition": {
+                        "acknowledgement_text": "Cảm ơn bạn đã chia sẻ.",
+                        "transition_text": "Mình muốn làm rõ thêm cách bạn kiểm chứng kết quả.",
+                        "transition_type": "probe_gap",
+                    },
                     "question": {
                         **base_question,
                         "grounding_ids": [PROFILE_ID, EVIDENCE_ID],
@@ -334,7 +408,7 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
                 new=completion,
             ),
         ):
-            question, provider = await generate_follow_up(
+            question, transition, spoken_text, provider = await generate_follow_up(
                 InterviewFollowUpRequest(
                     run_id="run-1",
                     session_id="session-1",
@@ -359,6 +433,8 @@ class DeepSeekGroundingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(provider, "deepseek")
         self.assertEqual(completion.await_count, 2)
         self.assertEqual(question.grounding_ids, [PROFILE_ID, EVIDENCE_ID])
+        self.assertEqual(transition.transition_type, "probe_gap")
+        self.assertIn("metric", question.text)
         repair_payload = completion.await_args_list[1].kwargs["payload"]
         self.assertTrue(repair_payload["repairRequired"])
 

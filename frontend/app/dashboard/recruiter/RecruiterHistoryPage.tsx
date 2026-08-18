@@ -121,7 +121,6 @@ export default function RecruiterHistoryPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Interview Results"
         title="Lịch sử & kết quả"
         description="Kết quả đã chấm, năng lực theo tiêu chí và phản hồi chi tiết của từng ứng viên."
       />

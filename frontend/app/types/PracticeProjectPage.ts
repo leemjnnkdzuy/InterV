@@ -51,6 +51,7 @@ export interface PracticeProjectSession {
   id: string;
   title: string;
   jobDescription?: string;
+  jobDescriptionSource?: "upload" | "paste";
   topic?: string;
   industry?: string;
   language?: string;
@@ -87,6 +88,7 @@ export interface PracticeCreatePayload {
 export interface PracticeUpdatePayload {
   title?: string;
   jobDescription?: string;
+  jobDescriptionSource?: "upload" | "paste";
   topic?: string;
   industry?: string;
   language?: string;

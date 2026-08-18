@@ -110,7 +110,6 @@ export default function RecruiterCandidatesPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Candidate Pipeline"
         title="Ứng viên"
         description="Tất cả ứng viên theo từng lời mời và trạng thái trong quy trình phỏng vấn."
       />

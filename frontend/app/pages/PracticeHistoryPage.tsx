@@ -8,7 +8,6 @@ import {
   CalendarDate,
   ClockCircle,
   DangerCircle,
-  History,
   Inbox,
   MedalStar,
   Refresh,
@@ -250,10 +249,6 @@ export default function PracticeHistoryPage() {
     <div className="mx-auto w-full max-w-7xl space-y-7 pb-10 text-left">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-primary">
-            <History className="size-4" weight="BoldDuotone" />
-            Nhật ký hoạt động
-          </div>
           <h1 className="text-3xl font-extrabold tracking-normal lg:text-4xl">
             Lịch sử luyện tập
           </h1>

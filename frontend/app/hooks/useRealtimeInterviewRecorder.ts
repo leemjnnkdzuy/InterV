@@ -85,6 +85,7 @@ export function useRealtimeInterviewRecorder(
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const workletRef = useRef<AudioWorkletNode | null>(null);
+  const monitorGainRef = useRef<GainNode | null>(null);
   const analyserFrameRef = useRef<number | null>(null);
   const audioGraphStartedRef = useRef(false);
   const captureAudioRef = useRef(false);
@@ -136,9 +137,11 @@ export function useRealtimeInterviewRecorder(
     sourceRef.current?.disconnect();
     analyserRef.current?.disconnect();
     workletRef.current?.disconnect();
+    monitorGainRef.current?.disconnect();
     sourceRef.current = null;
     analyserRef.current = null;
     workletRef.current = null;
+    monitorGainRef.current = null;
     if (audioContextRef.current) {
       await audioContextRef.current.close().catch(() => undefined);
       audioContextRef.current = null;
@@ -157,6 +160,15 @@ export function useRealtimeInterviewRecorder(
     analyserRef.current = analyser;
     const worklet = new AudioWorkletNode(audioContext, "pcm16-processor");
     workletRef.current = worklet;
+    // Keep the AudioWorklet in the active render graph without sending the
+    // microphone signal back to the speakers. Without a live output path,
+    // some browsers stop pulling audio through the worklet, so no PCM chunks
+    // reach the realtime WebSocket.
+    const monitorGain = audioContext.createGain();
+    monitorGain.gain.value = 0;
+    monitorGainRef.current = monitorGain;
+    worklet.connect(monitorGain);
+    monitorGain.connect(audioContext.destination);
     worklet.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
       if (workletRef.current !== worklet) return;
       if (!captureAudioRef.current) return;
@@ -233,9 +245,13 @@ export function useRealtimeInterviewRecorder(
       url.searchParams.set("min_turn_silence", "400");
       url.searchParams.set("max_turn_silence", "1280");
     }
-    if (tokenResponse.languageCode) {
+    if (speechModel !== "whisper-rt" && tokenResponse.languageCode) {
       url.searchParams.set("language_code", tokenResponse.languageCode);
     }
+    if (speechModel === "whisper-rt") {
+      url.searchParams.set("language_detection", "true");
+    }
+    url.searchParams.set("format_turns", "true");
 
     turnBoundaryStateRef.current = createRealtimeTurnBoundaryState();
 
@@ -563,6 +579,7 @@ export function useRealtimeInterviewRecorder(
     sourceRef.current?.disconnect();
     analyserRef.current?.disconnect();
     workletRef.current?.disconnect();
+    monitorGainRef.current?.disconnect();
     void audioContextRef.current?.close().catch(() => undefined);
     const socket = socketRef.current;
     socketRef.current = null;
@@ -577,6 +594,7 @@ export function useRealtimeInterviewRecorder(
     sourceRef.current = null;
     analyserRef.current = null;
     workletRef.current = null;
+    monitorGainRef.current = null;
     audioContextRef.current = null;
     audioGraphStartedRef.current = false;
     setFinalTurn(null);

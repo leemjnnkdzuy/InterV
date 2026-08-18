@@ -11,6 +11,7 @@ import {
 } from "@/app/lib/ServerSecurity";
 
 const SUPPORTED_LANGUAGES = new Set(["vi-VN"]);
+const MAX_TTS_TEXT_CHARS = 1_200;
 
 async function POSTHandler(request: NextRequest) {
   try {
@@ -25,12 +26,12 @@ async function POSTHandler(request: NextRequest) {
     await enforceRateLimit("ai-tts-preview", payload.userId, 90, 60_000);
     const body = (await readJsonBodyLimited(
       request,
-      4 * 1024
+      16 * 1024
     )) as Record<string, unknown>;
     if (
       typeof body.text !== "string" ||
       body.text.trim().length === 0 ||
-      body.text.length > 500 ||
+      body.text.length > MAX_TTS_TEXT_CHARS ||
       typeof body.language !== "string" ||
       !SUPPORTED_LANGUAGES.has(body.language) ||
       typeof body.voiceId !== "string" ||

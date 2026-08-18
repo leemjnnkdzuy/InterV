@@ -2,7 +2,6 @@ let sharedAudio: HTMLAudioElement | null = null;
 let silentAudioUrl = "";
 let pendingResolve: (() => void) | null = null;
 let playbackGeneration = 0;
-let activeUtterance: SpeechSynthesisUtterance | null = null;
 
 function getAudioElement(): HTMLAudioElement {
   if (!sharedAudio) {
@@ -61,14 +60,6 @@ export function stopInterviewAudio(): void {
   playbackGeneration += 1;
   pendingResolve?.();
   pendingResolve = null;
-  if (activeUtterance) {
-    activeUtterance.onend = null;
-    activeUtterance.onerror = null;
-  }
-  activeUtterance = null;
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
   if (!sharedAudio) return;
   sharedAudio.onended = null;
   sharedAudio.onerror = null;
@@ -76,46 +67,10 @@ export function stopInterviewAudio(): void {
   sharedAudio.currentTime = 0;
 }
 
-export async function speakInterviewText(
-  text: string,
-  language: string
-): Promise<void> {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    throw new Error("Trình duyệt không hỗ trợ đọc câu hỏi");
-  }
-
-  stopInterviewAudio();
-  const generation = ++playbackGeneration;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = language;
-  const languagePrefix = language.toLowerCase().split("-")[0];
-  const matchingVoice = window.speechSynthesis
-    .getVoices()
-    .find((voice) => voice.lang.toLowerCase().startsWith(languagePrefix));
-  if (matchingVoice) utterance.voice = matchingVoice;
-  activeUtterance = utterance;
-
-  await new Promise<void>((resolve, reject) => {
-    pendingResolve = resolve;
-    utterance.onend = () => {
-      if (generation !== playbackGeneration) return;
-      activeUtterance = null;
-      pendingResolve = null;
-      resolve();
-    };
-    utterance.onerror = (event) => {
-      if (generation !== playbackGeneration) return;
-      activeUtterance = null;
-      pendingResolve = null;
-      reject(new Error(event.error || "Không thể đọc câu hỏi"));
-    };
-    window.speechSynthesis.speak(utterance);
-  });
-}
-
 export async function playInterviewAudio(
   audioBase64: string,
-  contentType: string
+  contentType: string,
+  onStarted?: () => void
 ): Promise<void> {
   stopInterviewAudio();
   const audio = getAudioElement();
@@ -134,10 +89,16 @@ export async function playInterviewAudio(
       pendingResolve = null;
       reject(new Error("Không thể phát câu hỏi"));
     };
-    audio.play().catch((error) => {
-      if (generation !== playbackGeneration) return;
-      pendingResolve = null;
-      reject(error);
-    });
+    audio
+      .play()
+      .then(() => {
+        if (generation !== playbackGeneration) return;
+        onStarted?.();
+      })
+      .catch((error) => {
+        if (generation !== playbackGeneration) return;
+        pendingResolve = null;
+        reject(error);
+      });
   });
 }

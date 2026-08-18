@@ -144,6 +144,7 @@ interface BalanceData {
 
 const operationLabels: Record<string, string> = {
   interview_start: "Khởi tạo",
+  interview_opening_turn: "Nối mở đầu",
   interview_follow_up: "Câu hỏi tiếp",
   interview_evaluate: "Chấm điểm",
   interview_profile_extract: "Trích xuất hồ sơ",
@@ -270,7 +271,6 @@ export default function AdminAiPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="AI Operations"
         title="DeepSeek & AI usage"
         description="Số dư nhà cung cấp, token, cache, chi phí, độ trễ và lỗi từ các lượt phỏng vấn thực tế."
         actions={
@@ -538,6 +538,7 @@ export default function AdminAiPage() {
               options={[
                 { value: "", label: "Mọi tác vụ" },
                 { value: "interview_start", label: "Khởi tạo" },
+                { value: "interview_opening_turn", label: "Nối mở đầu" },
                 { value: "interview_follow_up", label: "Câu hỏi tiếp" },
                 { value: "interview_evaluate", label: "Chấm điểm" },
                 {

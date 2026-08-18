@@ -9,7 +9,10 @@ import { RECHARGE_PACKAGES } from "@/app/contants";
 import { getErrorMessage } from "@/app/lib/Utils";
 import {
   createOrderCode,
+  getPaymentExpiry,
   getApplicationOrigin,
+  reconcilePayOSPayment,
+  toPaymentResponse,
 } from "@/app/lib/PaymentSettlement";
 import {
   enforceRateLimit,
@@ -33,19 +36,16 @@ async function POSTHandler(request: NextRequest) {
       request,
       4 * 1024
     )) as Record<string, unknown>;
-    const { amount } = body;
-
-    if (!amount || typeof amount !== "number") {
-      return NextResponse.json(
-        { success: false, message: "Số tiền nạp không hợp lệ" },
-        { status: 400 }
-      );
-    }
-
-    const matchedPkg = RECHARGE_PACKAGES.find((pkg) => pkg.amount === amount);
+    const packageId = typeof body.packageId === "string" ? body.packageId.trim() : "";
+    const amount = typeof body.amount === "number" ? body.amount : null;
+    const matchedPkg = packageId
+      ? RECHARGE_PACKAGES.find((pkg) => pkg.id === packageId)
+      : amount !== null
+        ? RECHARGE_PACKAGES.find((pkg) => pkg.amount === amount)
+        : undefined;
     if (!matchedPkg) {
       return NextResponse.json(
-        { success: false, message: "Gói nạp không tồn tại" },
+        { success: false, message: "Gói nạp không tồn tại hoặc không hợp lệ" },
         { status: 400 }
       );
     }
@@ -57,6 +57,55 @@ async function POSTHandler(request: NextRequest) {
       10,
       10 * 60 * 1000
     );
+
+    const existingPending = await Transaction.findOne({
+      userId: payload.userId,
+      status: "PENDING",
+    }).sort({ createdAt: -1 });
+
+    if (existingPending) {
+      if (
+        existingPending.expiresAt &&
+        existingPending.expiresAt.getTime() <= Date.now()
+      ) {
+        await Transaction.updateOne(
+          { _id: existingPending._id, status: "PENDING" },
+          {
+            $set: {
+              status: "EXPIRED",
+              providerStatus: "EXPIRED",
+              lastReconciledAt: new Date(),
+            },
+          }
+        );
+      } else {
+        try {
+          const reconciliation = await reconcilePayOSPayment(existingPending._id);
+          if (reconciliation.status === "PENDING") {
+            return NextResponse.json(
+              {
+                success: false,
+                code: "PAYMENT_PENDING",
+                orderCode: existingPending.orderCode,
+                message: "Bạn đang có một giao dịch thanh toán chưa hoàn tất.",
+              },
+              { status: 409 }
+            );
+          }
+        } catch {
+          return NextResponse.json(
+            {
+              success: false,
+              code: "PAYMENT_PENDING",
+              orderCode: existingPending.orderCode,
+              message: "Không thể tạo giao dịch mới khi còn giao dịch đang chờ xử lý.",
+            },
+            { status: 409 }
+          );
+        }
+      }
+    }
+
     const user = await User.findById(payload.userId);
     if (!user) {
       return NextResponse.json(
@@ -70,36 +119,68 @@ async function POSTHandler(request: NextRequest) {
 
     const appUrl = getApplicationOrigin();
     const returnUrl = `${appUrl}/credit?status=success&orderCode=${orderCode}`;
-    const cancelUrl = `${appUrl}/credit?status=cancel`;
+    const cancelUrl = `${appUrl}/credit?status=cancel&orderCode=${orderCode}`;
+    const createdAt = new Date();
+    const expiresAt = getPaymentExpiry(createdAt);
 
     const transaction = await Transaction.create({
       userId: user._id,
       orderCode,
-      amount,
+      packageId: matchedPkg.id,
+      amount: matchedPkg.amount,
       credits: totalCredits,
       status: "PENDING",
       providerStatus: "PENDING",
       paymentLinkId: "",
+      createdAt,
+      expiresAt,
     });
-    let paymentUrl: string;
     try {
       const paymentLinkData = await getPayOS().paymentRequests.create({
         orderCode,
-        amount,
+        amount: matchedPkg.amount,
         description: `NAP ${totalCredits} CREDIT`,
         cancelUrl,
         returnUrl,
+        expiredAt: Math.floor(expiresAt.getTime() / 1000),
       });
-      paymentUrl = paymentLinkData.checkoutUrl;
+      const persistedExpiresAt = paymentLinkData.expiredAt
+        ? new Date(paymentLinkData.expiredAt * 1000)
+        : expiresAt;
       await Transaction.updateOne(
         { _id: transaction._id },
         {
           $set: {
             paymentLinkId: paymentLinkData.paymentLinkId,
-            paymentUrl,
+            paymentUrl: paymentLinkData.checkoutUrl,
+            qrCode: paymentLinkData.qrCode,
+            bin: paymentLinkData.bin,
+            accountNumber: paymentLinkData.accountNumber,
+            accountName: paymentLinkData.accountName,
+            description: paymentLinkData.description,
             providerStatus: paymentLinkData.status,
+            expiresAt: persistedExpiresAt,
           },
         }
+      );
+      return NextResponse.json(
+        toPaymentResponse(
+          {
+            orderCode,
+            packageId: matchedPkg.id,
+            amount: matchedPkg.amount,
+            credits: totalCredits,
+            createdAt,
+            expiresAt: persistedExpiresAt,
+            paymentUrl: paymentLinkData.checkoutUrl,
+            qrCode: paymentLinkData.qrCode,
+            bin: paymentLinkData.bin,
+            accountNumber: paymentLinkData.accountNumber,
+            accountName: paymentLinkData.accountName,
+            description: paymentLinkData.description,
+          },
+          paymentLinkData
+        )
       );
     } catch (error) {
       await Transaction.updateOne(
@@ -116,11 +197,6 @@ async function POSTHandler(request: NextRequest) {
       throw error;
     }
 
-    return NextResponse.json({
-      success: true,
-      paymentUrl,
-      orderCode,
-    });
   } catch (error: unknown) {
     if (error instanceof RateLimitError) {
       return NextResponse.json(

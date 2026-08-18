@@ -1,20 +1,60 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card as CardUI } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { WalletMoney, Chart, ShieldCheck, Card } from "@solar-icons/react";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import RechargeDrawer from "@/app/components/common/Drawer/RechargeDrawer";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { Odometer } from "@/app/components/ui/odometer";
+import { paymentService } from "@/app/services";
 import type { CreditPageProps } from "@/app/types";
 import { useLanguage } from "@/app/hooks/useLanguage";
 
 export default function CreditPage({ setActiveTab, creditLogs, transactions, isLoading }: CreditPageProps) {
-  const { user } = useAuthContext();
+  const { user, loading: authLoading } = useAuthContext();
   const { language, t } = useLanguage();
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [pendingPaymentCheckedForUserId, setPendingPaymentCheckedForUserId] = useState<string | null>(null);
   const numberLocale = language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
+
+  useEffect(() => {
+    if (authLoading || !user?.id) {
+      return;
+    }
+
+    let cancelled = false;
+    const checkPendingPayment = async () => {
+      try {
+        const response = await paymentService.getPendingPayment();
+        if (cancelled) return;
+
+        setHasPendingPayment(
+          Boolean(response.paymentData && response.paymentData.expiredAt > Date.now())
+        );
+        setPendingPaymentCheckedForUserId(user.id);
+      } catch {
+        if (!cancelled) {
+          setHasPendingPayment(false);
+          setPendingPaymentCheckedForUserId(user.id);
+        }
+      }
+    };
+
+    void checkPendingPayment();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user?.id]);
+
+  const isPendingPaymentLoading = Boolean(
+    authLoading || (user?.id && pendingPaymentCheckedForUserId !== user.id)
+  );
+  const showResumePayment = Boolean(
+    user?.id && pendingPaymentCheckedForUserId === user.id && hasPendingPayment
+  );
 
   const totalRechargedVND = transactions
     .filter((tx) => tx.status === "PAID")
@@ -36,18 +76,16 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main Balance Card */}
         <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-tr from-primary via-violet-600 to-indigo-600 p-6 text-white shadow-xl shadow-primary/10 flex flex-col justify-between min-h-[180px]">
-          {/* Background Decorative Circles */}
-          <div className="absolute right-[-40px] top-[-40px] w-40 h-40 rounded-full bg-white/5 blur-xl"></div>
-          <div className="absolute left-[-20px] bottom-[-20px] w-32 h-32 rounded-full bg-black/10 blur-xl"></div>
-
           <div className="flex justify-between items-start">
             <div>
               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">{t("credit.availableBalance")}</p>
               <div className="flex items-center gap-1.5 mt-2">
                 {user ? (
-                  <span className="text-4xl font-extrabold tracking-tight">
-                    {user?.credits !== undefined ? user.credits.toLocaleString(numberLocale) : "0"}
-                  </span>
+                  <Odometer
+                    value={user.credits ?? 0}
+                    locale={numberLocale}
+                    className="text-4xl font-extrabold tracking-tight"
+                  />
                 ) : (
                   <Skeleton className="h-9 w-24 bg-white/20" />
                 )}
@@ -66,10 +104,20 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
               {t("credit.viewUsageHistory")}
             </Button>
             <Button
+              disabled={isPendingPaymentLoading}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-primary/10 cursor-pointer flex-1"
               onClick={() => setIsRechargeOpen(true)}
             >
-              {t("credit.rechargeNow")}
+              {isPendingPaymentLoading ? (
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-28 animate-pulse rounded-full bg-white/40"
+                />
+              ) : showResumePayment ? (
+                t("credit.resumePayment")
+              ) : (
+                t("credit.rechargeNow")
+              )}
             </Button>
           </div>
         </div>
@@ -130,7 +178,12 @@ export default function CreditPage({ setActiveTab, creditLogs, transactions, isL
       </CardUI>
 
 
-      <RechargeDrawer isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
+      <RechargeDrawer
+        isOpen={isRechargeOpen}
+        onOpenChange={setIsRechargeOpen}
+        onPendingPaymentChange={setHasPendingPayment}
+        resumePendingPayment={showResumePayment}
+      />
     </div>
   );
 }

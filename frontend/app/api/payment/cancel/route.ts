@@ -6,6 +6,7 @@ import Transaction from "@/app/models/Transaction";
 import { authenticateRequest } from "@/app/lib/Auth";
 import {
   PaymentIntegrityError,
+  cancelPayOSPayment,
   reconcilePayOSPayment,
 } from "@/app/lib/PaymentSettlement";
 import {
@@ -25,6 +26,7 @@ async function POSTHandler(request: NextRequest) {
         { status: 401 }
       );
     }
+
     const body = (await readJsonBodyLimited(
       request,
       4 * 1024
@@ -42,7 +44,8 @@ async function POSTHandler(request: NextRequest) {
     }
 
     await connectDB();
-    await enforceRateLimit("payment-verify", payload.userId, 30, 10 * 60_000);
+    await enforceRateLimit("payment-cancel", payload.userId, 20, 10 * 60 * 1000);
+
     const transaction = await Transaction.findOne({
       orderCode,
       userId: payload.userId,
@@ -54,80 +57,69 @@ async function POSTHandler(request: NextRequest) {
       );
     }
     if (transaction.status === "PAID") {
-      return NextResponse.json({
-        success: true,
-        message: "Giao dịch đã được xử lý trước đó",
-        status: "PAID",
-      });
+      return NextResponse.json(
+        { success: false, message: "Giao dịch đã thanh toán và không thể hủy" },
+        { status: 409 }
+      );
     }
     if (transaction.status === "CANCELLED" || transaction.status === "EXPIRED") {
       return NextResponse.json({
         success: true,
-        message: "Giao dịch đã kết thúc",
         status: transaction.status,
-        providerStatus: transaction.providerStatus,
+        message: "Giao dịch đã kết thúc trước đó",
       });
     }
 
-    const reconciliation = await reconcilePayOSPayment(transaction._id);
-    if (reconciliation.status === "PAID") {
+    try {
+      const result = await cancelPayOSPayment(
+        transaction._id,
+        "User cancelled the InterV credit transaction"
+      );
       return NextResponse.json({
         success: true,
-        message: "Giao dịch đã được cộng credits thành công",
-        status: "PAID",
+        status: result.status,
+        message: "Đã hủy giao dịch thanh toán",
       });
+    } catch (error: unknown) {
+      if (error instanceof PaymentIntegrityError) {
+        return NextResponse.json(
+          { success: false, message: "Không thể xác nhận việc hủy giao dịch PayOS" },
+          { status: 409 }
+        );
+      }
+
+      // A cancellation race can mean PayOS has already transitioned the order.
+      // Reconcile once before returning an error to the user.
+      try {
+        const reconciliation = await reconcilePayOSPayment(transaction._id);
+        if (reconciliation.status !== "PENDING") {
+          return NextResponse.json({
+            success: true,
+            status: reconciliation.status,
+            message: "Giao dịch đã được cập nhật theo trạng thái PayOS",
+          });
+        }
+      } catch {
+        // Preserve the original failure below.
+      }
+      throw error;
     }
-    if (reconciliation.status === "CANCELLED") {
-      return NextResponse.json({
-        success: true,
-        message: "Giao dịch đã bị hủy bỏ",
-        status: "CANCELLED",
-        providerStatus: reconciliation.providerStatus,
-      });
-    }
-    if (reconciliation.status === "EXPIRED") {
-      return NextResponse.json({
-        success: true,
-        message: "Giao dịch đã hết hạn thanh toán",
-        status: "EXPIRED",
-        providerStatus: reconciliation.providerStatus,
-      });
-    }
-    return NextResponse.json({
-      success: true,
-      message: "Giao dịch đang chờ thanh toán",
-      status: "PENDING",
-      providerStatus: reconciliation.providerStatus,
-    });
   } catch (error: unknown) {
-    console.error("POST /api/payment/verify error:", error);
     if (error instanceof RateLimitError) {
       return NextResponse.json(
-        { success: false, message: "Bạn đang kiểm tra giao dịch quá nhanh" },
+        { success: false, message: "Bạn thao tác quá thường xuyên." },
         rateLimitResponse(error)
       );
     }
     if (error instanceof RequestBodyTooLargeError) {
       return NextResponse.json(
-        { success: false, message: "Dữ liệu xác minh giao dịch quá lớn" },
+        { success: false, message: "Dữ liệu hủy giao dịch quá lớn" },
         { status: 413 }
       );
     }
-    if (error instanceof PaymentIntegrityError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Dữ liệu đối soát PayOS không khớp. Giao dịch chưa được cộng credits.",
-        },
-        { status: 409 }
-      );
-    }
+    console.error("POST /api/payment/cancel error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Lỗi kiểm tra giao dịch. Vui lòng thử lại sau.",
-      },
+      { success: false, message: "Không thể hủy giao dịch. Vui lòng thử lại." },
       { status: 500 }
     );
   }

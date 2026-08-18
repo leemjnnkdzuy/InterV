@@ -59,7 +59,7 @@ interface ManagedTransaction {
   orderCode: number;
   amount: number;
   credits: number;
-  status: "PENDING" | "PAID" | "CANCELLED";
+  status: "PENDING" | "PAID" | "CANCELLED" | "EXPIRED";
   providerStatus: string;
   paymentLinkId: string;
   paymentUrl?: string;
@@ -341,7 +341,6 @@ export default function AdminPaymentsPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Finance Operations"
         title="Thanh toán & credit"
         description="Đối soát PayOS, doanh thu, trạng thái giao dịch và toàn bộ biến động credit người dùng."
         actions={
@@ -517,6 +516,7 @@ export default function AdminPaymentsPage() {
                   { value: "PENDING", label: "Đang chờ" },
                   { value: "PAID", label: "Đã thanh toán" },
                   { value: "CANCELLED", label: "Đã hủy" },
+                  { value: "EXPIRED", label: "Đã hết hạn" },
                 ]}
               />
             </div>
@@ -567,7 +567,9 @@ export default function AdminPaymentsPage() {
                               ? "Đã thanh toán"
                               : transaction.status === "PENDING"
                                 ? "Đang chờ"
-                                : "Đã hủy"
+                                : transaction.status === "EXPIRED"
+                                  ? "Đã hết hạn"
+                                  : "Đã hủy"
                           }
                         />
                       </td>

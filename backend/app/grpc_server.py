@@ -25,6 +25,7 @@ from app.schemas import (
     CandidateProfileRequest,
     InterviewEvaluateRequest,
     InterviewFollowUpRequest,
+    InterviewOpeningRequest,
     InterviewStartRequest,
     TtsPreviewRequest,
 )
@@ -39,6 +40,7 @@ from app.services.deepseek import (
     extract_candidate_profile,
     evaluate_interview,
     generate_follow_up,
+    generate_opening_turn,
     generate_questions,
     get_deepseek_balance,
     new_run_id,
@@ -448,8 +450,9 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 question.id = f"q_{index}"
 
             # Do not block interview creation on warming every question's TTS.
-            # The frontend requests the first question audio immediately after
-            # this RPC; later questions are synthesized on demand and cached.
+            # The opening prompt and the first post-introduction question are
+            # warmed by the Next API at their lifecycle boundaries; later
+            # questions are synthesized on demand and cached.
             await get_rag_agent().index_session_context(
                 _knowledge_record(source=source, run_id=run_id)
             )
@@ -489,6 +492,45 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
             duration_sec=result.duration_sec or 0,
             provider=result.provider,
             message=result.message or "",
+        )
+
+    async def GenerateOpeningTurn(self, request, context):
+        await _authorize(context)
+        source = request.context
+        usage_token = begin_deepseek_usage("interview_opening_turn")
+        try:
+            payload = InterviewOpeningRequest(
+                run_id=request.run_id,
+                session_id=source.session_id,
+                title=source.title,
+                industry=source.industry,
+                job_description=source.job_description,
+                topic=source.topic,
+                difficulty=source.difficulty or "Middle",
+                question_count=_question_count(source.question_count),
+                language=source.language or "vi-VN",
+                opening_prompt=request.opening_prompt,
+                opening_transcript=request.opening_transcript,
+            )
+            question, transition, spoken_text, provider = await generate_opening_turn(
+                payload
+            )
+        except Exception as error:
+            usage = end_deepseek_usage(usage_token)
+            _set_usage_metadata(context, usage)
+            await _abort_for_error(context, error)
+        usage = end_deepseek_usage(usage_token)
+
+        return interv_ai_pb2.InterviewTurnResponse(
+            success=True,
+            has_next_question=True,
+            next_question=_question_message(question),
+            acknowledgement_text=transition.acknowledgement_text,
+            transition_text=transition.transition_text,
+            spoken_text=spoken_text,
+            transition_type=transition.transition_type,
+            provider=provider,
+            usage=_deepseek_usage_message(usage),
         )
 
     async def SubmitAnswer(self, request, context):
@@ -554,7 +596,9 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 language=source.language or "vi-VN",
                 qa_history=qa_history,
             )
-            question, provider = await generate_follow_up(payload)
+            question, transition, spoken_text, provider = await generate_follow_up(
+                payload
+            )
         except Exception as error:
             usage = end_deepseek_usage(usage_token)
             _set_usage_metadata(context, usage)
@@ -566,6 +610,10 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
             feedback_hint="Answer received",
             has_next_question=True,
             next_question=_question_message(question),
+            acknowledgement_text=transition.acknowledgement_text,
+            transition_text=transition.transition_text,
+            spoken_text=spoken_text,
+            transition_type=transition.transition_type,
             provider=provider,
             usage=_deepseek_usage_message(usage),
         )

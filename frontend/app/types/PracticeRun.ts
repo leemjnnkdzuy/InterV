@@ -4,6 +4,14 @@ export interface IPracticeRunQuestion {
   id: string;
   text: string;
   ttsText?: string;
+  acknowledgementText?: string;
+  transitionText?: string;
+  spokenText?: string;
+  transitionType?:
+    | "opening_to_first"
+    | "continue_competency"
+    | "probe_gap"
+    | "bridge_to_next_competency";
   competency: string;
   difficulty?: string;
   expectedSignals?: string[];

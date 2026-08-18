@@ -109,7 +109,6 @@ export default function RecruiterInterviewsPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Interview Campaigns"
         title="Cuộc phỏng vấn"
         description="Theo dõi tiến độ, hạn hoàn thành và tình trạng thư mời theo từng chiến dịch."
         actions={

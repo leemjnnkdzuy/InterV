@@ -17,12 +17,12 @@ export const INDUSTRIES = [
 ];
 
 export const RECHARGE_PACKAGES: RechargePackage[] = [
-  { amount: 10000, credit: 100, bonus: 0 },
-  { amount: 20000, credit: 200, bonus: 10 },
-  { amount: 50000, credit: 500, bonus: 40 },
-  { amount: 100000, credit: 1000, bonus: 100 },
-  { amount: 200000, credit: 2000, bonus: 250 },
-  { amount: 500000, credit: 5000, bonus: 750 },
+  { id: "pkg_10k", amount: 10000, credit: 100, bonus: 0 },
+  { id: "pkg_20k", amount: 20000, credit: 200, bonus: 10 },
+  { id: "pkg_50k", amount: 50000, credit: 500, bonus: 40 },
+  { id: "pkg_100k", amount: 100000, credit: 1000, bonus: 100 },
+  { id: "pkg_200k", amount: 200000, credit: 2000, bonus: 250 },
+  { id: "pkg_500k", amount: 500000, credit: 5000, bonus: 750 },
 ];
 
 export const SOCIAL_PLATFORMS = [

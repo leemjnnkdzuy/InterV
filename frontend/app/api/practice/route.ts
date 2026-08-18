@@ -19,6 +19,7 @@ interface LeanPracticeSession {
   expiresAt?: Date;
   title: string;
   jobDescription?: string;
+  jobDescriptionSource?: "upload" | "paste";
   topic?: string;
   industry?: string;
   language?: string;
@@ -63,6 +64,7 @@ async function GETHandler(request: NextRequest) {
         expiresAt: session.expiresAt,
         title: session.title,
         jobDescription: session.jobDescription,
+        jobDescriptionSource: session.jobDescriptionSource,
         topic: session.topic,
         industry: session.industry,
         language: session.language,
@@ -186,6 +188,7 @@ async function POSTHandler(request: NextRequest) {
         id: newSession._id.toString(),
         title: newSession.title,
         jobDescription: newSession.jobDescription,
+        jobDescriptionSource: newSession.jobDescriptionSource,
         topic: newSession.topic,
         industry: newSession.industry,
         language: newSession.language,

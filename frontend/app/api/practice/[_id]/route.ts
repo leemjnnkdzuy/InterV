@@ -78,6 +78,7 @@ async function GETHandler(
         maxAttempts: session.maxAttempts,
         title: session.title,
         jobDescription: session.jobDescription,
+        jobDescriptionSource: session.jobDescriptionSource,
         topic: session.topic,
         industry: session.industry,
         language: session.language,
@@ -131,6 +132,7 @@ async function PUTHandler(
     const {
       title,
       jobDescription,
+      jobDescriptionSource,
       topic,
       industry,
       language,
@@ -145,6 +147,9 @@ async function PUTHandler(
       (jobDescription !== undefined &&
         (typeof jobDescription !== "string" ||
           jobDescription.length > 50_000)) ||
+      (jobDescriptionSource !== undefined &&
+        jobDescriptionSource !== "upload" &&
+        jobDescriptionSource !== "paste") ||
       (topic !== undefined &&
         (typeof topic !== "string" || topic.length > 2_000)) ||
       (industry !== undefined &&
@@ -209,6 +214,9 @@ async function PUTHandler(
     if (jobDescription !== undefined) {
       session.jobDescription = jobDescription as string;
     }
+    if (jobDescriptionSource !== undefined) {
+      session.jobDescriptionSource = jobDescriptionSource as "upload" | "paste";
+    }
     if (topic !== undefined) {
       session.topic = topic as string;
     }
@@ -237,6 +245,7 @@ async function PUTHandler(
         id: session._id.toString(),
         title: session.title,
         jobDescription: session.jobDescription,
+        jobDescriptionSource: session.jobDescriptionSource,
         topic: session.topic,
         industry: session.industry,
         language: session.language,

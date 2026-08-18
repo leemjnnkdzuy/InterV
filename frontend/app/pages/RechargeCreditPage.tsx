@@ -29,6 +29,12 @@ export default function RechargeCreditPage({ transactions, isLoading }: Recharge
             {t("credit.statusCancelled")}
           </span>
         );
+      case "EXPIRED":
+        return (
+          <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-zinc-500/10 text-zinc-500 border border-zinc-500/10">
+            {t("credit.statusExpired")}
+          </span>
+        );
       default:
         return (
           <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-muted/10 text-muted border border-muted/10">

@@ -1,9 +1,13 @@
 import { withApiLogging } from "@/app/lib/ApiLogging";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import connectDB from "@/app/lib/ConnectDB";
 import { authenticateRequest } from "@/app/lib/Auth";
+import { aiBackend, type GrpcQuestion } from "@/app/lib/AiBackend";
+import { recordDeepSeekUsageSafely } from "@/app/lib/DeepSeekUsage";
+import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
 import PracticeRun from "@/app/models/PracticeRun";
+import PracticeSession from "@/app/models/PracticeSession";
 import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
@@ -19,6 +23,30 @@ interface OpeningPayload {
 
 function stringValue(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+function normalizeOpeningQuestion(
+  question: GrpcQuestion,
+  turn: {
+    acknowledgementText: string;
+    transitionText: string;
+    spokenText: string;
+    transitionType: string;
+  }
+) {
+  return {
+    id: question.id || "q_1",
+    text: question.text,
+    ttsText: question.ttsText || question.text,
+    acknowledgementText: turn.acknowledgementText,
+    transitionText: turn.transitionText,
+    spokenText: turn.spokenText,
+    transitionType: turn.transitionType,
+    competency: question.competency || "general",
+    difficulty: question.difficulty || "Middle",
+    expectedSignals: question.expectedSignals || [],
+    groundingIds: question.groundingIds || [],
+  };
 }
 
 async function POSTHandler(
@@ -84,9 +112,6 @@ async function POSTHandler(
         { status: 404 }
       );
     }
-    if (run.candidateIntro?.transcript) {
-      return NextResponse.json({ success: true, alreadySaved: true });
-    }
     if (run.status !== "IN_PROGRESS") {
       return NextResponse.json(
         { success: false, message: "Lượt phỏng vấn không còn nhận phần giới thiệu" },
@@ -94,34 +119,161 @@ async function POSTHandler(
       );
     }
 
-    const saved = await PracticeRun.updateOne(
+    const savedTranscript = run.candidateIntro?.transcript?.trim() || transcript;
+    const savedPrompt = run.candidateIntro?.prompt?.trim() || prompt;
+    if (!run.candidateIntro?.transcript?.trim()) {
+      await PracticeRun.updateOne(
+        {
+          _id: runId,
+          userId: tokenPayload.userId,
+          status: "IN_PROGRESS",
+          $or: [
+            { candidateIntro: { $exists: false } },
+            { "candidateIntro.transcript": "" },
+          ],
+        },
+        {
+          $set: {
+            candidateIntro: {
+              prompt: savedPrompt,
+              transcript: savedTranscript,
+              audioDurationSec: durationSec,
+              assemblySessionId,
+              transcriptionProvider,
+              createdAt: new Date(),
+            },
+          },
+        }
+      );
+    }
+
+    const detailedRun = await PracticeRun.findOne({
+      _id: runId,
+      userId: tokenPayload.userId,
+      status: "IN_PROGRESS",
+    }).select("aiRunId sessionId language voiceId difficulty questionCount questions");
+    if (!detailedRun) {
+      return NextResponse.json(
+        { success: false, message: "Không thể đọc trạng thái lượt phỏng vấn" },
+        { status: 409 }
+      );
+    }
+
+    const existingFirstQuestion = detailedRun.questions[0];
+    if (
+      existingFirstQuestion?.spokenText &&
+      existingFirstQuestion.transitionType === "opening_to_first"
+    ) {
+      const existingQuestionAudio = await aiBackend.synthesizeTts({
+        text:
+          existingFirstQuestion.spokenText ||
+          existingFirstQuestion.ttsText ||
+          existingFirstQuestion.text,
+        language: detailedRun.language || "vi-VN",
+        voiceId:
+          detailedRun.voiceId || "hn_female_ngochuyen_full_48k-fhg",
+      });
+      if (!existingQuestionAudio.audio?.length) {
+        throw new Error("AI backend did not return first question audio");
+      }
+      return NextResponse.json({
+        success: true,
+        alreadySaved: true,
+        nextQuestion: existingFirstQuestion,
+        nextQuestionAudio: {
+          audioBase64: existingQuestionAudio.audio.toString("base64"),
+          contentType: existingQuestionAudio.contentType || "audio/mpeg",
+        },
+        acknowledgementText: existingFirstQuestion.acknowledgementText,
+        transitionText: existingFirstQuestion.transitionText,
+        spokenText: existingFirstQuestion.spokenText,
+        transitionType: existingFirstQuestion.transitionType,
+      });
+    }
+
+    const session = await PracticeSession.findOne({
+      _id: detailedRun.sessionId,
+      userId: tokenPayload.userId,
+    }).select("title industry jobDescription topic difficulty language voiceId");
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy buổi luyện tập" },
+        { status: 404 }
+      );
+    }
+
+    const context = {
+      sessionId: detailedRun.sessionId.toString(),
+      title: session.title,
+      industry: session.industry || "",
+      jobDescription: session.jobDescription || "",
+      topic: session.topic || "",
+      difficulty: detailedRun.difficulty || session.difficulty || "Middle",
+      questionCount: normalizeInterviewQuestionCount(detailedRun.questionCount),
+      language: detailedRun.language || session.language || "vi-VN",
+      voiceId:
+        detailedRun.voiceId ||
+        session.voiceId ||
+        "hn_female_ngochuyen_full_48k-fhg",
+    };
+    const turn = await aiBackend.generateOpeningTurn({
+      runId: detailedRun.aiRunId || runId,
+      context,
+      openingPrompt: savedPrompt,
+      openingTranscript: savedTranscript,
+    });
+    if (turn.usage) {
+      after(() =>
+        recordDeepSeekUsageSafely({
+          eventKey: `interview-opening-turn:${runId}`,
+          userId: tokenPayload.userId,
+          sessionId: detailedRun.sessionId.toString(),
+          practiceRunId: runId,
+          aiRunId: detailedRun.aiRunId || runId,
+          operation: "interview_opening_turn",
+          status: "SUCCESS",
+          usage: turn.usage,
+        })
+      );
+    }
+    if (!turn.hasNextQuestion || !turn.nextQuestion?.text) {
+      return NextResponse.json(
+        { success: false, message: "AI chưa tạo được câu hỏi đầu tiên" },
+        { status: 502 }
+      );
+    }
+
+    const nextQuestion = normalizeOpeningQuestion(turn.nextQuestion, turn);
+    await PracticeRun.updateOne(
       {
         _id: runId,
         userId: tokenPayload.userId,
         status: "IN_PROGRESS",
-        $or: [
-          { candidateIntro: { $exists: false } },
-          { "candidateIntro.transcript": "" },
-        ],
+        "questions.0.id": { $exists: true },
       },
-      {
-        $set: {
-          candidateIntro: {
-            prompt,
-            transcript,
-            audioDurationSec: durationSec,
-            assemblySessionId,
-            transcriptionProvider,
-            createdAt: new Date(),
-          },
-        },
-      }
+      { $set: { "questions.0": nextQuestion } }
     );
-    if (saved.modifiedCount !== 1) {
-      return NextResponse.json({ success: true, alreadySaved: true });
+    const nextQuestionAudio = await aiBackend.synthesizeTts({
+      text: nextQuestion.spokenText || nextQuestion.ttsText || nextQuestion.text,
+      language: context.language,
+      voiceId: context.voiceId,
+    });
+    if (!nextQuestionAudio.audio?.length) {
+      throw new Error("AI backend did not return first question audio");
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      nextQuestion,
+      nextQuestionAudio: {
+        audioBase64: nextQuestionAudio.audio.toString("base64"),
+        contentType: nextQuestionAudio.contentType || "audio/mpeg",
+      },
+      acknowledgementText: nextQuestion.acknowledgementText,
+      transitionText: nextQuestion.transitionText,
+      spokenText: nextQuestion.spokenText,
+      transitionType: nextQuestion.transitionType,
+    });
   } catch (error: unknown) {
     console.error("POST /api/ai/interview/[runId]/opening error:", error);
     if (error instanceof RequestBodyTooLargeError) {
@@ -131,7 +283,13 @@ async function POSTHandler(
       );
     }
     return NextResponse.json(
-      { success: false, message: "Không thể lưu phần giới thiệu" },
+      {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Không thể lưu phần giới thiệu",
+      },
       { status: 502 }
     );
   }

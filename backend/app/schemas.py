@@ -18,7 +18,10 @@ class VoicesResponse(BaseModel):
 
 
 class TtsPreviewRequest(BaseModel):
-    text: str = Field(min_length=1, max_length=500)
+    # Interview turns can contain a short acknowledgement and bridge before
+    # the question. Keep one bounded provider request instead of truncating
+    # the spoken turn in the browser.
+    text: str = Field(min_length=1, max_length=1_200)
     language: str = Field(default="vi-VN", min_length=2, max_length=20)
     voice_id: str = Field(min_length=1, max_length=120)
 
@@ -80,6 +83,31 @@ class InterviewStartResponse(BaseModel):
     provider: Literal["deepseek"] = "deepseek"
 
 
+class InterviewOpeningRequest(BaseModel):
+    run_id: str = Field(min_length=1, max_length=64)
+    session_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=200)
+    industry: str = Field(default="", max_length=120)
+    job_description: str = Field(default="", max_length=50_000)
+    topic: str = Field(default="", max_length=2_000)
+    difficulty: str = Field(default="Middle", min_length=1, max_length=80)
+    question_count: int = Field(default=5, ge=5, le=25)
+    language: str = Field(default="vi-VN", min_length=2, max_length=20)
+    opening_prompt: str = Field(min_length=1, max_length=1_000)
+    opening_transcript: str = Field(min_length=1, max_length=20_000)
+
+
+class InterviewTransition(BaseModel):
+    acknowledgement_text: str = Field(min_length=1, max_length=300)
+    transition_text: str = Field(min_length=1, max_length=500)
+    transition_type: Literal[
+        "opening_to_first",
+        "continue_competency",
+        "probe_gap",
+        "bridge_to_next_competency",
+    ]
+
+
 class TranscribeResponse(BaseModel):
     success: bool = True
     transcript: str
@@ -117,6 +145,10 @@ class InterviewAnswerResponse(BaseModel):
     feedback_hint: str | None = None
     has_next_question: bool = False
     next_question: GeneratedQuestion | None = None
+    acknowledgement_text: str | None = None
+    transition_text: str | None = None
+    spoken_text: str | None = None
+    transition_type: str | None = None
     provider: Literal["deepseek"] = "deepseek"
 
 

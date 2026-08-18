@@ -255,7 +255,6 @@ export default function CreateRecruitmentInterviewPage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="New Interview"
         title="Tạo cuộc phỏng vấn"
         description="Cấu hình nội dung, lịch thực hiện và danh sách ứng viên cho một chiến dịch phỏng vấn AI."
       />

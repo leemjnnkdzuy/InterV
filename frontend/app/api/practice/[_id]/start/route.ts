@@ -41,11 +41,13 @@ function createStartRequestHash(input: {
   industry: string;
   jobDescription: string;
   topic: string;
+  openingPrompt: string;
   difficulty: string;
   language: string;
   voiceId: string;
   questionCount: number;
   hasUploadedJdFile: boolean;
+  jobDescriptionSource?: "upload" | "paste";
   autoTurnTaking: boolean;
   textAnswerEnabled: boolean;
 }) {
@@ -109,6 +111,7 @@ async function POSTHandler(
     let industry = boundedString(body.industry, 120);
     let jobDescription = boundedString(body.jobDescription, 50_000);
     let topic = boundedString(body.topic, 2_000);
+    let openingPrompt = boundedString(body.openingPrompt, 1_200);
     let difficulty = boundedString(body.difficulty, 80) || "Middle";
     let language = boundedString(body.language, 20) || "vi-VN";
     let voiceId =
@@ -118,6 +121,25 @@ async function POSTHandler(
     let textAnswerEnabled = body.textAnswerEnabled === true;
     const idempotencyKey = boundedString(body.idempotencyKey, 80);
     let hasUploadedJdFile = body.hasUploadedJdFile === true;
+    const submittedJobDescriptionSource = boundedString(
+      body.jobDescriptionSource,
+      10
+    );
+    if (
+      submittedJobDescriptionSource &&
+      submittedJobDescriptionSource !== "upload" &&
+      submittedJobDescriptionSource !== "paste"
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Nguồn mô tả công việc không hợp lệ" },
+        { status: 400 }
+      );
+    }
+    let jobDescriptionSource: "upload" | "paste" | undefined =
+      submittedJobDescriptionSource === "upload" ||
+      submittedJobDescriptionSource === "paste"
+        ? submittedJobDescriptionSource
+        : undefined;
     if (!/^[a-zA-Z0-9-]{16,80}$/.test(idempotencyKey)) {
       return NextResponse.json(
         { success: false, message: "Dữ liệu khởi tạo không hợp lệ" },
@@ -233,8 +255,20 @@ async function POSTHandler(
         : "hn_female_ngochuyen_full_48k-fhg";
       questionCount = normalizeInterviewQuestionCount(session.questionCount);
       hasUploadedJdFile = false;
+      jobDescriptionSource = session.jobDescriptionSource || "paste";
       autoTurnTaking = false;
       textAnswerEnabled = false;
+    }
+    if (!jobDescriptionSource) {
+      jobDescriptionSource = hasUploadedJdFile
+        ? "upload"
+        : jobDescription.trim()
+          ? "paste"
+          : session.jobDescriptionSource;
+    }
+    if (!openingPrompt) {
+      openingPrompt =
+        "Chào bạn, mình là người phỏng vấn AI của InterV. Trước khi bắt đầu phần phỏng vấn chuyên môn, bạn có thể giới thiệu ngắn gọn về bản thân và những kinh nghiệm liên quan đến vị trí này được không?";
     }
     if (!title || !/^[a-z]{2,3}-[A-Z]{2}$/.test(language)) {
       return NextResponse.json(
@@ -247,11 +281,13 @@ async function POSTHandler(
       industry,
       jobDescription,
       topic,
+      openingPrompt,
       difficulty,
       language,
       voiceId,
       questionCount,
       hasUploadedJdFile,
+      jobDescriptionSource,
       autoTurnTaking,
       textAnswerEnabled,
     });
@@ -270,6 +306,11 @@ async function POSTHandler(
         practiceRun.questions.length >= existingQuestionCount &&
         practiceRun.status === "IN_PROGRESS"
       ) {
+        const openingAudio = await aiBackend.synthesizeTts({
+          text: openingPrompt,
+          language: practiceRun.language || language,
+          voiceId: practiceRun.voiceId || voiceId,
+        });
         const first = practiceRun.questions[0];
         await PracticeRun.updateOne(
           { _id: practiceRun._id },
@@ -283,6 +324,12 @@ async function POSTHandler(
           runId: practiceRun._id.toString(),
           questions: practiceRun.questions,
           questionCount: existingQuestionCount,
+          language: practiceRun.language || language,
+          voiceId: practiceRun.voiceId || voiceId,
+          openingAudio: {
+            audioBase64: openingAudio.audio.toString("base64"),
+            contentType: openingAudio.contentType || "audio/mpeg",
+          },
           quote: {
             totalCredits: practiceRun.creditUsage.chargedCredits,
           },
@@ -472,17 +519,36 @@ async function POSTHandler(
     chargedCredits = quote.totalCredits;
     practiceRun.creditUsage.chargedCredits = chargedCredits;
 
-    const aiStart = await aiBackend.startInterview({
-      sessionId: _id,
-      title,
-      industry: industry || session.industry || "",
-      jobDescription,
-      topic,
-      difficulty,
-      questionCount,
-      language,
-      voiceId,
-    });
+    const [aiStartResult, openingAudioResult] = await Promise.allSettled([
+      aiBackend.startInterview({
+        sessionId: _id,
+        title,
+        industry: industry || session.industry || "",
+        jobDescription,
+        topic,
+        difficulty,
+        questionCount,
+        language,
+        voiceId,
+      }),
+      aiBackend.synthesizeTts({
+        text: openingPrompt,
+        language,
+        voiceId,
+      }),
+    ]);
+    if (aiStartResult.status === "rejected") {
+      throw aiStartResult.reason;
+    }
+    const aiStart = aiStartResult.value;
+    aiRunIdForCleanup = aiStart.runId;
+    if (openingAudioResult.status === "rejected") {
+      throw openingAudioResult.reason;
+    }
+    const openingAudio = openingAudioResult.value;
+    if (!openingAudio.audio?.length) {
+      throw new Error("AI backend did not return opening audio");
+    }
     if (aiStart.usage) {
       after(() =>
         recordDeepSeekUsageSafely({
@@ -497,7 +563,6 @@ async function POSTHandler(
         })
       );
     }
-    aiRunIdForCleanup = aiStart.runId;
     const aiRunPersisted = await PracticeRun.updateOne(
       {
         _id: practiceRun._id,
@@ -566,6 +631,7 @@ async function POSTHandler(
                 textAnswerEnabled,
                 difficulty,
                 questionCount,
+                ...(jobDescriptionSource ? { jobDescriptionSource } : {}),
               },
             },
             { session: dbSession }
@@ -627,6 +693,12 @@ async function POSTHandler(
       runId: createdRunId,
       questions,
       questionCount,
+      language,
+      voiceId,
+      openingAudio: {
+        audioBase64: openingAudio.audio.toString("base64"),
+        contentType: openingAudio.contentType || "audio/mpeg",
+      },
       quote: {
         totalCredits: chargedCredits,
         remainingCredits: charge.remainingCredits,

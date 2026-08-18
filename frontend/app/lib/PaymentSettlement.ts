@@ -8,6 +8,9 @@ import Transaction from "@/app/models/Transaction";
 import User from "@/app/models/User";
 import { publishCreditUpdated } from "@/app/lib/CreditEvents";
 import { getPayOS } from "@/app/lib/PayOS";
+import type { CreatePaymentResponse } from "@/app/types";
+
+export const PAYMENT_EXPIRY_MS = 10 * 60 * 1000;
 
 const PROVIDER_STATUSES = new Set([
   "PENDING",
@@ -19,12 +22,19 @@ const PROVIDER_STATUSES = new Set([
   "FAILED",
 ]);
 
-interface ProviderPaymentInfo {
-  id: string;
+export interface ProviderPaymentInfo {
+  id?: string;
+  paymentLinkId?: string;
   orderCode: number;
   amount: number;
-  amountPaid: number;
+  amountPaid?: number;
   status: string;
+  checkoutUrl?: string;
+  qrCode?: string;
+  bin?: string;
+  accountNumber?: string;
+  accountName?: string;
+  description?: string;
   cancellationReason?: string | null;
   canceledAt?: string | null;
 }
@@ -73,6 +83,84 @@ export function getApplicationOrigin(): string {
   return url.origin;
 }
 
+export function getPaymentExpiry(createdAt: Date): Date {
+  return new Date(createdAt.getTime() + PAYMENT_EXPIRY_MS);
+}
+
+export function buildVietQrImageUrl({
+  bin,
+  accountNumber,
+  amount,
+  description,
+  accountName,
+}: {
+  bin?: string;
+  accountNumber?: string;
+  amount: number;
+  description?: string;
+  accountName?: string;
+}): string | undefined {
+  if (!bin || !accountNumber) return undefined;
+
+  const params = new URLSearchParams({
+    amount: String(amount),
+    addInfo: description || "InterV Credit",
+  });
+  if (accountName) params.set("accountName", accountName);
+  return `https://img.vietqr.io/image/${encodeURIComponent(bin)}-${encodeURIComponent(
+    accountNumber
+  )}-qr_only.png?${params.toString()}`;
+}
+
+export function toPaymentResponse(
+  transaction: {
+    orderCode: number;
+    packageId?: string;
+    amount: number;
+    credits: number;
+    createdAt: Date;
+    expiresAt?: Date;
+    paymentUrl?: string;
+    qrCode?: string;
+    bin?: string;
+    accountNumber?: string;
+    accountName?: string;
+    description?: string;
+  },
+  payment: ProviderPaymentInfo
+): CreatePaymentResponse {
+  const paymentUrl = payment.checkoutUrl || transaction.paymentUrl;
+  const description =
+    payment.description || transaction.description || `NAP ${transaction.credits} CREDIT`;
+  const bin = payment.bin || transaction.bin;
+  const accountNumber = payment.accountNumber || transaction.accountNumber;
+  const accountName = payment.accountName || transaction.accountName;
+  const qrCode = payment.qrCode || transaction.qrCode;
+
+  return {
+    success: true,
+    orderCode: transaction.orderCode,
+    packageId: transaction.packageId,
+    amount: transaction.amount,
+    credits: transaction.credits,
+    paymentUrl,
+    checkoutUrl: paymentUrl,
+    accountNumber,
+    accountName,
+    description,
+    bin,
+    qrCode,
+    qrImageUrl: buildVietQrImageUrl({
+      bin,
+      accountNumber,
+      amount: transaction.amount,
+      description,
+      accountName,
+    }),
+    expiredAt: (transaction.expiresAt || getPaymentExpiry(transaction.createdAt)).getTime(),
+  };
+}
+
 export async function settlePaidTransaction(
   transactionId: mongoose.Types.ObjectId,
   paidAt = new Date()
@@ -97,7 +185,7 @@ export async function settlePaidTransaction(
           outcome = "already-settled";
           return;
         }
-        if (!["PENDING", "CANCELLED"].includes(transaction.status)) {
+        if (!["PENDING", "CANCELLED", "EXPIRED"].includes(transaction.status)) {
           outcome = "not-found";
           return;
         }
@@ -173,7 +261,8 @@ function validateProviderPayment(
     payment.orderCode !== transaction.orderCode ||
     payment.amount !== transaction.amount ||
     (transaction.paymentLinkId &&
-      payment.id !== transaction.paymentLinkId)
+      (payment.id || payment.paymentLinkId) &&
+      (payment.id || payment.paymentLinkId) !== transaction.paymentLinkId)
   ) {
     throw new PaymentIntegrityError("PAYOS_TRANSACTION_MISMATCH");
   }
@@ -208,14 +297,14 @@ async function applyProviderPayment(
     return { status: "PAID" as const, providerStatus, outcome };
   }
 
-  const terminal = ["CANCELLED", "EXPIRED", "FAILED"].includes(
-    providerStatus
-  );
+  const terminal = ["CANCELLED", "EXPIRED", "FAILED"].includes(providerStatus);
+  const localStatus =
+    providerStatus === "EXPIRED" ? ("EXPIRED" as const) : terminal ? ("CANCELLED" as const) : ("PENDING" as const);
   await Transaction.updateOne(
     { _id: transactionId, status: { $ne: "PAID" } },
     {
       $set: {
-        status: terminal ? "CANCELLED" : "PENDING",
+        status: localStatus,
         providerStatus,
         lastReconciledAt: reconciledAt,
         cancellationReason:
@@ -234,7 +323,7 @@ async function applyProviderPayment(
     }
   );
   return {
-    status: terminal ? ("CANCELLED" as const) : ("PENDING" as const),
+    status: localStatus,
     providerStatus,
     outcome: "reconciled" as const,
   };
@@ -253,11 +342,12 @@ export async function reconcilePayOSPayment(
     const payment = await getPayOS().paymentRequests.get(
       transaction.orderCode
     );
-    return await applyProviderPayment(
+    const result = await applyProviderPayment(
       transaction._id,
       transaction,
       payment
     );
+    return { ...result, payment };
   } catch (error) {
     await Transaction.updateOne(
       { _id: transaction._id },

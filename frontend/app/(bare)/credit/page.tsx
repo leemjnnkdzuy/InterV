@@ -63,6 +63,12 @@ export default function CreditPageRoute() {
               });
               await refreshUser();
               fetchHistory();
+            } else if (response.data.success && response.data.status === "PENDING") {
+              toast.info(t("credit.verifyPending"), { id: "verify-payment" });
+            } else if (response.data.status === "EXPIRED") {
+              toast.error(t("credit.paymentExpired"), { id: "verify-payment" });
+            } else if (response.data.status === "CANCELLED") {
+              toast.info(t("credit.paymentCancelled"), { id: "verify-payment" });
             } else {
               toast.error(t("credit.paymentVerifyFailed"), {
                 id: "verify-payment",
@@ -124,9 +130,9 @@ export default function CreditPageRoute() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex min-h-screen w-full bg-transparent">
           <AppSidebar variant="credit" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <SidebarInset className="flex flex-col flex-1">
+          <SidebarInset className="flex flex-col flex-1 bg-transparent">
             {/* Main Workspace content */}
             <main className="flex-1 p-6 lg:p-12 overflow-y-auto bg-background/40 flex justify-center text-left">
               <div className="w-full max-w-4xl">

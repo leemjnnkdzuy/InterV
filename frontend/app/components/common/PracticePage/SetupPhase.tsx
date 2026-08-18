@@ -3,12 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { BriefcaseBusiness, Languages, LockKeyhole, Volume2, VolumeX } from "lucide-react";
+import { BriefcaseBusiness, LockKeyhole, Volume2, VolumeX } from "lucide-react";
 import { aiService, practiceService } from "@/app/services";
 import { Spinner } from "@/app/components/ui/spinner";
 import { INDUSTRIES } from "@/app/contants";
 import { getDifficultyLevels, getErrorMessage } from "@/app/lib/Utils";
 import { calculatePracticeQuote } from "@/app/lib/PracticeBilling";
+import { getInterviewVoiceName } from "@/app/lib/InterviewVoice";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -20,7 +21,11 @@ import {
   playInterviewAudio,
   stopInterviewAudio,
 } from "@/app/lib/InterviewAudio";
-import type { InterviewVoice, SetupPhaseProps } from "@/app/types";
+import type {
+  InterviewVoice,
+  PracticeJobDescriptionSource,
+  SetupPhaseProps,
+} from "@/app/types";
 import {
   Select,
   SelectContent,
@@ -29,14 +34,13 @@ import {
   SelectValue,
 } from "@/app/components/ui/select";
 import {
-  AltArrowLeft,
+  Home,
   Pen2,
   UploadMinimalistic,
   CheckCircle,
   PlayCircle,
   TrashBinMinimalistic,
   DocumentText,
-  WalletMoney,
 } from "@solar-icons/react";
 
 const LANGUAGE_OPTIONS = [
@@ -60,6 +64,8 @@ export default function SetupPhase({
   industry,
   setIndustry,
   jobDescription,
+  jobDescriptionSource,
+  setJobDescriptionSource,
   setJobDescription,
   topic,
   setTopic,
@@ -83,8 +89,9 @@ export default function SetupPhase({
   const { user } = useAuthContext();
   const { language: uiLanguage, t } = useLanguage();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [jdTab, setJdTab] = useState<"upload" | "paste">(
-    recruitmentMode ? "paste" : "upload"
+  const [jdTab, setJdTab] = useState<PracticeJobDescriptionSource>(
+    jobDescriptionSource ||
+      (recruitmentMode || jobDescription.trim() ? "paste" : "upload")
   );
   const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   const [isUpdatingIndustry, setIsUpdatingIndustry] = useState(false);
@@ -162,6 +169,24 @@ export default function SetupPhase({
       return t("practiceSetup.quoteJdUpload");
     }
     return item.label;
+  };
+
+  const persistJdTab = useCallback(
+    (nextTab: PracticeJobDescriptionSource) => {
+      if (recruitmentMode) return;
+      void practiceService
+        .update(practiceId, { jobDescriptionSource: nextTab })
+        .catch((error) => {
+          console.error("Could not persist job description tab:", error);
+        });
+    },
+    [practiceId, recruitmentMode]
+  );
+
+  const handleJdTabChange = (nextTab: PracticeJobDescriptionSource) => {
+    setJdTab(nextTab);
+    setJobDescriptionSource(nextTab);
+    persistJdTab(nextTab);
   };
 
   useEffect(() => {
@@ -372,6 +397,8 @@ export default function SetupPhase({
       setUploadProgress(100);
       setUploadStatus(t("practiceSetup.extractJdDone"));
       setJobDescription(data.markdown);
+      setJobDescriptionSource("upload");
+      persistJdTab("upload");
       toast.success(t("practiceSetup.extractJdSuccess"));
     } catch (error) {
       console.error(error);
@@ -456,13 +483,19 @@ export default function SetupPhase({
       return;
     }
 
+    const interviewerName = getInterviewVoiceName(selectedVoice?.name);
+
     handleStartInterview({
       language,
       voiceId,
-      voiceName: selectedVoice?.name || "",
+      voiceName: interviewerName,
+      openingPrompt: t("interview.openingPrompt", {
+        voice: interviewerName || t("interview.defaultInterviewerName"),
+      }),
       hasUploadedJdFile: recruitmentMode ? false : Boolean(uploadFile),
       autoTurnTaking,
       textAnswerEnabled,
+      jobDescriptionSource: jdTab,
     });
   };
 
@@ -477,14 +510,14 @@ export default function SetupPhase({
   return (
     <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
       <div className="w-full px-6 pt-6 pb-2 flex items-center justify-between shrink-0 select-none">
-        <Button
-          variant="outline"
-          onClick={() => router.push("/practice")}
-          className="rounded-full flex items-center gap-2 border-border/40 hover:bg-muted/50 cursor-pointer h-10 px-4 text-xs font-semibold"
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          aria-label="home"
         >
-          <AltArrowLeft className="w-4 h-4" />
-          <span>{t("practiceSetup.back")}</span>
-        </Button>
+          <Home className="w-5 h-5" />
+        </button>
         <h1 className="font-logo text-xl font-bold tracking-tight text-foreground">
           InterV<span className="text-[var(--chart-1)]">.</span>
         </h1>
@@ -591,7 +624,7 @@ export default function SetupPhase({
                   <div className="flex bg-muted/40 p-0.5 rounded-xl border border-border/5">
                     <button
                       type="button"
-                      onClick={() => setJdTab("upload")}
+                      onClick={() => handleJdTabChange("upload")}
                       disabled={recruitmentMode}
                       className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold tracking-tight cursor-pointer ${
                         jdTab === "upload" ? "bg-background text-primary shadow" : "text-muted-foreground hover:text-foreground"
@@ -601,7 +634,7 @@ export default function SetupPhase({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setJdTab("paste")}
+                      onClick={() => handleJdTabChange("paste")}
                       disabled={recruitmentMode}
                       className={`px-3 py-1.5 rounded-lg text-[9px] font-extrabold tracking-tight cursor-pointer ${
                         jdTab === "paste" ? "bg-background text-primary shadow" : "text-muted-foreground hover:text-foreground"
@@ -782,46 +815,6 @@ export default function SetupPhase({
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-border/10">
-                  <label className="block text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">
-                    {t("practiceSetup.interactionModes")}
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold text-foreground">
-                          {t("practiceSetup.realInterviewMode")}
-                        </p>
-                        <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
-                          {t("practiceSetup.realInterviewModeDescription")}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={autoTurnTaking}
-                        onCheckedChange={setAutoTurnTaking}
-                        disabled={recruitmentMode}
-                        aria-label={t("practiceSetup.realInterviewMode")}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold text-foreground">
-                          {t("practiceSetup.textAnswerMode")}
-                        </p>
-                        <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
-                          {t("practiceSetup.textAnswerModeDescription")}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={textAnswerEnabled}
-                        onCheckedChange={setTextAnswerEnabled}
-                        disabled={recruitmentMode}
-                        aria-label={t("practiceSetup.textAnswerMode")}
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </Card>
           </div>
@@ -829,8 +822,7 @@ export default function SetupPhase({
           <div className="lg:col-span-4 flex flex-col h-full min-h-0 gap-4">
             <Card className="border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] p-6 shadow-sm flex flex-col gap-4 overflow-hidden">
               <div className="border-b border-border/10 pb-3 shrink-0">
-                <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Languages className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider">
                   {t("practiceSetup.languageVoice")}
                 </h3>
               </div>
@@ -906,10 +898,53 @@ export default function SetupPhase({
               </div>
             </Card>
 
+            <Card className="border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] p-6 shadow-sm flex flex-col gap-4 overflow-hidden">
+              <div className="border-b border-border/10 pb-3 shrink-0">
+                <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider">
+                  {t("practiceSetup.interactionModes")}
+                </h3>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold text-foreground">
+                      {t("practiceSetup.realInterviewMode")}
+                    </p>
+                    <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
+                      {t("practiceSetup.realInterviewModeDescription")}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={autoTurnTaking}
+                    onCheckedChange={setAutoTurnTaking}
+                    disabled={recruitmentMode}
+                    aria-label={t("practiceSetup.realInterviewMode")}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold text-foreground">
+                      {t("practiceSetup.textAnswerMode")}
+                    </p>
+                    <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">
+                      {t("practiceSetup.textAnswerModeDescription")}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={textAnswerEnabled}
+                    onCheckedChange={setTextAnswerEnabled}
+                    disabled={recruitmentMode}
+                    aria-label={t("practiceSetup.textAnswerMode")}
+                  />
+                </div>
+              </div>
+            </Card>
+
             <Card className="flex-1 border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] p-6 shadow-sm flex flex-col gap-4 overflow-hidden">
               <div className="border-b border-border/10 pb-3 shrink-0">
-                <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <WalletMoney className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-extrabold text-foreground uppercase tracking-wider">
                   {t("practiceSetup.costBeforePractice")}
                 </h3>
               </div>
@@ -939,15 +974,13 @@ export default function SetupPhase({
                   </div>
                 </div>
 
-                <div className={`rounded-2xl border p-3 ${
-                  quote.canAfford
-                    ? "border-emerald-500/15 bg-emerald-500/5 text-emerald-500"
-                    : "border-red-500/15 bg-red-500/5 text-red-500"
-                }`}>
-                  {quote.canAfford
-                    ? t("practiceSetup.balanceAfter", { credits: quote.remainingCredits.toLocaleString(numberLocale) })
-                    : t("practiceSetup.creditsNeeded", { credits: Math.abs(quote.remainingCredits).toLocaleString(numberLocale) })}
-                </div>
+                {!quote.canAfford && (
+                  <div className="rounded-2xl border border-red-500/15 bg-red-500/5 p-3 text-red-500">
+                    {t("practiceSetup.creditsNeeded", {
+                      credits: Math.abs(quote.remainingCredits).toLocaleString(numberLocale),
+                    })}
+                  </div>
+                )}
               </div>
             </Card>
 

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { unlockInterviewAudio } from "@/app/lib/InterviewAudio";
-import { aiService, practiceService } from "@/app/services";
+import { practiceService } from "@/app/services";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
@@ -21,6 +21,7 @@ import type {
   PracticePageProps,
   PracticeSessionResponse,
   PracticeStartOptions,
+  PracticeJobDescriptionSource,
 } from "@/app/types";
 import {
   DEFAULT_INTERVIEW_QUESTIONS,
@@ -50,6 +51,8 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
   const [title, setTitle] = useState("");
   const [industry, setIndustry] = useState(DEFAULT_INDUSTRY);
   const [jobDescription, setJobDescription] = useState("");
+  const [jobDescriptionSource, setJobDescriptionSource] =
+    useState<PracticeJobDescriptionSource>();
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState("Middle");
   const [duration, setDuration] = useState(DEFAULT_INTERVIEW_QUESTIONS);
@@ -67,6 +70,8 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
     GeneratedInterviewQuestion[]
   >([]);
   const [runId, setRunId] = useState("");
+  const [initialOpeningAudio, setInitialOpeningAudio] =
+    useState<InterviewQuestionAudio>();
   const [initialQuestionAudio, setInitialQuestionAudio] =
     useState<InterviewQuestionAudio>();
   const startAttemptRef = useRef<{
@@ -83,6 +88,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         setTitle(session.title || "");
         setIndustry(session.industry || DEFAULT_INDUSTRY);
         setJobDescription(session.jobDescription || "");
+        setJobDescriptionSource(session.jobDescriptionSource);
         setTopic(session.topic || "");
         setDifficulty(session.difficulty || "Middle");
         setDuration(normalizeInterviewQuestionCount(session.questionCount));
@@ -134,9 +140,11 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
     language: selectedLanguage,
     voiceId: selectedVoiceId,
     voiceName: selectedVoiceName,
+    openingPrompt: selectedOpeningPrompt,
     hasUploadedJdFile,
     autoTurnTaking: selectedAutoTurnTaking,
     textAnswerEnabled: selectedTextAnswerEnabled,
+    jobDescriptionSource: selectedJobDescriptionSource,
   }: PracticeStartOptions) => {
     if (!title.trim()) {
       toast.error(t("practiceSetup.titleRequired"));
@@ -179,9 +187,11 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         duration,
         language: selectedLanguage,
         voiceId: selectedVoiceId,
+        openingPrompt: selectedOpeningPrompt,
         hasUploadedJdFile,
         autoTurnTaking: selectedAutoTurnTaking,
         textAnswerEnabled: selectedTextAnswerEnabled,
+        jobDescriptionSource: selectedJobDescriptionSource,
       };
       const fingerprint = JSON.stringify(startPayload);
       if (startAttemptRef.current?.fingerprint !== fingerprint) {
@@ -202,39 +212,14 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
         return;
       }
 
-      let firstQuestionAudio = data.firstQuestionAudio;
-      if (!firstQuestionAudio) {
-        try {
-          const audio = await aiService.previewTts({
-            text: (data.questions[0].ttsText || data.questions[0].text).slice(
-              0,
-              500
-            ),
-            language: selectedLanguage,
-            voiceId: selectedVoiceId,
-          });
-          if (!audio.success || !audio.audioBase64) {
-            throw new Error(audio.message || "TTS did not return audio");
-          }
-          firstQuestionAudio = {
-            audioBase64: audio.audioBase64,
-            contentType: audio.contentType,
-          };
-        } catch (audioError) {
-          console.error("Could not prepare the first question audio:", audioError);
-          toast.error(t("interview.ttsFailed"));
-          setActivePhase("setup");
-          return;
-        }
-      }
-
       startAttemptRef.current = null;
       setRunId(data.runId);
       setQuestionsList(data.questions);
-      setLanguage(selectedLanguage);
-      setVoiceId(selectedVoiceId);
+      setLanguage(data.language || selectedLanguage);
+      setVoiceId(data.voiceId || selectedVoiceId);
       setVoiceName(selectedVoiceName);
-      setInitialQuestionAudio(firstQuestionAudio);
+      setInitialOpeningAudio(data.openingAudio);
+      setInitialQuestionAudio(data.firstQuestionAudio);
       setActivePhase("interview");
       void refreshUser();
     } catch (err: unknown) {
@@ -298,6 +283,7 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
                 difficulty={difficulty}
                 language={language}
                 voiceId={voiceId}
+                initialOpeningAudio={initialOpeningAudio}
                 voiceName={voiceName}
                 autoTurnTaking={autoTurnTaking}
                 textAnswerEnabled={textAnswerEnabled}
@@ -336,6 +322,8 @@ export default function PracticePage({ practiceId }: PracticePageProps) {
                 industry={industry}
                 setIndustry={setIndustry}
                 jobDescription={jobDescription}
+                jobDescriptionSource={jobDescriptionSource}
+                setJobDescriptionSource={setJobDescriptionSource}
                 setJobDescription={setJobDescription}
                 topic={topic}
                 setTopic={setTopic}

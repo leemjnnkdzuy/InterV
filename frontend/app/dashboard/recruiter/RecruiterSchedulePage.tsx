@@ -130,7 +130,6 @@ export default function RecruiterSchedulePage() {
   return (
     <>
       <DashboardPageHeader
-        eyebrow="Recruitment Calendar"
         title="Lịch tuyển dụng"
         description="Mốc mở và hạn hoàn thành của các chiến dịch trong cùng một lịch."
         actions={

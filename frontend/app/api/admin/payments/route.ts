@@ -6,7 +6,7 @@ import connectDB from "@/app/lib/ConnectDB";
 import Transaction from "@/app/models/Transaction";
 import User from "@/app/models/User";
 
-const LOCAL_STATUSES = new Set(["PENDING", "PAID", "CANCELLED"]);
+const LOCAL_STATUSES = new Set(["PENDING", "PAID", "CANCELLED", "EXPIRED"]);
 const PROVIDER_STATUSES = new Set([
   "PENDING",
   "CANCELLED",

@@ -61,6 +61,10 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
       type: String,
       default: "",
     },
+    jobDescriptionSource: {
+      type: String,
+      enum: ["upload", "paste"],
+    },
     topic: {
       type: String,
       default: "",

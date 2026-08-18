@@ -20,10 +20,13 @@ interface LeanCreditLog {
 interface LeanTransaction {
   _id: Types.ObjectId;
   orderCode: number;
+  packageId?: string;
   amount: number;
   credits: number;
   status: ITransaction["status"];
   createdAt: Date;
+  paidAt?: Date;
+  expiresAt?: Date;
 }
 
 async function GETHandler(request: NextRequest) {
@@ -64,10 +67,13 @@ async function GETHandler(request: NextRequest) {
       transactions: transactions.map((tx) => ({
         id: tx._id.toString(),
         orderCode: tx.orderCode,
+        packageId: tx.packageId,
         amount: tx.amount,
         credits: tx.credits,
         status: tx.status,
         createdAt: tx.createdAt,
+        paidAt: tx.paidAt,
+        expiresAt: tx.expiresAt,
       })),
     });
   } catch (error: unknown) {

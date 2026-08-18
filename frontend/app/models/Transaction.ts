@@ -15,6 +15,10 @@ const transactionSchema = new Schema<ITransaction>(
       unique: true,
       index: true,
     },
+    packageId: {
+      type: String,
+      maxlength: 40,
+    },
     amount: {
       type: Number,
       required: true,
@@ -25,7 +29,7 @@ const transactionSchema = new Schema<ITransaction>(
     },
     status: {
       type: String,
-      enum: ["PENDING", "PAID", "CANCELLED"],
+      enum: ["PENDING", "PAID", "CANCELLED", "EXPIRED"],
       default: "PENDING",
       index: true,
     },
@@ -51,7 +55,13 @@ const transactionSchema = new Schema<ITransaction>(
       type: String,
       maxlength: 2_048,
     },
+    qrCode: { type: String, maxlength: 4_096 },
+    bin: { type: String, maxlength: 32 },
+    accountNumber: { type: String, maxlength: 64 },
+    accountName: { type: String, maxlength: 128 },
+    description: { type: String, maxlength: 255 },
     paidAt: { type: Date },
+    expiresAt: { type: Date },
     cancelledAt: { type: Date },
     lastReconciledAt: { type: Date },
     cancellationReason: { type: String, default: "", maxlength: 500 },

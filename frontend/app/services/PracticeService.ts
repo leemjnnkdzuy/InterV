@@ -6,6 +6,7 @@ import type {
   PracticeHistoryResponse,
   PracticeHistorySource,
   PracticeOpeningPayload,
+  PracticeOpeningResponse,
   PracticeQuotePayload,
   PracticeStartPayload,
   PracticeStartResponse,
@@ -168,7 +169,10 @@ export const practiceService = {
     }
   },
 
-  submitOpening: async (runId: string, data: PracticeOpeningPayload) => {
+  submitOpening: async (
+    runId: string,
+    data: PracticeOpeningPayload
+  ): Promise<PracticeOpeningResponse> => {
     const response = await api.post(`/ai/interview/${runId}/opening`, data, {
       timeout: 30_000,
     });
