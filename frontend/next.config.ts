@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
 		pagesBufferLength: 4,
 	},
 	experimental: {
-		cpus: 2,
 		optimizePackageImports: [
 			"@solar-icons/react",
 			"lucide-react",
