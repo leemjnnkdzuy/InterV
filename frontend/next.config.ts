@@ -15,8 +15,21 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
+	onDemandEntries: {
+		maxInactiveAge: 60 * 1000,
+		pagesBufferLength: 4,
+	},
 	experimental: {
 		cpus: 2,
+		optimizePackageImports: [
+			"@solar-icons/react",
+			"lucide-react",
+			"react-icons",
+			"framer-motion",
+			"three",
+			"@react-three/fiber",
+			"radix-ui",
+		],
 	},
 	serverExternalPackages: ["@grpc/grpc-js", "@grpc/proto-loader"],
 	outputFileTracingIncludes: {

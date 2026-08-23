@@ -145,6 +145,7 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
         },
         strengths: { type: [String], default: [] },
         weaknesses: { type: [String], default: [] },
+        mistakes: { type: [String], default: [] },
         recommendations: { type: [String], default: [] },
         audioAnalysis: {
           confidence: { type: Number, required: false },

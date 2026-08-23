@@ -191,39 +191,33 @@ export default function PracticeHistoryPage() {
   const [filter, setFilter] = useState<HistoryFilter>("all");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const loadHistory = useCallback(
-    async (manual = false) => {
-      if (manual) setRefreshing(true);
-      else setLoading(true);
-      setError("");
+  const loadHistory = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-      try {
-        const response = await practiceService.getHistory(page, filter, 20);
-        if (!response.success) {
-          throw new Error(response.message || "Không thể tải lịch sử");
-        }
-        setData(response);
-      } catch (requestError: unknown) {
-        const message = axios.isAxiosError(requestError)
-          ? requestError.response?.data?.message
-          : requestError instanceof Error
-            ? requestError.message
-            : "";
-        setError(
-          typeof message === "string" && message
-            ? message
-            : "Không thể tải lịch sử. Vui lòng thử lại."
-        );
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+    try {
+      const response = await practiceService.getHistory(page, filter, 20);
+      if (!response.success) {
+        throw new Error(response.message || "Không thể tải lịch sử");
       }
-    },
-    [filter, page]
-  );
+      setData(response);
+    } catch (requestError: unknown) {
+      const message = axios.isAxiosError(requestError)
+        ? requestError.response?.data?.message
+        : requestError instanceof Error
+          ? requestError.message
+          : "";
+      setError(
+        typeof message === "string" && message
+          ? message
+          : "Không thể tải lịch sử. Vui lòng thử lại."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [filter, page]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => void loadHistory(), 0);
@@ -257,19 +251,6 @@ export default function PracticeHistoryPage() {
             được lưu theo từng lượt tại đây.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => void loadHistory(true)}
-          disabled={refreshing}
-          className="h-10 self-start rounded-lg px-4 sm:self-auto"
-        >
-          <Refresh
-            className={cn("size-4", refreshing && "animate-spin")}
-            weight="BoldDuotone"
-          />
-          {refreshing ? "Đang cập nhật" : "Cập nhật"}
-        </Button>
       </header>
 
       <section className="flex flex-wrap items-center gap-x-6 gap-y-2 border-y border-border/50 py-4 text-sm">

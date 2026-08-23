@@ -905,8 +905,8 @@ export default function SetupPhase({
                 </h3>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-extrabold text-foreground">
                       {t("practiceSetup.realInterviewMode")}
@@ -923,7 +923,7 @@ export default function SetupPhase({
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card/10 p-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-extrabold text-foreground">
                       {t("practiceSetup.textAnswerMode")}

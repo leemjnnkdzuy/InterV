@@ -167,6 +167,7 @@ class InterviewEvaluation(BaseModel):
     feedback: str = Field(max_length=10_000)
     strengths: list[str] = Field(max_length=30)
     weaknesses: list[str] = Field(max_length=30)
+    mistakes: list[str] = Field(default_factory=list, max_length=30)
     recommendations: list[str] = Field(max_length=30)
     questions: list[EvaluationQuestion] = Field(min_length=5, max_length=25)
     audio_analysis: dict[str, object] | None = None

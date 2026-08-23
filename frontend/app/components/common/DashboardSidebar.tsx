@@ -88,7 +88,7 @@ const adminItems = [
   },
   {
     label: "Thanh toán & credit",
-    subtitle: "PayOS & giao dịch",
+    subtitle: "Nạp tiền & giao dịch",
     href: "/admin/payments",
     icon: WalletMoney,
   },
@@ -289,8 +289,8 @@ export default function DashboardSidebar({
                       className={cn(
                         "relative flex w-full cursor-pointer items-center overflow-hidden transition-all duration-300 group/btn",
                         collapsed
-                          ? "mx-auto justify-center rounded-2xl group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5"
-                          : "h-auto gap-4 rounded-2xl px-4 py-3 text-sm font-medium",
+                          ? "mx-auto justify-center rounded-full group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5"
+                          : "h-auto gap-4 rounded-full px-5 py-3 text-sm font-medium",
                         active
                           ? "text-background shadow-md shadow-primary/10"
                           : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
@@ -301,7 +301,7 @@ export default function DashboardSidebar({
                           initial={{ x: "-100%" }}
                           animate={{ x: 0 }}
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          className="absolute inset-0 z-0 rounded-2xl bg-primary"
+                          className="absolute inset-0 z-0 rounded-full bg-primary"
                         />
                       )}
                       <div className={cn("relative z-10 flex w-full items-center", collapsed ? "justify-center" : "gap-3")}>
@@ -314,10 +314,10 @@ export default function DashboardSidebar({
                               : "text-muted-foreground group-hover/btn:text-foreground"
                           )}
                         />
-                        <div className="flex min-w-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
+                        <div className="flex min-w-0 flex-1 flex-col group-data-[collapsible=icon]:hidden py-0.5">
                           <span
                             className={cn(
-                              "block truncate text-sm font-bold leading-none tracking-normal",
+                              "block truncate text-sm font-bold leading-snug py-0.5 tracking-normal",
                               active ? "text-background" : "text-foreground"
                             )}
                           >
@@ -325,7 +325,7 @@ export default function DashboardSidebar({
                           </span>
                           <span
                             className={cn(
-                              "mt-1 block truncate text-[10px] font-medium leading-normal tracking-normal",
+                              "mt-0.5 block truncate text-[10px] font-medium leading-snug py-0.5 tracking-normal",
                               active ? "text-background/70" : "text-muted-foreground/80"
                             )}
                           >

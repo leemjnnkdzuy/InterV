@@ -239,7 +239,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   return (
     <div className="min-h-screen bg-background text-foreground pb-12">
       {/* Header section with back button */}
-      <div className="max-w-6xl mx-auto px-4 pt-8 pb-6 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-8 pb-6 flex items-center justify-between">
         <Button
           variant="outline"
           onClick={() => router.push("/")}
@@ -253,7 +253,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         </h1>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Left Side: Avatar Summary Card */}
         <div className="md:col-span-4 flex flex-col gap-6">
           <div className="flex flex-col items-start">

@@ -264,8 +264,8 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                       className={cn(
                         "relative flex w-full items-center transition-all duration-300 group/btn overflow-hidden cursor-pointer",
                         isCollapsed 
-                          ? "justify-center rounded-2xl group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5 mx-auto" 
-                          : "gap-4 rounded-2xl px-4 py-3 h-auto text-sm font-medium",
+                          ? "justify-center rounded-full group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-2.5 mx-auto" 
+                          : "gap-4 rounded-full px-5 py-3 h-auto text-sm font-medium",
                         isActive
                           ? "text-background shadow-md shadow-primary/10"
                           : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
@@ -276,7 +276,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                         <motion.div
                           initial={{ x: "-100%" }}
                           animate={{ x: 0 }}
-                          className="absolute inset-0 bg-primary z-0 rounded-2xl"
+                          className="absolute inset-0 bg-primary z-0 rounded-full"
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         />
                       )}
@@ -293,15 +293,15 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                           )} 
                         />
 
-                        <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                        <div className="flex flex-col min-w-0 flex-1 group-data-[collapsible=icon]:hidden py-0.5">
                           <span className={cn(
-                            "truncate text-sm font-semibold tracking-tight leading-none",
+                            "truncate text-sm font-semibold tracking-tight leading-snug py-0.5",
                             isActive ? "text-background" : "text-foreground"
                           )}>
                             {item.title}
                           </span>
                           <span className={cn(
-                            "truncate text-[10px] font-normal leading-normal mt-0.5",
+                            "truncate text-[10px] font-normal leading-snug py-0.5",
                             isActive ? "text-background/70" : "text-muted-foreground/80"
                           )}>
                             {item.subtitle}
@@ -411,11 +411,11 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
                   </div>
 
                   {/* User Info (Visible only when sidebar is expanded) */}
-                  <div className="flex flex-col text-left overflow-hidden transition-all duration-300 flex-1 opacity-100">
-                    <span className="truncate text-sm font-bold text-foreground leading-none flex items-center gap-1.5">
+                  <div className="flex flex-col text-left overflow-hidden transition-all duration-300 flex-1 opacity-100 py-0.5">
+                    <span className="truncate text-sm font-bold text-foreground leading-snug py-0.5 flex items-center gap-1.5">
                       {user.username}
                     </span>
-                    <span className="truncate text-xs text-muted-foreground mt-1">
+                    <span className="truncate text-xs text-muted-foreground mt-0.5 leading-snug">
                       {user.email}
                     </span>
                   </div>

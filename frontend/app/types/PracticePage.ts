@@ -244,6 +244,7 @@ export interface InterviewAnalysisResult {
   };
   strengths: string[];
   weaknesses: string[];
+  mistakes?: string[];
   recommendations: string[];
   audioAnalysis?: {
     confidence: number;

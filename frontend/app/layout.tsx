@@ -3,8 +3,6 @@ import {headers} from "next/headers";
 import {
 	Geist_Mono,
 	Lexend_Deca,
-	Merriweather,
-	Merriweather_Sans,
 } from "next/font/google";
 import "./globals.css";
 import {cn} from "@/app/lib/Utils";
@@ -24,16 +22,6 @@ const lexendDeca = Lexend_Deca({
 const geistMono = Geist_Mono({
 	variable: "--font-geist-mono",
 	subsets: ["latin"],
-});
-
-const merriweatherSans = Merriweather_Sans({
-	variable: "--font-logo",
-	subsets: ["latin", "vietnamese"],
-});
-
-const merriweather = Merriweather({
-	variable: "--font-question",
-	subsets: ["latin", "vietnamese"],
 });
 
 export const metadata: Metadata = {
@@ -70,8 +58,6 @@ export default async function RootLayout({
 				"antialiased",
 				geistMono.variable,
 				lexendDeca.variable,
-				merriweatherSans.variable,
-				merriweather.variable,
 				"font-sans",
 			)}
 		>

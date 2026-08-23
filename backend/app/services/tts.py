@@ -127,10 +127,14 @@ async def _synthesize_vbee_tts(text: str, voice_id: str) -> bytes:
 
             for _ in range(VBEE_POLL_ATTEMPTS):
                 await asyncio.sleep(VBEE_POLL_INTERVAL_SECONDS)
-                status_response = await client.get(
-                    f"{VBEE_TTS_URL}/requests/{request_id}",
-                    headers=headers,
-                )
+                try:
+                    status_response = await client.get(
+                        f"{VBEE_TTS_URL}/requests/{request_id}",
+                        headers=headers,
+                    )
+                except httpx.HTTPError:
+                    continue
+
                 if status_response.is_error:
                     raise HTTPException(
                         status_code=502,
@@ -138,12 +142,12 @@ async def _synthesize_vbee_tts(text: str, voice_id: str) -> bytes:
                     )
                 status_payload = status_response.json()
                 status = status_payload.get("status")
-                if status == "FAILED":
+                if status in ("FAILED", "ERROR", "CANCELLED"):
                     raise HTTPException(
                         status_code=502,
                         detail="Vbee TTS could not synthesize this text.",
                     )
-                if status != "COMPLETED":
+                if status not in ("COMPLETED", "SUCCESS"):
                     continue
                 audio_link = status_payload.get("audioLink")
                 if not isinstance(audio_link, str) or not audio_link:
@@ -151,7 +155,13 @@ async def _synthesize_vbee_tts(text: str, voice_id: str) -> bytes:
                         status_code=502,
                         detail="Vbee TTS completed without an audio link.",
                     )
-                audio_response = await client.get(audio_link)
+                try:
+                    audio_response = await client.get(audio_link)
+                except httpx.HTTPError as error:
+                    raise HTTPException(
+                        status_code=502,
+                        detail="Could not download the Vbee audio result.",
+                    ) from error
                 if audio_response.is_error or not audio_response.content:
                     raise HTTPException(
                         status_code=502,

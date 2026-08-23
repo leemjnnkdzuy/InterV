@@ -20,11 +20,11 @@ export default function AppLoadingScreen() {
               alt="InterV Logo"
               width={48}
               height={48}
-              className="brightness-0 invert object-contain"
+              className="invert dark:invert-0 object-contain"
               priority
             />
           </div>
-          <span className="font-logo font-bold text-3xl tracking-tight text-white">
+          <span className="font-logo font-bold text-3xl tracking-tight text-foreground">
             InterV<span className="text-[var(--chart-1)]">.</span>
           </span>
         </div>

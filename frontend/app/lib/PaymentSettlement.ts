@@ -206,7 +206,7 @@ export async function settlePaidTransaction(
               credits: transaction.credits,
               action: "RECHARGE",
               referenceId: String(transaction.orderCode),
-              description: `Nạp thành công ${transaction.credits} Credits qua PayOS (Giao dịch #${transaction.orderCode})`,
+              description: `Nạp thành công ${transaction.credits} Credits (Giao dịch #${transaction.orderCode})`,
             },
           ],
           { session: dbSession }

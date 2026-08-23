@@ -242,8 +242,8 @@ export function useRealtimeInterviewRecorder(
     url.searchParams.set("sample_rate", String(tokenResponse.sampleRate));
     url.searchParams.set("speech_model", speechModel);
     if (autoTurnTaking) {
-      url.searchParams.set("min_turn_silence", "400");
-      url.searchParams.set("max_turn_silence", "1280");
+      url.searchParams.set("min_turn_silence", "800");
+      url.searchParams.set("max_turn_silence", "2200");
     }
     if (speechModel !== "whisper-rt" && tokenResponse.languageCode) {
       url.searchParams.set("language_code", tokenResponse.languageCode);

@@ -232,6 +232,7 @@ message InterviewEvaluation {
   repeated EvaluationQuestion questions = 7;
   AudioBehaviorAnalysis audio_analysis = 8;
   repeated string grounding_ids = 9;
+  repeated string mistakes = 10;
 }
 
 message InterviewEvaluateRequest {

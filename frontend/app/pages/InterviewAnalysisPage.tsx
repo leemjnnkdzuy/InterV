@@ -6,14 +6,15 @@ import {
   ArrowLeft,
   Chart2,
   CheckCircle,
+  DangerCircle,
   DangerTriangle,
   DocumentText,
   Lightbulb,
   Microphone3,
 } from "@solar-icons/react";
 import { practiceService } from "@/app/services";
-import { Spinner } from "@/app/components/ui/spinner";
 import SilkBackground from "@/app/components/common/SilkBackground";
+import InterviewAnalysisSkeleton from "@/app/components/seletons/InterviewAnalysisSkeleton";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import type { InterviewResultResponse } from "@/app/types";
 
@@ -117,17 +118,12 @@ export default function InterviewAnalysisPage({
   }, [data, t]);
 
   if (isLoading) {
-    return (
-      <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
-        <SilkBackground fadeBottom bottomColor="var(--background)" />
-        <Spinner className="relative z-10 h-12 w-12 text-primary" />
-      </div>
-    );
+    return <InterviewAnalysisSkeleton />;
   }
 
   if (errorMessage || !data?.run) {
     return (
-      <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 text-center">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 text-center">
         <SilkBackground fadeBottom bottomColor="var(--background)" />
         <div className="relative z-10 max-w-md">
           <DangerTriangle
@@ -227,10 +223,10 @@ export default function InterviewAnalysisPage({
   const completedAt = new Date(run.completedAt).toLocaleString(locale);
 
   return (
-    <div className="dark relative min-h-screen overflow-hidden bg-background text-foreground">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <SilkBackground fadeBottom bottomColor="var(--background)" />
       <div className="relative z-10 mx-auto w-full max-w-6xl px-5 py-6 md:px-8 md:py-9">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border/60 pb-6">
+        <header className="flex flex-wrap items-start justify-between gap-4 pb-12">
           <div>
             <button
               type="button"
@@ -319,43 +315,70 @@ export default function InterviewAnalysisPage({
             {result.feedback}
           </p>
 
-          <div className="mt-8 grid gap-8 md:grid-cols-3">
-            <div>
-              <div className="flex items-center gap-2 text-emerald-400">
+          <div className="mt-8 space-y-4">
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm md:grid md:grid-cols-[200px_1fr] md:gap-6 md:items-start">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle
-                  className="h-5 w-5"
+                  className="h-5 w-5 shrink-0"
                   weight="BoldDuotone"
                   aria-hidden="true"
                 />
                 <h3 className="text-sm font-black">{t("analysis.strengths")}</h3>
               </div>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground md:mt-0">
                 {result.strengths.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item} className="flex items-start gap-2.5">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70" />
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 text-amber-400">
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm md:grid md:grid-cols-[200px_1fr] md:gap-6 md:items-start">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                 <DangerTriangle
-                  className="h-5 w-5"
+                  className="h-5 w-5 shrink-0"
                   weight="BoldDuotone"
                   aria-hidden="true"
                 />
                 <h3 className="text-sm font-black">{t("analysis.weaknesses")}</h3>
               </div>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground md:mt-0">
                 {result.weaknesses.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item} className="flex items-start gap-2.5">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500/70" />
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
 
-            <div>
+            {result.mistakes && result.mistakes.length > 0 && (
+              <div className="rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm md:grid md:grid-cols-[200px_1fr] md:gap-6 md:items-start">
+                <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                  <DangerCircle
+                    className="h-5 w-5 shrink-0"
+                    weight="BoldDuotone"
+                    aria-hidden="true"
+                  />
+                  <h3 className="text-sm font-black">{t("analysis.mistakes")}</h3>
+                </div>
+                <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground md:mt-0">
+                  {result.mistakes.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500/70" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm md:grid md:grid-cols-[200px_1fr] md:gap-6 md:items-start">
               <div className="flex items-center gap-2 text-primary">
                 <Lightbulb
-                  className="h-5 w-5"
+                  className="h-5 w-5 shrink-0"
                   weight="BoldDuotone"
                   aria-hidden="true"
                 />
@@ -363,9 +386,12 @@ export default function InterviewAnalysisPage({
                   {t("analysis.recommendations")}
                 </h3>
               </div>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground md:mt-0">
                 {result.recommendations.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item} className="flex items-start gap-2.5">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" />
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -479,7 +505,7 @@ export default function InterviewAnalysisPage({
             {result.questions.map((question, index) => (
               <article
                 key={`${index}-${question.question}`}
-                className="rounded-lg border border-border bg-card/75 p-5 backdrop-blur-sm"
+                className="rounded-lg border border-border bg-card/75 p-5 backdrop-blur-sm shadow-sm"
               >
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="text-sm font-black leading-6">

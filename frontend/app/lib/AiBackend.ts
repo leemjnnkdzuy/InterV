@@ -347,6 +347,7 @@ interface IntervAiClient extends grpc.Client {
         feedback: string;
         strengths: string[];
         weaknesses: string[];
+        mistakes?: string[];
         recommendations: string[];
         questions: Array<{
           question: string;

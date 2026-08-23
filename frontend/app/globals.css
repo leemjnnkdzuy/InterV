@@ -167,11 +167,11 @@
 }
 
 .font-logo {
-  font-family: var(--font-logo), sans-serif;
+  font-family: var(--font-sans), sans-serif;
 }
 
 .font-question {
-  font-family: var(--font-question), serif;
+  font-family: var(--font-sans), sans-serif;
 }
 
 /* Hero heading shimmer animation */

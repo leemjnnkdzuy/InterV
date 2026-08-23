@@ -1045,6 +1045,7 @@ async def evaluate_interview(
             "feedback": "evidence-based summary",
             "strengths": ["strength"],
             "weaknesses": ["weakness"],
+            "mistakes": ["specific mistake or error made during interview"],
             "recommendations": ["recommendation"],
             "questions": [
                 {

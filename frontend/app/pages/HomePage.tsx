@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { useAuthContext } from "@/app/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import {
-  Lightbulb as Brain,
-  ChatSquareCode as MessageSquareCode,
-  MedalStar as Award,
-  ClockCircle as Clock,
-  ArrowRight,
-  GraphUp as TrendingUp,
-  Videocamera as Video,
+  Lightbulb,
+  MedalStar,
+  Star,
+  ClockCircle,
+  AltArrowRight,
   Code,
-  Suitcase as Briefcase,
+  Suitcase,
+  UserSpeak,
+  DocumentText,
+  CpuBolt,
+  Microphone,
+  Chart,
 } from "@solar-icons/react";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import api from "@/app/lib/Client";
@@ -38,6 +41,7 @@ export default function HomePage() {
   const [dashboard, setDashboard] =
     useState<HomeDashboardResponse>(EMPTY_DASHBOARD);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+
   const numberLocale =
     language === "zh" ? "zh-CN" : language === "en" ? "en-US" : "vi-VN";
 
@@ -84,71 +88,80 @@ export default function HomePage() {
   const stats = [
     {
       title: t("home.statsInterviews"),
-      value: dashboard.stats.totalInterviews.toLocaleString(numberLocale),
+      value: isDashboardLoading
+        ? "--"
+        : dashboard.stats.totalInterviews.toLocaleString(numberLocale),
       description: t("home.statsInterviewsDesc"),
-      icon: MessageSquareCode,
-      color: "text-blue-600 dark:text-blue-400",
+      icon: UserSpeak,
+      color: "text-blue-500",
+      badge: "Phiên phỏng vấn",
     },
     {
       title: t("home.statsAvgScore"),
-      value: dashboard.stats.averageScore.toFixed(1),
+      value: isDashboardLoading
+        ? "--"
+        : `${dashboard.stats.averageScore.toFixed(1)}/100`,
       description: t("home.statsAvgScoreDesc"),
-      icon: Award,
-      color: "text-emerald-600 dark:text-emerald-400",
+      icon: MedalStar,
+      color: "text-emerald-500",
+      badge: "Đánh giá chung",
     },
     {
       title: t("home.statsDuration"),
-      value: formatDuration(dashboard.stats.totalDurationSec),
+      value: isDashboardLoading
+        ? "--"
+        : formatDuration(dashboard.stats.totalDurationSec),
       description: t("home.statsDurationDesc"),
-      icon: Clock,
-      color: "text-amber-600 dark:text-amber-400",
+      icon: ClockCircle,
+      color: "text-amber-500",
+      badge: "Thời lượng",
     },
   ];
 
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(numberLocale, {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-    [numberLocale]
-  );
-
-  const quickTracks = [
+  const practiceTracks = [
     {
       title: t("home.quickTech"),
       desc: t("home.quickTechDesc"),
       icon: Code,
       color: "text-blue-500",
+      tag: "Kỹ thuật & Thuật toán",
     },
     {
       title: t("home.quickBehavioral"),
       desc: t("home.quickBehavioralDesc"),
-      icon: Brain,
+      icon: Lightbulb,
       color: "text-purple-500",
+      tag: "Kỹ năng mềm & STAR",
     },
     {
       title: t("home.quickPm"),
       desc: t("home.quickPmDesc"),
-      icon: Briefcase,
+      icon: Suitcase,
       color: "text-amber-500",
+      tag: "Sản phẩm & Quản trị",
+    },
+    {
+      title: "Luyện theo JD & CV",
+      desc: "Tải lên CV cá nhân và mô tả công việc để AI tạo bộ câu hỏi độc quyền dành riêng cho bạn.",
+      icon: Star,
+      color: "text-emerald-500",
+      tag: "Cá nhân hóa 100%",
     },
   ];
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.08,
       },
     },
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 },
+  const itemVariants: Variants = {
+    hidden: { y: 16, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { duration: 0.35, ease: "easeOut" } },
   };
 
   return (
@@ -156,165 +169,181 @@ export default function HomePage() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="space-y-8 max-w-7xl mx-auto"
+      className="space-y-8 max-w-7xl mx-auto pb-10"
     >
-      {/* Header Greeting */}
-      <motion.div variants={itemVariants} className="flex flex-col gap-2">
-        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-left">
-          {getGreeting()}, {user?.username || "Bạn"}! 👋
+      {/* Header & Welcome Row */}
+      <motion.div variants={itemVariants} className="space-y-1.5 text-left">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
+          {getGreeting()}, {user?.username || "Bạn"}!
         </h1>
-        <p className="text-muted-foreground text-sm lg:text-base max-w-2xl text-left">
+        <p className="text-muted-foreground text-sm lg:text-base max-w-2xl">
           {t("home.welcomeBack")}
         </p>
       </motion.div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards Grid */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-3 gap-5"
       >
-        {stats.map((stat, index) => (
-          <Card key={index} className="relative overflow-hidden border bg-card/60 backdrop-blur-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={stat.color}>
-                <stat.icon className="h-7 w-7" />
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card
+              key={index}
+              className="relative overflow-hidden border bg-card/60 backdrop-blur-xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 group p-6 py-6 gap-3 text-left"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {stat.title}
+                </span>
+                <Icon className={`h-8 w-8 ${stat.color}`} weight="BoldDuotone" />
               </div>
-            </CardHeader>
-            <CardContent className="text-left">
-              <div className="text-3xl font-extrabold tracking-tight mt-1">
-                {isDashboardLoading ? "..." : stat.value}
+
+              <div>
+                <div className="text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
+                  {stat.value}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">
+                  {stat.description}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-emerald-500" />
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </motion.div>
 
-      {/* Main Row: CTA & Quick Selection */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main CTA to practice */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 text-left">
-          <Card className="h-full border border-primary/20 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 relative overflow-hidden flex flex-col justify-between p-6 lg:p-8">
-            <div className="absolute top-0 right-0 p-8 text-primary/10 pointer-events-none">
-              <Video className="h-32 w-32" />
-            </div>
+      {/* Main Hero Showcase Card */}
+      <motion.div variants={itemVariants} className="text-left">
+        <div className="relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br from-card/80 via-card/50 to-primary/10 backdrop-blur-xl p-6 sm:p-8 lg:p-10 shadow-lg shadow-primary/5">
+          {/* Ambient Glow */}
+          <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-            <div className="space-y-4 max-w-lg z-10">
-              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Info */}
+            <div className="lg:col-span-7 space-y-5">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground leading-tight">
                 {t("home.ctaTitle")}
               </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+
+              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-2xl">
                 {t("home.ctaDesc")}
               </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={() => router.push("/practice")}
+                  className="rounded-full px-7 py-6 shadow-xl shadow-primary/25 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-bold group transition-all duration-300"
+                >
+                  <span>{t("home.ctaButton")}</span>
+                  <AltArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="outline"
+                  onClick={() => router.push("/history")}
+                  className="rounded-full px-6 py-6 border-border/80 bg-background/50 hover:bg-muted/80 text-sm font-bold backdrop-blur-sm"
+                >
+                  <DocumentText className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span>{t("home.recentHistory")}</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="mt-8 z-10">
-              <Button type="button" size="default" onClick={() => router.push("/practice")} className="rounded-xl px-6 py-5 shadow-lg shadow-primary/20 bg-primary text-background hover:bg-primary/95 text-base font-semibold group transition-all duration-300">
-                  {t("home.ctaButton")}
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
+            {/* Right Highlights Pill Grid */}
+            <div className="lg:col-span-5 grid grid-cols-1 gap-3">
+              <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-4 flex items-center gap-4 transition-all hover:border-primary/30">
+                <CpuBolt className="h-8 w-8 shrink-0 text-blue-500" weight="BoldDuotone" />
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Phản hồi & Chấm điểm tức thì
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                    Đánh giá chi tiết năng lực chuyên môn và phương pháp STAR.
+                  </p>
+                </div>
+              </div>
 
-        {/* Quick Selection */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-6 text-left">
-          <h3 className="text-lg font-bold tracking-tight text-foreground">{t("home.quickTitle")}</h3>
-          <div className="flex flex-col gap-4 flex-1 justify-between">
-            {quickTracks.map((track, i) => (
-              <Card key={i} className="hover:border-foreground/20 hover:bg-card/90 transition-all duration-200 cursor-pointer border bg-card/60 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-start gap-4 pb-2">
-                  <div className={track.color}>
-                    <track.icon className="h-7 w-7" />
-                  </div>
-                  <div className="space-y-1">
-                    <CardTitle className="text-sm font-semibold">{track.title}</CardTitle>
-                    <CardDescription className="text-xs leading-normal">
-                      {track.desc}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+              <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-4 flex items-center gap-4 transition-all hover:border-primary/30">
+                <Microphone className="h-8 w-8 shrink-0 text-purple-500" weight="BoldDuotone" />
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Tương tác giọng nói tự nhiên
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                    Lắng nghe, ngắt nghỉ và đối thoại đa chiều như phỏng vấn thật.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-4 flex items-center gap-4 transition-all hover:border-primary/30">
+                <Chart className="h-8 w-8 shrink-0 text-emerald-500" weight="BoldDuotone" />
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Báo cáo phân tích chuyên sâu
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                    Chỉ ra điểm mạnh, điểm cần cải thiện và gợi ý câu trả lời mẫu.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
 
-      {/* History table */}
+      {/* Practice Tracks Section */}
       <motion.div variants={itemVariants} className="space-y-4 text-left">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold tracking-tight text-foreground">{t("home.recentHistory")}</h3>
-          <button type="button" onClick={() => router.push("/history")} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-            {t("home.viewAll")}
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          <div>
+            <h3 className="text-lg lg:text-xl font-bold tracking-tight text-foreground">
+              {t("home.quickTitle")}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Lựa chọn chủ đề phỏng vấn phù hợp với mục tiêu phát triển của bạn
+            </p>
+          </div>
         </div>
 
-        <Card className="border bg-card/60 backdrop-blur-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase border-b bg-muted/40">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">{t("home.colPosition")}</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">{t("home.colDate")}</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">{t("home.colDuration")}</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">{t("home.colScore")}</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">{t("home.colStatus")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y border-border">
-                {dashboard.recentSessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4 font-medium text-foreground">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/practice/${encodeURIComponent(session.sessionId)}/analysis?runId=${encodeURIComponent(session.id)}`)}
-                        className="hover:text-primary"
-                      >
-                        {session.position}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {dateFormatter.format(new Date(session.date))}
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground">{session.duration}</td>
-                    <td className="px-6 py-4 font-semibold">
-                      <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${
-                        session.score >= 80
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
-                          : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                      }`}>
-                        {session.score}/100
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-600 dark:text-green-400 border border-green-500/20">
-                        {session.status === "completed" ? t("home.statusCompleted") : t("home.statusInProgress")}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {!isDashboardLoading &&
-                  dashboard.recentSessions.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-6 py-10 text-center text-sm text-muted-foreground"
-                      >
-                        {t("home.emptyHistory")}
-                      </td>
-                    </tr>
-                  )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {practiceTracks.map((track, i) => {
+            const Icon = track.icon;
+            return (
+              <Card
+                key={i}
+                onClick={() => router.push("/practice")}
+                className="group relative overflow-hidden border bg-card/60 backdrop-blur-xl hover:border-primary/40 hover:bg-card/90 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 p-5 py-5 gap-3.5 flex flex-col justify-between text-left"
+              >
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <Icon className={`h-8 w-8 ${track.color}`} weight="BoldDuotone" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
+                      {track.tag}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                      {track.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                      {track.desc}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-1 flex items-center text-xs font-bold text-primary gap-1 group-hover:gap-2 transition-all">
+                  <span>Luyện tập ngay</span>
+                  <AltArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       </motion.div>
     </motion.div>
   );

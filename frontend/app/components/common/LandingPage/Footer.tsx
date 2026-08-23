@@ -145,12 +145,6 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <span>{t("landing.footer.copyright", { year })}</span>
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              {t("landing.footer.systemStatus")}
-            </span>
-          </div>
         </div>
       </div>
     </footer>

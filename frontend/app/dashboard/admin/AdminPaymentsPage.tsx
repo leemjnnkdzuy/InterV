@@ -135,7 +135,7 @@ interface UserSearchData {
 }
 
 const actionLabels: Record<string, string> = {
-  RECHARGE: "Nạp PayOS",
+  RECHARGE: "Nạp trực tuyến",
   AI_INTERVIEW: "Phỏng vấn AI",
   AI_INTERVIEW_REFUND: "Hoàn phỏng vấn",
   AI_JD_EXTRACT: "Phân tích JD",
@@ -264,8 +264,8 @@ export default function AdminPaymentsPage() {
       });
       toast.success(
         pendingAction.kind === "cancel"
-          ? "Đã hủy giao dịch trên PayOS"
-          : "Đã đối soát với PayOS"
+          ? "Đã hủy giao dịch thanh toán"
+          : "Đã đối soát giao dịch"
       );
       setPendingAction(null);
       setCancelReason("");
@@ -342,7 +342,7 @@ export default function AdminPaymentsPage() {
     <>
       <DashboardPageHeader
         title="Thanh toán & credit"
-        description="Đối soát PayOS, doanh thu, trạng thái giao dịch và toàn bộ biến động credit người dùng."
+        description="Đối soát thanh toán, doanh thu, trạng thái giao dịch và toàn bộ biến động credit người dùng."
         actions={
           <>
             <div className="flex h-9 rounded-md border border-border bg-card p-0.5">
@@ -439,7 +439,7 @@ export default function AdminPaymentsPage() {
         <TabsList variant="line" className="mb-3">
           <TabsTrigger value="payments">
             <CreditCard className="size-4" />
-            Giao dịch PayOS
+            Giao dịch thanh toán
           </TabsTrigger>
           <TabsTrigger value="credits">
             <Coins className="size-4" />
@@ -529,7 +529,7 @@ export default function AdminPaymentsPage() {
                     <th className="px-4 py-3 text-right font-bold">Số tiền</th>
                     <th className="px-4 py-3 text-right font-bold">Credits</th>
                     <th className="px-4 py-3 font-bold">Nội bộ</th>
-                    <th className="px-4 py-3 font-bold">PayOS</th>
+                    <th className="px-4 py-3 font-bold">Cổng kết nối</th>
                     <th className="px-4 py-3 font-bold">Đối soát</th>
                     <th className="px-4 py-3 text-right font-bold">Thao tác</th>
                   </tr>
@@ -601,8 +601,8 @@ export default function AdminPaymentsPage() {
                               variant="ghost"
                               size="icon"
                               className="size-8"
-                              title="Mở trang PayOS"
-                              aria-label="Mở trang PayOS"
+                              title="Mở trang thanh toán"
+                              aria-label="Mở trang thanh toán"
                               onClick={() =>
                                 window.open(
                                   transaction.paymentUrl,
@@ -619,8 +619,8 @@ export default function AdminPaymentsPage() {
                             variant="ghost"
                             size="icon"
                             className="size-8"
-                            title="Đối soát PayOS"
-                            aria-label="Đối soát PayOS"
+                            title="Đối soát giao dịch"
+                            aria-label="Đối soát giao dịch"
                             onClick={() =>
                               setPendingAction({
                                 kind: "reconcile",
@@ -770,7 +770,7 @@ export default function AdminPaymentsPage() {
           <DialogHeader>
             <DialogTitle className="text-base font-extrabold">
               {pendingAction?.kind === "cancel"
-                ? "Hủy giao dịch PayOS"
+                ? "Hủy giao dịch thanh toán"
                 : "Đối soát giao dịch"}
             </DialogTitle>
             <DialogDescription>

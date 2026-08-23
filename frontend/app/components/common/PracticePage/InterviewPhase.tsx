@@ -55,7 +55,7 @@ type InterviewStage =
   | "finishing"
   | "error";
 
-const SERVER_TTS_WAIT_MS = 7_000;
+const SERVER_TTS_WAIT_MS = 45_000;
 
 async function waitForServerAudio<T>(request: Promise<T>): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -188,23 +188,22 @@ export default function InterviewPhase({
       : "leading-relaxed";
   const isRecordingStage =
     stage === "recording" || stage === "openingRecording";
-  const isAutoProcessingStage =
-    autoTurnTaking &&
-    [
-      "connecting",
-      "submitting",
-      "openingConnecting",
-      "openingSubmitting",
-    ].includes(stage);
+  const isSubmittingStage =
+    stage === "submitting" || stage === "openingSubmitting";
   const isAutoReviewPending =
     autoTurnTaking &&
     autoSubmissionPending &&
     (stage === "reviewing" || stage === "openingReviewing");
   const showRealtimeTranscript =
-    isRecordingStage || isAutoProcessingStage || isAutoReviewPending;
-  const realtimeTranscriptLabel =
-    isAutoProcessingStage || isAutoReviewPending
-      ? t("interview.savingAnswer")
+    isRecordingStage || isSubmittingStage || isAutoReviewPending;
+  const realtimeTranscriptLabel = isSubmittingStage
+    ? stage === "openingSubmitting"
+      ? t("interview.openingSaving")
+      : t("interview.savingAnswer")
+    : isAutoReviewPending
+      ? stage === "openingReviewing"
+        ? t("interview.openingSaving")
+        : t("interview.savingAnswer")
       : openingCompleted
         ? t("interview.liveTranscript")
         : t("interview.openingTranscript");
@@ -326,6 +325,14 @@ export default function InterviewPhase({
           setStage("openingReviewing");
           return;
         }
+        // Small cooldown so speaker sound clears from the microphone before recording
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        if (
+          cancelled ||
+          transitionGeneration !== transitionGenerationRef.current
+        ) {
+          return;
+        }
         await startRecording();
         if (
           !cancelled &&
@@ -429,6 +436,14 @@ export default function InterviewPhase({
           setStage("reviewing");
           return;
         }
+        // Small cooldown so speaker sound clears from the microphone before recording
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        if (
+          cancelled ||
+          transitionGeneration !== transitionGenerationRef.current
+        ) {
+          return;
+        }
         await startRecording();
         if (
           !cancelled &&
@@ -519,7 +534,7 @@ export default function InterviewPhase({
     if (!transcript && textAnswerEnabled) {
       setAnswerInputMode("text");
     }
-    setAutoSubmissionPending(autoTurnTaking);
+    setAutoSubmissionPending(autoTurnTaking && Boolean(transcript.trim()));
     setStage("openingReviewing");
     if (!transcript) toast.warning(t("interview.transcriptMissing"));
   }, [
@@ -603,7 +618,13 @@ export default function InterviewPhase({
       return;
     }
 
-    const turnKey = `${finalTurn.turnOrder ?? "unknown"}:${finalTurn.transcript}`;
+    const trimmedTranscript = finalTurn.transcript?.trim() || "";
+    const words = trimmedTranscript.split(/\s+/).filter(Boolean);
+    if (words.length < 1 || (words.length === 1 && trimmedTranscript.length < 3)) {
+      return;
+    }
+
+    const turnKey = `${finalTurn.turnOrder ?? "unknown"}:${trimmedTranscript}`;
     if (autoFinalizedTurnRef.current === turnKey) return;
     autoFinalizedTurnRef.current = turnKey;
 
@@ -732,14 +753,18 @@ export default function InterviewPhase({
       });
       let data;
       if (withClosing) {
-        const closingAudioRequest = playPromptAudio(closingPrompt)
-          .catch((error) => {
+        const closingAudioRequest = playPromptAudio(closingPrompt).catch(
+          (error) => {
             console.warn("Closing TTS unavailable:", error);
-          });
-        data = (
-          await Promise.all([evaluationRequest, closingAudioRequest])
-        )[0];
+          }
+        );
+        await closingAudioRequest;
+        setStage("finishing");
+        setFinishingStep(2);
+        data = await evaluationRequest;
       } else {
+        setStage("finishing");
+        setFinishingStep(2);
         data = await evaluationRequest;
       }
 
@@ -862,9 +887,15 @@ export default function InterviewPhase({
       return;
     }
 
+    const normalized = answer.trim();
+    const words = normalized.split(/\s+/).filter(Boolean);
+    if (words.length < 1 || (words.length === 1 && normalized.length < 3)) {
+      return;
+    }
+
     const scope = openingCompleted ? currentQuestion?.id : "opening";
     if (!scope) return;
-    const submissionKey = `${scope}:${answer.trim()}`;
+    const submissionKey = `${scope}:${normalized}`;
     if (autoSubmissionRetryRef.current.key !== submissionKey) {
       autoSubmissionRetryRef.current = { key: submissionKey, count: 0 };
     }
@@ -873,7 +904,7 @@ export default function InterviewPhase({
 
     const timeoutId = window.setTimeout(() => {
       void (openingCompleted ? submitAnswer() : submitOpening());
-    }, 0);
+    }, 600);
     return () => window.clearTimeout(timeoutId);
   }, [
     answer,
@@ -1068,7 +1099,11 @@ export default function InterviewPhase({
                   {realtimeTranscriptLabel}
                 </p>
                 <p className="max-h-28 overflow-y-auto overscroll-contain pr-2 select-text text-sm leading-relaxed text-foreground/85 md:text-base">
-                  {answer || liveTranscript}
+                  {answer || liveTranscript || (
+                    <span className="italic text-muted-foreground/50">
+                      {openingCompleted ? t("interview.listening") : t("interview.openingListening")}
+                    </span>
+                  )}
                 </p>
               </div>
 

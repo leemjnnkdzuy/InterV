@@ -83,12 +83,12 @@ async function POSTHandler(request: NextRequest) {
     } catch (error: unknown) {
       if (error instanceof PaymentIntegrityError) {
         return NextResponse.json(
-          { success: false, message: "Không thể xác nhận việc hủy giao dịch PayOS" },
+          { success: false, message: "Không thể xác nhận việc hủy giao dịch thanh toán" },
           { status: 409 }
         );
       }
 
-      // A cancellation race can mean PayOS has already transitioned the order.
+      // A cancellation race can mean the gateway has already transitioned the order.
       // Reconcile once before returning an error to the user.
       try {
         const reconciliation = await reconcilePayOSPayment(transaction._id);
@@ -96,7 +96,7 @@ async function POSTHandler(request: NextRequest) {
           return NextResponse.json({
             success: true,
             status: reconciliation.status,
-            message: "Giao dịch đã được cập nhật theo trạng thái PayOS",
+            message: "Giao dịch đã được cập nhật theo trạng thái mới nhất",
           });
         }
       } catch {

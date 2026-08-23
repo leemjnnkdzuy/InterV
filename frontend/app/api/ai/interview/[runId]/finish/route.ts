@@ -463,6 +463,7 @@ async function POSTHandler(
       ratings: evaluation.ratings,
       strengths: evaluation.strengths,
       weaknesses: evaluation.weaknesses,
+      mistakes: evaluation.mistakes || [],
       recommendations: evaluation.recommendations,
       audioAnalysis: evaluation.audioAnalysis || audioAnalysis,
       questions: evaluation.questions.map((question) => ({

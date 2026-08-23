@@ -134,7 +134,7 @@ export default function CreditPageRoute() {
           <AppSidebar variant="credit" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarInset className="flex flex-col flex-1 bg-transparent">
             {/* Main Workspace content */}
-            <main className="flex-1 p-6 lg:p-12 overflow-y-auto bg-background/40 flex justify-center text-left">
+            <main className="flex-1 p-6 lg:p-8 overflow-y-auto bg-background/40 flex justify-center text-left">
               <div className="w-full max-w-4xl">
                 {renderContent()}
               </div>

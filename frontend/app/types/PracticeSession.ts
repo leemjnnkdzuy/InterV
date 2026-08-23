@@ -49,6 +49,7 @@ export interface IPracticeSession extends Document {
     };
     strengths?: string[];
     weaknesses?: string[];
+    mistakes?: string[];
     recommendations?: string[];
     audioAnalysis?: {
       confidence: number;

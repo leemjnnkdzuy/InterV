@@ -693,6 +693,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 feedback=evaluation.feedback,
                 strengths=evaluation.strengths,
                 weaknesses=evaluation.weaknesses,
+                mistakes=evaluation.mistakes,
                 recommendations=evaluation.recommendations,
                 questions=[
                     interv_ai_pb2.EvaluationQuestion(
