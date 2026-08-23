@@ -215,6 +215,7 @@ export interface InterviewAnswerResponse {
   answeredCount: number;
   questionCount: number;
   nextQuestion: GeneratedInterviewQuestion | null;
+  nextQuestionAudio?: { audioBase64: string; contentType: string };
   acknowledgementText?: string;
   transitionText?: string;
   spokenText?: string;

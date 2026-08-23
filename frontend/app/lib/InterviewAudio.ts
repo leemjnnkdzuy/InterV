@@ -58,13 +58,22 @@ export function unlockInterviewAudio(): void {
 
 export function stopInterviewAudio(): void {
   playbackGeneration += 1;
-  pendingResolve?.();
-  pendingResolve = null;
+  if (pendingResolve) {
+    const resolve = pendingResolve;
+    pendingResolve = null;
+    resolve();
+  }
   if (!sharedAudio) return;
   sharedAudio.onended = null;
   sharedAudio.onerror = null;
-  sharedAudio.pause();
-  sharedAudio.currentTime = 0;
+  sharedAudio.ontimeupdate = null;
+  sharedAudio.onloadedmetadata = null;
+  try {
+    sharedAudio.pause();
+    sharedAudio.currentTime = 0;
+  } catch {
+    // ignore
+  }
 }
 
 export async function playInterviewAudio(
@@ -77,18 +86,71 @@ export async function playInterviewAudio(
   const generation = ++playbackGeneration;
   audio.volume = 1;
   audio.src = `data:${contentType};base64,${audioBase64}`;
+
   await new Promise<void>((resolve, reject) => {
-    pendingResolve = resolve;
-    audio.onended = () => {
-      if (generation !== playbackGeneration) return;
+    let finished = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanup = () => {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.ontimeupdate = null;
+      audio.onloadedmetadata = null;
+      if (fallbackTimer !== null) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
+    };
+
+    const finish = () => {
+      if (finished || generation !== playbackGeneration) return;
+      finished = true;
+      cleanup();
       pendingResolve = null;
       resolve();
     };
-    audio.onerror = () => {
+
+    pendingResolve = finish;
+
+    audio.onended = () => {
+      finish();
+    };
+
+    audio.ontimeupdate = () => {
+      if (
+        audio.duration > 0 &&
+        Number.isFinite(audio.duration) &&
+        audio.currentTime >= audio.duration - 0.08
+      ) {
+        finish();
+      }
+    };
+
+    audio.onloadedmetadata = () => {
       if (generation !== playbackGeneration) return;
+      if (audio.duration > 0 && Number.isFinite(audio.duration)) {
+        fallbackTimer = setTimeout(
+          finish,
+          Math.round((audio.duration + 0.6) * 1000)
+        );
+      }
+    };
+
+    audio.onerror = () => {
+      if (finished || generation !== playbackGeneration) return;
+      finished = true;
+      cleanup();
       pendingResolve = null;
       reject(new Error("Không thể phát câu hỏi"));
     };
+
+    // Absolute safety timeout based on payload size
+    const estimatedSec = Math.max(
+      3,
+      Math.min(60, Math.round((audioBase64.length * 0.75) / 4000))
+    );
+    fallbackTimer = setTimeout(finish, estimatedSec * 1000);
+
     audio
       .play()
       .then(() => {
@@ -96,7 +158,9 @@ export async function playInterviewAudio(
         onStarted?.();
       })
       .catch((error) => {
-        if (generation !== playbackGeneration) return;
+        if (finished || generation !== playbackGeneration) return;
+        finished = true;
+        cleanup();
         pendingResolve = null;
         reject(error);
       });

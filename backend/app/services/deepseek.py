@@ -2,25 +2,26 @@ from contextvars import ContextVar, Token
 from dataclasses import asdict, dataclass, field
 from decimal import Decimal, InvalidOperation
 import json
+import re
 import time
-import uuid
 from typing import Any
+import uuid
 
 import httpx
 
 from app.config import get_settings
 from app.lib.vbee_pronunciation import prepare_vbee_tts_text
 from app.schemas import (
-    EvaluationQuestion,
     CandidateProfileItem,
     CandidateProfileRequest,
+    EvaluationQuestion,
     GeneratedQuestion,
     InterviewEvaluateRequest,
     InterviewEvaluation,
     InterviewFollowUpRequest,
     InterviewOpeningRequest,
-    InterviewTransition,
     InterviewStartRequest,
+    InterviewTransition,
 )
 from app.services.grounding import (
     GroundingPackage,
@@ -342,6 +343,49 @@ def _validate_evaluation_response(
     return evaluation
 
 
+def _sanitize_vietnamese_pronouns(text: str) -> str:
+    if not text:
+        return text
+    cleaned = text
+    # 1. Greetings / Acknowledgements
+    cleaned = re.sub(
+        r"\b(Cảm ơn|Chào|Xin chào)\s+(?:anh|chị|em|quý anh chị)(?:\s+ứng viên)?\b",
+        r"\1 bạn",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(
+        r"\b(Anh|Chị|Tôi)\s+(muốn|sẽ|đã|đang|xin|cần|muốn hỏi|muốn làm rõ|muốn biết|chuyển sang|ghi nhận)\b",
+        r"Mình \2",
+        cleaned,
+    )
+    cleaned = re.sub(
+        r"\b(anh|chị|tôi)\s+(muốn|sẽ|đã|đang|xin|cần|muốn hỏi|muốn làm rõ|muốn biết|chuyển sang|ghi nhận)\b",
+        r"mình \2",
+        cleaned,
+    )
+    # 3. Candidate addressing
+    cleaned = re.sub(
+        r"^(?:Anh|Chị|Em)\s+(có thể|hãy|cho|chia sẻ|vui lòng|đã|từng|làm thế nào|xử lý|đánh giá|thấy|nghĩ)",
+        r"Bạn \1",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(
+        r"\b(?:anh|chị|em)\s+(có thể|hãy|cho mình|cho tôi|chia sẻ|vui lòng|đã từng|làm thế nào|xử lý|đánh giá|thấy|nghĩ)\b",
+        r"bạn \1",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(
+        r"\b(của|với|từ|giúp|cho|về phía|bản thân|theo)\s+(?:anh|chị|em)\b",
+        r"\1 bạn",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    return cleaned
+
+
 def _validate_generated_questions_response(
     response: dict[str, Any],
     payload: InterviewStartRequest,
@@ -361,6 +405,8 @@ def _validate_generated_questions_response(
     selected = questions[: payload.requested_questions]
     seen_text: set[str] = set()
     for index, question in enumerate(selected, start=1):
+        question.text = _sanitize_vietnamese_pronouns(question.text)
+        question.tts_text = _sanitize_vietnamese_pronouns(question.tts_text)
         normalized_text = " ".join(question.text.casefold().split())
         if not normalized_text:
             raise RuntimeError(f"Generated question {index} is empty")
@@ -396,6 +442,8 @@ def _validate_follow_up_question_response(
 
     question = GeneratedQuestion(**question_payload)
     question.id = f"q_{payload.next_question_index + 1}"
+    question.text = _sanitize_vietnamese_pronouns(question.text)
+    question.tts_text = _sanitize_vietnamese_pronouns(question.tts_text)
     if not question.text.strip() or not question.competency.strip():
         raise RuntimeError("DeepSeek returned an incomplete follow-up question")
     if not question.expected_signals:
@@ -431,6 +479,12 @@ def _validate_follow_up_transition(
     if transition.transition_type == "opening_to_first":
         raise RuntimeError("DeepSeek used the opening transition type for a follow-up")
 
+    transition.acknowledgement_text = _sanitize_vietnamese_pronouns(
+        transition.acknowledgement_text
+    )
+    transition.transition_text = _sanitize_vietnamese_pronouns(
+        transition.transition_text
+    )
     question = _validate_follow_up_question_response(response, payload, grounding)
     spoken_text = " ".join(
         (
@@ -520,15 +574,14 @@ async def _json_completion(
         timeout=(
             settings.deepseek_eval_timeout_seconds
             if thinking
-            else settings.deepseek_fast_timeout_seconds
+            else settings.deepseek_timeout_seconds
         ),
         max_retries=0,
     )
     last_error: Exception | None = None
-    attempts = 1 if thinking else 2
-
+    max_retries = 2
     try:
-        for _ in range(attempts):
+        for attempt in range(max_retries):
             try:
                 request: dict[str, Any] = {
                     "model": model,
@@ -541,12 +594,9 @@ async def _json_completion(
                     ],
                     "response_format": {"type": "json_object"},
                     "max_tokens": max_tokens,
-                    "extra_body": {
-                        "thinking": {"type": "enabled" if thinking else "disabled"}
-                    },
                 }
                 if thinking:
-                    request["reasoning_effort"] = "high"
+                    request["extra_body"] = {"thinking": {"type": "enabled"}}
 
                 started_at = time.perf_counter()
                 try:
@@ -650,7 +700,9 @@ async def generate_questions(
             "For every Vietnamese question, also return tts_text: the same question with "
             "identical meaning, but transliterate English technical terms and acronyms into "
             "natural Vietnamese phonetic spelling for a Vietnamese Vbee voice. Keep text "
-            "unchanged for display; never add explanations, answers, or hints to tts_text."
+            "unchanged for display; never add explanations, answers, or hints to tts_text. "
+            "Pronoun rule for Vietnamese: The interviewer MUST ALWAYS refer to itself as 'mình' "
+            "and address the candidate as 'bạn' (NEVER use 'anh', 'chị', or 'em')."
         ),
         payload=completion_payload,
     )
@@ -743,7 +795,7 @@ async def generate_follow_up(
                     grounding.profile_rule_id,
                     "<one retrieved evidence ID>",
                 ],
-            }
+            },
         },
     }
     response = await _json_completion(
@@ -761,6 +813,8 @@ async def generate_follow_up(
             "bridge_to_next_competency for transition_type. The question may probe an "
             "evidence gap or move to an uncovered profile slot. It must not repeat history, "
             "disclose another candidate's data, or cite any ID outside allowedGroundingIds. "
+            "Pronoun rule for Vietnamese: The interviewer MUST ALWAYS refer to itself as 'mình' "
+            "and address the candidate as 'bạn' (NEVER use 'anh', 'chị', or 'em'). "
             "Also return tts_text with exactly the same meaning as text, but with English "
             "technical terms and acronyms transliterated into Vietnamese phonetic spelling "
             "for a Vbee Vietnamese voice."
@@ -826,8 +880,16 @@ def _validate_opening_transition(
         raise RuntimeError(
             "DeepSeek opening transition has an invalid transition type"
         )
+    transition.acknowledgement_text = _sanitize_vietnamese_pronouns(
+        transition.acknowledgement_text
+    )
+    transition.transition_text = _sanitize_vietnamese_pronouns(
+        transition.transition_text
+    )
     question = GeneratedQuestion(**question_payload)
     question.id = "q_1"
+    question.text = _sanitize_vietnamese_pronouns(question.text)
+    question.tts_text = _sanitize_vietnamese_pronouns(question.tts_text)
     if not question.text.strip() or not question.competency.strip():
         raise RuntimeError("DeepSeek returned an incomplete opening question")
     if not question.expected_signals:
@@ -919,8 +981,11 @@ async def generate_opening_turn(
             "request to introduce themselves. Connect the introduction to the first "
             "blueprint competency. Use transition_type=opening_to_first. The question "
             "must seek observable job-related evidence, must not repeat the opening prompt, "
-            "and must include valid grounding IDs. For Vietnamese content, return tts_text "
-            "with English technical terms transliterated for a Vietnamese Vbee voice."
+            "and must include valid grounding IDs. "
+            "Pronoun rule for Vietnamese: The interviewer MUST ALWAYS refer to itself as 'mình' "
+            "and address the candidate as 'bạn' (NEVER use 'anh', 'chị', or 'em'). "
+            "For Vietnamese content, return tts_text with English technical terms transliterated "
+            "for a Vietnamese Vbee voice."
         ),
         payload=completion_payload,
     )

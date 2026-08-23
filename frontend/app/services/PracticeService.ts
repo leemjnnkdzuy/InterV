@@ -123,6 +123,7 @@ export const practiceService = {
     data: {
       practiceId: string;
       duration: string;
+      earlyFinish?: boolean;
     }
   ) => {
     const deadline = Date.now() + FINISH_RECOVERY_TIMEOUT_MS;
@@ -134,18 +135,11 @@ export const practiceService = {
         });
         return response.data;
       } catch (error: unknown) {
-        if (
-          !axios.isAxiosError(error) ||
-          error.response?.status !== 409 ||
-          (error.response.data as { evaluating?: unknown } | undefined)
-            ?.evaluating !== true
-        ) {
+        if (!axios.isAxiosError(error) || error.response?.status !== 409) {
           throw error;
         }
 
-        if (Date.now() >= deadline) throw error;
-        await wait(2_000);
-
+        // On 409 (conflict / evaluating / already finished), immediately probe if result is ready
         try {
           const resultResponse = await api.get(`/ai/interview/${runId}/result`, {
             timeout: 30_000,
@@ -157,14 +151,19 @@ export const practiceService = {
               alreadyCompleted: true,
             };
           }
-        } catch (resultError: unknown) {
-          if (
-            !axios.isAxiosError(resultError) ||
-            resultError.response?.status !== 409
-          ) {
-            throw resultError;
-          }
+        } catch {
+          // ignore probe error and fall back to evaluating polling
         }
+
+        const isEvaluating =
+          (error.response.data as { evaluating?: unknown } | undefined)
+            ?.evaluating === true;
+
+        if (!isEvaluating || Date.now() >= deadline) {
+          throw error;
+        }
+
+        await wait(2_000);
       }
     }
   },

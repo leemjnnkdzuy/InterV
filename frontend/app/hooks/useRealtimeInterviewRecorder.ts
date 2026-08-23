@@ -44,15 +44,51 @@ export interface RealtimeStreamingToken {
   sampleRate: number;
 }
 
-function createMediaRecorder(stream: MediaStream): MediaRecorder {
-  const supportedType = [
+function isStreamLive(stream: MediaStream | null): stream is MediaStream {
+  if (!stream || !stream.active) return false;
+  const tracks = stream.getAudioTracks();
+  if (tracks.length === 0) return false;
+  return tracks.some((track) => track.readyState === "live" && track.enabled);
+}
+
+function startMediaRecorderWithFallback(
+  stream: MediaStream,
+  onData: (blob: Blob) => void
+): MediaRecorder {
+  const candidateTypes = [
     "audio/webm;codecs=opus",
     "audio/webm",
     "audio/mp4",
-  ].find((type) => MediaRecorder.isTypeSupported(type));
-  return supportedType
-    ? new MediaRecorder(stream, { mimeType: supportedType })
-    : new MediaRecorder(stream);
+    "",
+  ].filter(
+    (type) =>
+      !type ||
+      (typeof MediaRecorder !== "undefined" &&
+        MediaRecorder.isTypeSupported(type))
+  );
+
+  let lastError: unknown = null;
+  for (const mimeType of candidateTypes) {
+    try {
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          onData(event.data);
+        }
+      };
+      recorder.start(1_000);
+      return recorder;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        `MediaRecorder start failed with mimeType '${mimeType}':`,
+        err
+      );
+    }
+  }
+  throw lastError || new Error("Không thể khởi động MediaRecorder");
 }
 
 export function useRealtimeInterviewRecorder(
@@ -238,18 +274,17 @@ export function useRealtimeInterviewRecorder(
       !universal3Languages.has(languageCode)
         ? "whisper-rt"
         : tokenResponse.speechModel;
+    const effectiveLanguage =
+      tokenResponse.languageCode || languageCode || "vi";
     url.searchParams.set("token", tokenResponse.token);
     url.searchParams.set("sample_rate", String(tokenResponse.sampleRate));
     url.searchParams.set("speech_model", speechModel);
     if (autoTurnTaking) {
-      url.searchParams.set("min_turn_silence", "800");
-      url.searchParams.set("max_turn_silence", "2200");
+      url.searchParams.set("min_turn_silence", "2200");
+      url.searchParams.set("max_turn_silence", "4500");
     }
-    if (speechModel !== "whisper-rt" && tokenResponse.languageCode) {
-      url.searchParams.set("language_code", tokenResponse.languageCode);
-    }
-    if (speechModel === "whisper-rt") {
-      url.searchParams.set("language_detection", "true");
+    if (effectiveLanguage) {
+      url.searchParams.set("language_code", effectiveLanguage);
     }
     url.searchParams.set("format_turns", "true");
 
@@ -441,50 +476,58 @@ export function useRealtimeInterviewRecorder(
 
   const start = useCallback(async () => {
     if (statusRef.current === "recording") return;
-    if (
-      statusRef.current === "ready" &&
-      socketRef.current?.readyState !== WebSocket.OPEN
-    ) {
+
+    const isStreamActive = isStreamLive(streamRef.current);
+    const isSocketReady = persistentSession
+      ? socketRef.current?.readyState === WebSocket.OPEN
+      : true;
+
+    if (statusRef.current === "ready" && (!isStreamActive || !isSocketReady)) {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       recorderRef.current = null;
       await stopAudioGraph();
       updateStatus("idle");
     }
-    if (statusRef.current !== "ready") {
+
+    if (statusRef.current !== "ready" || !isStreamLive(streamRef.current)) {
       await prepare();
     }
+
     const stream = streamRef.current;
-    if (!stream || statusRef.current !== "ready") {
+    if (!stream || !isStreamLive(stream) || statusRef.current !== "ready") {
       throw new Error("Bộ thu âm chưa sẵn sàng");
     }
+
     if (persistentSession) {
       segmentIdRef.current += 1;
       turnBoundaryStateRef.current = beginRealtimeTurnSegment(
         turnBoundaryStateRef.current
       );
-      resetQuestionState();
     }
+    resetQuestionState();
     chunksRef.current = [];
-    const recorder = createMediaRecorder(stream);
-    recorderRef.current = recorder;
-    recorder.ondataavailable = (event) => {
-      if (recorderRef.current !== recorder) return;
-      if (event.data.size > 0) {
-        chunksRef.current.push(event.data);
-      }
-    };
+
     try {
       await beginAudioGraph();
-      recorder.start(1_000);
+      const recorder = startMediaRecorderWithFallback(stream, (chunk) => {
+        if (recorderRef.current !== recorder) return;
+        chunksRef.current.push(chunk);
+      });
+      recorderRef.current = recorder;
     } catch (error) {
       captureAudioRef.current = false;
-      recorderRef.current = null;
-      if (recorder.state !== "inactive") {
-        recorder.stop();
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        try {
+          recorderRef.current.stop();
+        } catch {
+          // ignore
+        }
       }
+      recorderRef.current = null;
       throw error;
     }
+
     startedAtRef.current = performance.now();
     updateStatus("recording");
   }, [

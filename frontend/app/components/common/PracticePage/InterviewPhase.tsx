@@ -19,7 +19,6 @@ import {
   StopCircle,
 } from "@solar-icons/react";
 import { aiService, practiceService } from "@/app/services";
-import { Spinner } from "@/app/components/ui/spinner";
 import { Textarea } from "@/app/components/ui/textarea";
 import logoSrc from "@/app/assets/logo.svg";
 import { useLanguage } from "@/app/hooks/useLanguage";
@@ -37,6 +36,8 @@ import {
 } from "@/app/lib/InterviewAudio";
 import { getInterviewVoiceName } from "@/app/lib/InterviewVoice";
 import FinishingPhase from "./FinishingPhase";
+import PreparationPhase from "./PreparationPhase";
+import EarlyFinishConfirmDialog from "../Dialog/EarlyFinishConfirmDialog";
 import ThreeWaveform from "./ThreeWaveform";
 
 type InterviewStage =
@@ -51,6 +52,7 @@ type InterviewStage =
   | "recording"
   | "reviewing"
   | "submitting"
+  | "closingPreparing"
   | "closing"
   | "finishing"
   | "error";
@@ -95,7 +97,6 @@ export default function InterviewPhase({
   const [openingCompleted, setOpeningCompleted] = useState(false);
   const [openingAttempt, setOpeningAttempt] = useState(0);
   const [stage, setStage] = useState<InterviewStage>("preparing");
-  const [promptAudioReady, setPromptAudioReady] = useState(false);
   const [autoSubmissionPending, setAutoSubmissionPending] = useState(false);
   const [answer, setAnswer] = useState("");
   const [answerInputMode, setAnswerInputMode] = useState<"voice" | "text">(
@@ -105,6 +106,8 @@ export default function InterviewPhase({
   const [recordingResult, setRecordingResult] =
     useState<RealtimeRecordingResult | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
+  const [showEarlyFinishConfirm, setShowEarlyFinishConfirm] = useState(false);
+  const [isEarlyFinishing, setIsEarlyFinishing] = useState(false);
   const [finishingStep, setFinishingStep] = useState(0);
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
@@ -124,6 +127,7 @@ export default function InterviewPhase({
       Promise<{ audioBase64: string; contentType: string }>
     >()
   );
+  const pendingSubmissionsRef = useRef<Promise<unknown>[]>([]);
 
   const audioKey = useCallback(
     (question: GeneratedInterviewQuestion) =>
@@ -167,12 +171,8 @@ export default function InterviewPhase({
     stage === "closing"
       ? closingPrompt
       : openingCompleted
-        ? promptAudioReady
-          ? currentQuestion?.text
-          : ""
-        : promptAudioReady
-          ? openingPrompt
-          : "";
+        ? currentQuestion?.text || ""
+        : openingPrompt;
   const questionTextSize = displayPrompt
     ? displayPrompt.length > 650
       ? "text-sm md:text-base lg:text-lg"
@@ -190,23 +190,27 @@ export default function InterviewPhase({
     stage === "recording" || stage === "openingRecording";
   const isSubmittingStage =
     stage === "submitting" || stage === "openingSubmitting";
+  const isTransitionStage =
+    isSubmittingStage || stage === "closingPreparing";
+  const transitionStatusText =
+    stage === "openingSubmitting"
+      ? t("interview.openingSaving")
+      : stage === "closingPreparing"
+        ? t("interview.closingPreparing") || "AI đang chuẩn bị lời cảm ơn..."
+        : t("interview.savingAnswer");
   const isAutoReviewPending =
     autoTurnTaking &&
     autoSubmissionPending &&
     (stage === "reviewing" || stage === "openingReviewing");
   const showRealtimeTranscript =
-    isRecordingStage || isSubmittingStage || isAutoReviewPending;
-  const realtimeTranscriptLabel = isSubmittingStage
-    ? stage === "openingSubmitting"
+    isRecordingStage || isAutoReviewPending;
+  const realtimeTranscriptLabel = isAutoReviewPending
+    ? stage === "openingReviewing"
       ? t("interview.openingSaving")
       : t("interview.savingAnswer")
-    : isAutoReviewPending
-      ? stage === "openingReviewing"
-        ? t("interview.openingSaving")
-        : t("interview.savingAnswer")
-      : openingCompleted
-        ? t("interview.liveTranscript")
-        : t("interview.openingTranscript");
+    : openingCompleted
+      ? t("interview.liveTranscript")
+      : t("interview.openingTranscript");
   const getQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
       const key = audioKey(question);
@@ -248,9 +252,7 @@ export default function InterviewPhase({
   const playQuestionAudio = useCallback(
     async (question: GeneratedInterviewQuestion) => {
       const data = await waitForServerAudio(getQuestionAudio(question));
-      await playInterviewAudio(data.audioBase64, data.contentType, () =>
-        setPromptAudioReady(true)
-      );
+      await playInterviewAudio(data.audioBase64, data.contentType);
     },
     [getQuestionAudio]
   );
@@ -270,9 +272,7 @@ export default function InterviewPhase({
           })
         ));
       if (!data.audioBase64) throw new Error("TTS did not return audio");
-      await playInterviewAudio(data.audioBase64, data.contentType, () =>
-        setPromptAudioReady(true)
-      );
+      await playInterviewAudio(data.audioBase64, data.contentType);
     },
     [language, voiceId]
   );
@@ -293,7 +293,6 @@ export default function InterviewPhase({
       setAnswerInputMode(textOnlyMode ? "text" : "voice");
       setRecordingResult(null);
       setFailureMessage("");
-      setPromptAudioReady(false);
       setAutoSubmissionPending(false);
 
       let preparationError: unknown;
@@ -370,11 +369,19 @@ export default function InterviewPhase({
     initialOpeningAudio,
   ]);
 
+  const questionsRef = useRef(questions);
   useEffect(() => {
-    if (!openingCompleted || !currentQuestion) return;
+    questionsRef.current = questions;
+  }, [questions]);
+
+  useEffect(() => {
+    if (!openingCompleted) return;
 
     let cancelled = false;
     const transitionGeneration = transitionGenerationRef.current;
+    const targetQuestion = questionsRef.current[currentStep];
+    if (!targetQuestion) return;
+
     const askQuestion = async () => {
       const textOnlyMode = textOnlyModeRef.current;
       if (startedAtRef.current === null) {
@@ -388,7 +395,6 @@ export default function InterviewPhase({
       setAnswerInputMode(textOnlyMode ? "text" : "voice");
       setRecordingResult(null);
       setFailureMessage("");
-      setPromptAudioReady(false);
       setAutoSubmissionPending(false);
       setStage("preparing");
 
@@ -400,7 +406,7 @@ export default function InterviewPhase({
           });
       try {
         setStage("speaking");
-        await playQuestionAudio(currentQuestion);
+        await playQuestionAudio(targetQuestion);
       } catch (error: unknown) {
         if (
           !cancelled &&
@@ -450,7 +456,7 @@ export default function InterviewPhase({
           transitionGeneration === transitionGenerationRef.current
         ) {
           setStage("recording");
-          for (const upcomingQuestion of questions.slice(
+          for (const upcomingQuestion of questionsRef.current.slice(
             currentStep + 1,
             currentStep + 3
           )) {
@@ -479,14 +485,12 @@ export default function InterviewPhase({
       stopInterviewAudio();
     };
   }, [
-    currentQuestion,
     currentStep,
     getQuestionAudio,
     openingCompleted,
     playQuestionAudio,
     prepareRecording,
     questionAttempt,
-    questions,
     startRecording,
     t,
   ]);
@@ -511,14 +515,23 @@ export default function InterviewPhase({
 
     let transcript = result.transcript.trim();
     let provider = result.transcriptionProvider;
-    if (!transcript && result.audio.size > 0) {
+    const words = transcript.split(/\s+/).filter(Boolean);
+    const isSuspicious =
+      !transcript ||
+      words.length < 3 ||
+      /^(gracias|thank you|subtitles|music|applause)/i.test(transcript);
+
+    if (result.audio.size > 10_000 && isSuspicious) {
       try {
         const recovered = await aiService.transcribeAnswer(runId, result.audio);
-        transcript = recovered.transcript?.trim() || "";
-        provider =
-          recovered.provider === "faster-whisper"
-            ? "faster-whisper"
-            : provider;
+        const serverTranscript = recovered.transcript?.trim() || "";
+        if (serverTranscript) {
+          transcript = serverTranscript;
+          provider =
+            recovered.provider === "faster-whisper"
+              ? "faster-whisper"
+              : provider;
+        }
       } catch (error) {
         console.error("Server opening transcription failed:", error);
       }
@@ -534,7 +547,7 @@ export default function InterviewPhase({
     if (!transcript && textAnswerEnabled) {
       setAnswerInputMode("text");
     }
-    setAutoSubmissionPending(autoTurnTaking && Boolean(transcript.trim()));
+    setAutoSubmissionPending(autoTurnTaking && Boolean(transcript.trim()) && words.length >= 3);
     setStage("openingReviewing");
     if (!transcript) toast.warning(t("interview.transcriptMissing"));
   }, [
@@ -562,14 +575,23 @@ export default function InterviewPhase({
 
       let transcript = result.transcript.trim();
       let provider = result.transcriptionProvider;
-      if (!transcript && result.audio.size > 0) {
+      const words = transcript.split(/\s+/).filter(Boolean);
+      const isSuspicious =
+        !transcript ||
+        words.length < 3 ||
+        /^(gracias|thank you|subtitles|music|applause)/i.test(transcript);
+
+      if (result.audio.size > 10_000 && isSuspicious) {
         try {
           const recovered = await aiService.transcribeAnswer(runId, result.audio);
-          transcript = recovered.transcript?.trim() || "";
-          provider =
-            recovered.provider === "faster-whisper"
-              ? "faster-whisper"
-              : provider;
+          const serverTranscript = recovered.transcript?.trim() || "";
+          if (serverTranscript) {
+            transcript = serverTranscript;
+            provider =
+              recovered.provider === "faster-whisper"
+                ? "faster-whisper"
+                : provider;
+          }
         } catch (error: unknown) {
           console.error("Server transcription failed:", error);
         }
@@ -585,7 +607,7 @@ export default function InterviewPhase({
     if (!transcript && textAnswerEnabled) {
       setAnswerInputMode("text");
     }
-    setAutoSubmissionPending(autoTurnTaking);
+    setAutoSubmissionPending(autoTurnTaking && Boolean(transcript.trim()) && words.length >= 3);
     setStage("reviewing");
       if (currentStep + 1 < questionCount) {
         void prepareRecording().catch(() => undefined);
@@ -620,7 +642,10 @@ export default function InterviewPhase({
 
     const trimmedTranscript = finalTurn.transcript?.trim() || "";
     const words = trimmedTranscript.split(/\s+/).filter(Boolean);
-    if (words.length < 1 || (words.length === 1 && trimmedTranscript.length < 3)) {
+    if (
+      words.length < 3 ||
+      /^(gracias|thank you|subtitles|music|applause)\.?$/i.test(trimmedTranscript)
+    ) {
       return;
     }
 
@@ -636,7 +661,7 @@ export default function InterviewPhase({
         : stopOpeningRecording()).finally(() => {
         autoStopInFlightRef.current = false;
       });
-    }, 0);
+    }, 1500);
     return () => window.clearTimeout(timeoutId);
   }, [
     autoTurnTaking,
@@ -669,23 +694,24 @@ export default function InterviewPhase({
       return;
     }
 
-    let answerAccepted = false;
+    const currentRecResult = recordingResult;
+    setAutoSubmissionPending(false);
+    setAnswer("");
+    setAnswerInputMode("voice");
+    setRecordingResult(null);
+    setStage("openingSubmitting");
+
     try {
-      setStage("openingSubmitting");
       const response = await practiceService.submitOpening(runId, {
         prompt: openingPrompt,
         transcript: normalizedAnswer,
-        durationSec: recordingResult?.durationSec,
-        assemblySessionId: recordingResult?.assemblySessionId,
+        durationSec: currentRecResult?.durationSec,
+        assemblySessionId: currentRecResult?.assemblySessionId,
         transcriptionProvider:
-          recordingResult?.transcriptionProvider || "manual",
+          currentRecResult?.transcriptionProvider || "manual",
       });
-      if (!response.success) {
-        throw new Error(response.message || t("interview.saveResultError"));
-      }
-      answerAccepted = true;
-      setAutoSubmissionPending(false);
-      if (response.nextQuestion) {
+
+      if (response.success && response.nextQuestion) {
         setQuestions((previous) =>
           previous.map((question, index) =>
             index === 0
@@ -693,7 +719,7 @@ export default function InterviewPhase({
                   ...question,
                   ...response.nextQuestion,
                 }
-            : question
+              : question
           )
         );
         if (response.nextQuestionAudio) {
@@ -703,104 +729,124 @@ export default function InterviewPhase({
           );
         }
       }
+    } catch (error) {
+      console.error("Opening submission error:", error);
+    } finally {
       setOpeningCompleted(true);
-      setAnswer("");
-      setAnswerInputMode("voice");
-      setRecordingResult(null);
-      setPromptAudioReady(false);
-      setStage("preparing");
-    } catch (error: unknown) {
-      console.error(error);
-      const submissionKey = `opening:${normalizedAnswer}`;
-      if (
-        !answerAccepted &&
-        autoSubmissionRetryRef.current.key === submissionKey &&
-        autoSubmissionRetryRef.current.count < 1
-      ) {
-        autoSubmissionRetryRef.current.count += 1;
-        autoSubmittedAnswerRef.current = "";
-      }
-      toast.error(
-        error instanceof Error ? error.message : t("interview.saveResultError")
-      );
-      setAutoSubmissionPending(false);
-      setStage("openingReviewing");
     }
   }, [answer, audioKey, openingPrompt, recordingResult, runId, t]);
 
-  const finishInterview = useCallback(async (withClosing = false) => {
-    if (finishInFlightRef.current) return;
-    finishInFlightRef.current = true;
-    transitionGenerationRef.current += 1;
-    stopInterviewAudio();
+  const finishInterview = useCallback(
+    async (withClosing = false, isEarly = false) => {
+      if (finishInFlightRef.current) return;
+      finishInFlightRef.current = true;
+      transitionGenerationRef.current += 1;
+      stopInterviewAudio();
 
-    try {
-      setStage(withClosing ? "closing" : "finishing");
-      setFinishingStep(1);
-      cancelRecording();
+      try {
+        if (isEarly) setIsEarlyFinishing(true);
+        cancelRecording();
+        setFinishingStep(1);
 
-      const elapsedMinutes = Math.max(
-        1,
-        Math.round(
-          (Date.now() - (startedAtRef.current || Date.now())) / 60_000
-        )
-      );
-      const evaluationRequest = practiceService.finishInterview(runId, {
-        practiceId,
-        duration: t("interview.durationMinutes", {
-          minutes: elapsedMinutes,
-        }),
-      });
-      let data;
-      if (withClosing) {
-        const closingAudioRequest = playPromptAudio(closingPrompt).catch(
-          (error) => {
-            console.warn("Closing TTS unavailable:", error);
-          }
+        const elapsedMinutes = Math.max(
+          1,
+          Math.round(
+            (Date.now() - (startedAtRef.current || Date.now())) / 60_000
+          )
         );
-        await closingAudioRequest;
-        setStage("finishing");
-        setFinishingStep(2);
-        data = await evaluationRequest;
-      } else {
-        setStage("finishing");
-        setFinishingStep(2);
-        data = await evaluationRequest;
-      }
 
-      if (!data.success) {
-        throw new Error(data.message || t("interview.saveResultError"));
-      }
+        // Wait for all background submissions to complete before final evaluation
+        if (pendingSubmissionsRef.current.length > 0) {
+          await Promise.allSettled(pendingSubmissionsRef.current);
+        }
 
-      setFinishingStep(4);
-      router.push(
-        `/practice/${encodeURIComponent(practiceId)}/analysis?runId=${encodeURIComponent(runId)}`
-      );
-    } catch (error: unknown) {
-      console.error(error);
-      const responseMessage = axios.isAxiosError(error)
-        ? (error.response?.data as { message?: unknown } | undefined)?.message
-        : undefined;
-      toast.error(
-        typeof responseMessage === "string"
-          ? responseMessage
-          : error instanceof Error
-            ? error.message
-            : t("interview.evaluationFailed")
-      );
-      setStage("reviewing");
-    } finally {
-      finishInFlightRef.current = false;
-    }
-  }, [
-    cancelRecording,
-    closingPrompt,
-    playPromptAudio,
-    practiceId,
-    router,
-    runId,
-    t,
-  ]);
+        const evaluationRequest = practiceService.finishInterview(runId, {
+          practiceId,
+          duration: t("interview.durationMinutes", {
+            minutes: elapsedMinutes,
+          }),
+          earlyFinish: isEarly,
+        });
+
+        let data;
+        if (withClosing) {
+          setStage("closingPreparing");
+          // Pre-fetch closing audio so text and audio begin playing at the exact same moment
+          const closingAudio = await aiService
+            .previewTts({
+              text: closingPrompt.slice(0, 1_200),
+              language,
+              voiceId,
+            })
+            .catch((error) => {
+              console.warn("Closing TTS fetch error:", error);
+              return null;
+            });
+
+          // Reveal closing text and begin audio playback together
+          setStage("closing");
+          if (closingAudio?.audioBase64) {
+            await playInterviewAudio(
+              closingAudio.audioBase64,
+              closingAudio.contentType
+            );
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          }
+
+          setStage("finishing");
+          setFinishingStep(2);
+          data = await evaluationRequest;
+        } else {
+          setStage("finishing");
+          setFinishingStep(2);
+          data = await evaluationRequest;
+        }
+
+        if (!data.success) {
+          throw new Error(data.message || t("interview.saveResultError"));
+        }
+
+        if (data.cancelled) {
+          toast.info(t("interview.interviewEndedEarly"));
+          router.push(`/practice/${encodeURIComponent(practiceId)}`);
+          return;
+        }
+
+        setFinishingStep(4);
+        router.push(
+          `/practice/${encodeURIComponent(practiceId)}/analysis?runId=${encodeURIComponent(runId)}`
+        );
+      } catch (error: unknown) {
+        console.error(error);
+        const responseMessage = axios.isAxiosError(error)
+          ? (error.response?.data as { message?: unknown } | undefined)?.message
+          : undefined;
+        toast.error(
+          typeof responseMessage === "string"
+            ? responseMessage
+            : error instanceof Error
+              ? error.message
+              : t("interview.evaluationFailed")
+        );
+        setStage("reviewing");
+      } finally {
+        finishInFlightRef.current = false;
+        setIsEarlyFinishing(false);
+        setShowEarlyFinishConfirm(false);
+      }
+    },
+    [
+      cancelRecording,
+      closingPrompt,
+      language,
+      practiceId,
+      router,
+      runId,
+      t,
+      voiceId,
+    ]
+  );
 
   const submitAnswer = useCallback(async () => {
     const normalizedAnswer = answer.trim();
@@ -809,69 +855,82 @@ export default function InterviewPhase({
       return;
     }
 
-    let answerAccepted = false;
+    const currentQ = currentQuestion;
+    const currentRecResult = recordingResult;
+    const isLastQuestion = currentStep + 1 >= questionCount;
+
+    setAutoSubmissionPending(false);
+    setAnswer("");
+    setAnswerInputMode("voice");
+    setRecordingResult(null);
+    setStage("submitting");
+
     try {
-      setStage("submitting");
       const response = await aiService.submitInterviewAnswer(runId, {
-        questionId: currentQuestion.id,
+        questionId: currentQ.id,
         answer: normalizedAnswer,
-        audio: recordingResult?.audio,
-        durationSec: recordingResult?.durationSec,
-        assemblySessionId: recordingResult?.assemblySessionId,
+        audio: currentRecResult?.audio,
+        durationSec: currentRecResult?.durationSec,
+        assemblySessionId: currentRecResult?.assemblySessionId,
         transcriptionProvider:
-          recordingResult?.transcriptionProvider || "manual",
+          currentRecResult?.transcriptionProvider || "manual",
       });
 
-      if (!response.success) {
-        throw new Error(response.message || t("interview.saveResultError"));
-      }
-      answerAccepted = true;
-
-      setAnsweredCount(response.answeredCount);
-      if (response.completed || !response.nextQuestion) {
-        setAutoSubmissionPending(false);
-        await finishInterview(true);
-        return;
-      }
-
-      setQuestions((previous) => {
-        const next = response.nextQuestion as GeneratedInterviewQuestion;
-        const existingIndex = previous.findIndex(
-          (question) => question.id === next.id
-        );
-        if (existingIndex >= 0) {
-          return previous.map((question, index) =>
-            index === existingIndex ? next : question
-          );
+      if (response.success) {
+        setAnsweredCount(response.answeredCount);
+        if (response.nextQuestion) {
+          const next = response.nextQuestion as GeneratedInterviewQuestion;
+          setQuestions((previous) => {
+            const existingIndex = previous.findIndex(
+              (question) => question.id === next.id
+            );
+            if (existingIndex >= 0) {
+              return previous.map((question, index) =>
+                index === existingIndex ? { ...question, ...next } : question
+              );
+            }
+            return [...previous, next];
+          });
+          if (questionsRef.current) {
+            const idx = questionsRef.current.findIndex((q) => q.id === next.id);
+            if (idx >= 0) {
+              questionsRef.current[idx] = { ...questionsRef.current[idx], ...next };
+            }
+          }
+          if (response.nextQuestionAudio) {
+            audioCacheRef.current.set(
+              audioKey(next),
+              response.nextQuestionAudio
+            );
+          } else {
+            void getQuestionAudio(next).catch(() => undefined);
+          }
         }
-        return [...previous, next];
-      });
-      void getQuestionAudio(response.nextQuestion).catch(() => undefined);
-      setCurrentStep(response.answeredCount);
-      setAutoSubmissionPending(false);
-      setStage("preparing");
-    } catch (error: unknown) {
-      console.error(error);
-      const submissionKey = `${currentQuestion.id}:${normalizedAnswer}`;
-      if (
-        !answerAccepted &&
-        autoSubmissionRetryRef.current.key === submissionKey &&
-        autoSubmissionRetryRef.current.count < 1
-      ) {
-        autoSubmissionRetryRef.current.count += 1;
-        autoSubmittedAnswerRef.current = "";
       }
-      toast.error(
-        error instanceof Error ? error.message : t("interview.saveResultError")
-      );
-      setAutoSubmissionPending(false);
-      setStage("reviewing");
+
+      if (isLastQuestion) {
+        await finishInterview(true);
+      } else {
+        setCurrentStep((prev) => prev + 1);
+        setStage("preparing");
+      }
+    } catch (error) {
+      console.error("Answer submission error:", error);
+      if (isLastQuestion) {
+        await finishInterview(true);
+      } else {
+        setCurrentStep((prev) => prev + 1);
+        setStage("preparing");
+      }
     }
   }, [
     answer,
+    audioKey,
     currentQuestion,
+    currentStep,
     finishInterview,
     getQuestionAudio,
+    questionCount,
     recordingResult,
     runId,
     t,
@@ -889,7 +948,10 @@ export default function InterviewPhase({
 
     const normalized = answer.trim();
     const words = normalized.split(/\s+/).filter(Boolean);
-    if (words.length < 1 || (words.length === 1 && normalized.length < 3)) {
+    if (
+      words.length < 3 ||
+      /^(gracias|thank you|subtitles|music|applause)\.?$/i.test(normalized)
+    ) {
       return;
     }
 
@@ -967,11 +1029,7 @@ export default function InterviewPhase({
   }, [cancelRecording, openingCompleted]);
 
   if (!currentQuestion) {
-    return (
-      <div className="flex h-full w-full items-center justify-center bg-transparent">
-        <Spinner className="h-10 w-10 text-primary" />
-      </div>
-    );
+    return <PreparationPhase />;
   }
 
   return (
@@ -1000,7 +1058,6 @@ export default function InterviewPhase({
       <header className="z-20 flex w-full shrink-0 items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
           <div
-            className="relative flex h-8 w-8 items-center justify-center transition-transform duration-100"
             style={{
               transform: `scale(${
                 stage === "recording" || stage === "speaking"
@@ -1042,17 +1099,16 @@ export default function InterviewPhase({
 
           <button
             type="button"
-            onClick={() => void finishInterview()}
+            onClick={() => {
+              stopInterviewAudio();
+              setShowEarlyFinishConfirm(true);
+            }}
             disabled={
-              !openingCompleted ||
               [
                 "submitting",
-                "openingSpeaking",
-                "openingConnecting",
-                "openingRecording",
-                "openingReviewing",
                 "openingSubmitting",
                 "closing",
+                "finishing",
               ].includes(stage)
             }
             className="text-muted-foreground transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
@@ -1086,11 +1142,39 @@ export default function InterviewPhase({
             ) : null}
           </div>
 
-          <h1
-            className={`font-question mx-auto max-w-3xl px-2 select-text font-medium tracking-normal selection:bg-primary/20 ${questionLeading} ${questionTextSize}`}
-          >
-            {displayPrompt}
-          </h1>
+          {isTransitionStage ? (
+            <div className="mx-auto flex min-h-24 flex-col items-center justify-center py-10">
+              <p
+                className="hero-shimmer-text text-sm font-semibold tracking-wide sm:text-base select-none"
+                role="status"
+                aria-live="polite"
+              >
+                {transitionStatusText}
+              </p>
+            </div>
+          ) : (
+            <h1
+              className={`font-question mx-auto max-w-3xl px-2 select-text font-medium tracking-normal selection:bg-primary/20 ${questionLeading} ${questionTextSize}`}
+            >
+              {displayPrompt}
+            </h1>
+          )}
+
+          {(stage === "speaking" || stage === "openingSpeaking") && (
+            <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-2 pt-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                {t("interview.interviewerSpeaking") || "Trợ lý AI đang đọc câu hỏi..."}
+              </span>
+              <button
+                type="button"
+                onClick={() => stopInterviewAudio()}
+                className="text-xs text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 transition-colors hover:text-foreground"
+              >
+                {t("interview.skipSpeaking") || "Bỏ qua nghe / Bắt đầu trả lời ngay"}
+              </button>
+            </div>
+          )}
 
           {showRealtimeTranscript && (
             <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
@@ -1255,6 +1339,14 @@ export default function InterviewPhase({
           </div>
         </motion.div>
       )}
+      <EarlyFinishConfirmDialog
+        isOpen={showEarlyFinishConfirm}
+        onOpenChange={setShowEarlyFinishConfirm}
+        onConfirm={() => void finishInterview(false, true)}
+        answeredCount={answeredCount}
+        totalQuestions={questionCount}
+        isFinishing={isEarlyFinishing}
+      />
     </AnimatePresence>
   );
 }

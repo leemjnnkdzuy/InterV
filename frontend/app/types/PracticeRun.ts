@@ -57,7 +57,8 @@ export interface IPracticeRun extends Document {
     | "EVALUATING"
     | "COMPLETED"
     | "FAILED"
-    | "REFUNDED";
+    | "REFUNDED"
+    | "CANCELLED";
   evaluationStartedAt?: Date;
   startLeaseId?: string;
   startLeaseExpiresAt?: Date;

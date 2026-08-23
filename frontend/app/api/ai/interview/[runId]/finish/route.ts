@@ -16,7 +16,6 @@ import PracticeRun from "@/app/models/PracticeRun";
 import PracticeSession from "@/app/models/PracticeSession";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
 import {
-  MIN_INTERVIEW_QUESTIONS,
   normalizeInterviewQuestionCount,
 } from "@/app/lib/PracticeBilling";
 import { recordDeepSeekUsageSafely } from "@/app/lib/DeepSeekUsage";
@@ -29,6 +28,7 @@ import type { CandidateIntroItem } from "@/app/types/PracticeRun";
 interface FinishPayload {
   practiceId?: string;
   duration?: string;
+  earlyFinish?: boolean;
 }
 
 export const maxDuration = 600;
@@ -130,7 +130,7 @@ async function POSTHandler(
     }
     await connectDB();
 
-    let run = await PracticeRun.findOne({
+    const run = await PracticeRun.findOne({
       _id: runId,
       userId: tokenPayload.userId,
     });
@@ -174,12 +174,29 @@ async function POSTHandler(
       );
     }
 
+    const isEarlyFinish = body.earlyFinish === true;
     const answersByQuestionId = new Map(
       run.answers.map((answer) => [answer.questionId, answer])
     );
-    const questionCount = normalizeInterviewQuestionCount(run.questionCount);
-    const requiredQuestions = run.questions.slice(0, questionCount);
-    const qaHistory: GrpcQaPair[] = requiredQuestions.map((question) => {
+    const configuredQuestionCount = normalizeInterviewQuestionCount(
+      run.questionCount
+    );
+
+    // Extract all questions that have submitted answers (transcript or edited answer)
+    const answeredQuestions = run.questions.filter((q) => {
+      const ans = answersByQuestionId.get(q.id);
+      return Boolean(ans?.editedAnswer?.trim() || ans?.transcript?.trim());
+    });
+
+    const candidateQuestions =
+      isEarlyFinish && answeredQuestions.length > 0
+        ? answeredQuestions
+        : answeredQuestions.length > 0 &&
+            answeredQuestions.length < configuredQuestionCount
+          ? answeredQuestions
+          : run.questions.slice(0, configuredQuestionCount);
+
+    const qaHistory: GrpcQaPair[] = candidateQuestions.map((question) => {
       const answer = answersByQuestionId.get(question.id);
       return {
         questionId: question.id,
@@ -189,20 +206,20 @@ async function POSTHandler(
       };
     });
     const answeredCount = qaHistory.filter((item) => item.answer.trim()).length;
-    if (
-      requiredQuestions.length < MIN_INTERVIEW_QUESTIONS ||
-      answeredCount < questionCount
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Cần hoàn thành đủ ${questionCount} câu trước khi chấm điểm.`,
-          answeredCount,
-          questionCount,
-        },
-        { status: 409 }
+
+    if (answeredCount === 0) {
+      await PracticeRun.updateOne(
+        { _id: run._id, userId: tokenPayload.userId },
+        { $set: { status: "CANCELLED" } }
       );
+      return NextResponse.json({
+        success: true,
+        cancelled: true,
+        message: "Buổi phỏng vấn đã được kết thúc sớm.",
+      });
     }
+
+    const evaluationQuestionCount = Math.max(1, candidateQuestions.length);
 
     // Opening context is intentionally excluded from both scoring and delivery
     // analysis. Only audio attached to the configured knowledge questions is
@@ -210,7 +227,7 @@ async function POSTHandler(
     const audioDocuments = await PracticeAudio.find({
       runId: run._id,
       userId: tokenPayload.userId,
-      questionId: { $in: requiredQuestions.map((question) => question.id) },
+      questionId: { $in: candidateQuestions.map((question) => question.id) },
     })
       .select("+audioData +audioBase64")
       .lean();
@@ -218,50 +235,30 @@ async function POSTHandler(
       qaHistory.map((item) => [item.questionId, item.answer])
     );
     const aiRunId = run.aiRunId || runId;
-    const audioChunks: GrpcAudioAnalysisChunk[] = audioDocuments.map(
-      (audio, index) => {
+    const audioChunks: GrpcAudioAnalysisChunk[] = audioDocuments
+      .filter((audio) => {
+        const audioBytes = audio.audioData
+          ? toAudioBuffer(audio.audioData as unknown)
+          : Buffer.from(audio.audioBase64 || "", "base64");
+        return audioBytes.length > 0;
+      })
+      .map((audio, index, arr) => {
         const audioBytes = audio.audioData
           ? toAudioBuffer(audio.audioData as unknown)
           : Buffer.from(audio.audioBase64 || "", "base64");
         return {
-        runId: aiRunId,
-        questionId: audio.questionId,
-        transcript:
-          transcriptByQuestionId.get(audio.questionId) ||
-          audio.transcript ||
-          "",
-        audio: audioBytes,
-        contentType: audio.mimeType,
-        durationSec: audio.durationSec || 0,
-        finalChunk: index === audioDocuments.length - 1,
+          runId: aiRunId,
+          questionId: audio.questionId,
+          transcript:
+            transcriptByQuestionId.get(audio.questionId) ||
+            audio.transcript ||
+            "",
+          audio: audioBytes,
+          contentType: audio.mimeType,
+          durationSec: audio.durationSec || 0,
+          finalChunk: index === arr.length - 1,
         };
-      }
-    );
-
-    const invalidAudio = audioChunks.find(
-      (chunk, index) =>
-        chunk.audio.length === 0 ||
-        chunk.audio.length !== audioDocuments[index].sizeBytes
-    );
-    if (invalidAudio) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Bản ghi âm đã lưu không hợp lệ hoặc bị thiếu dữ liệu.",
-        },
-        { status: 422 }
-      );
-    }
-    if (audioChunks.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Không có bản ghi âm để phân tích cách trình bày. Hãy ghi âm ít nhất một câu trả lời.",
-        },
-        { status: 422 }
-      );
-    }
+      });
 
     claimStartedAt = new Date();
     const claimedRun = await PracticeRun.findOneAndUpdate(
@@ -270,6 +267,7 @@ async function POSTHandler(
         userId: tokenPayload.userId,
         $or: [
           { status: "IN_PROGRESS" },
+          { status: "STARTED" },
           {
             status: "EVALUATING",
             evaluationStartedAt: {
@@ -287,6 +285,20 @@ async function POSTHandler(
       { returnDocument: "after" }
     );
     if (!claimedRun) {
+      const existingCompleted = await PracticeRun.findOne({
+        _id: run._id,
+        userId: tokenPayload.userId,
+      });
+      if (
+        existingCompleted?.status === "COMPLETED" &&
+        existingCompleted.evaluation
+      ) {
+        return NextResponse.json({
+          success: true,
+          result: existingCompleted.evaluation,
+          alreadyCompleted: true,
+        });
+      }
       return NextResponse.json(
         {
           success: false,
@@ -296,21 +308,21 @@ async function POSTHandler(
         { status: 409 }
       );
     }
-    run = claimedRun;
-    claimedRunId = run._id.toString();
-    usageSessionId = run.sessionId.toString();
+    const activeRun = claimedRun;
+    claimedRunId = activeRun._id.toString();
+    usageSessionId = activeRun.sessionId.toString();
 
     const context = {
-      sessionId: run.sessionId.toString(),
+      sessionId: activeRun.sessionId.toString(),
       title: session.title,
       industry: session.industry || "",
       jobDescription: session.jobDescription || "",
       topic: session.topic || "",
-      difficulty: run.difficulty || session.difficulty || "Middle",
-      questionCount,
-      language: run.language || session.language || "vi-VN",
+      difficulty: activeRun.difficulty || session.difficulty || "Middle",
+      questionCount: evaluationQuestionCount,
+      language: activeRun.language || session.language || "vi-VN",
       voiceId:
-        run.voiceId ||
+        activeRun.voiceId ||
         session.voiceId ||
         "hn_female_ngochuyen_full_48k-fhg",
     };
@@ -322,8 +334,8 @@ async function POSTHandler(
       error?: unknown;
     };
     const isRecruitmentInterview = session.source === "recruitment";
-    const existingProfileItems = run.candidateIntro?.items;
-    const hasCandidateIntro = Boolean(run.candidateIntro?.transcript?.trim());
+    const existingProfileItems = activeRun.candidateIntro?.items;
+    const hasCandidateIntro = Boolean(activeRun.candidateIntro?.transcript?.trim());
     const profileExtractionPromise: Promise<ProfileExtractionOutcome> =
       !isRecruitmentInterview || !hasCandidateIntro
         ? Promise.resolve({ attempted: false })
@@ -333,13 +345,13 @@ async function POSTHandler(
               items: existingProfileItems as CandidateIntroItem[],
             })
           : (() => {
-              profileUsageEventKey = `interview-profile-extract:${run._id.toString()}:${claimStartedAt.toISOString()}`;
+              profileUsageEventKey = `interview-profile-extract:${activeRun._id.toString()}:${claimStartedAt.toISOString()}`;
               return aiBackend
                 .extractCandidateProfile({
-                  transcript: run.candidateIntro!.transcript,
+                  transcript: activeRun.candidateIntro!.transcript,
                   title: session.title,
                   jobDescription: session.jobDescription || "",
-                  language: run.language || session.language || "vi-VN",
+                  language: activeRun.language || session.language || "vi-VN",
                 })
                 .then((response) => ({
                   attempted: true,
@@ -352,23 +364,26 @@ async function POSTHandler(
                 }));
             })();
 
-    // The recruiter-only profile extraction starts before delivery analysis and
-    // runs alongside the expensive evaluation request when possible.
-    const analysisResponse = await aiBackend.analyzeInterview(audioChunks);
-    const audioAnalysis: GrpcAudioBehaviorAnalysis =
-      analysisResponse.analysis;
-    if (audioAnalysis.provider !== "sensevoice") {
-      throw new Error("The mandatory delivery analysis did not complete");
+    let audioAnalysis: GrpcAudioBehaviorAnalysis | undefined = undefined;
+    if (audioChunks.length > 0) {
+      try {
+        const analysisResponse = await aiBackend.analyzeInterview(audioChunks);
+        if (analysisResponse?.analysis?.provider === "sensevoice") {
+          audioAnalysis = analysisResponse.analysis;
+        }
+      } catch (audioErr) {
+        console.warn("Sensevoice audio delivery analysis warning:", audioErr);
+      }
     }
 
     usageAiRunId = aiRunId;
     usageEventKey = `interview-evaluate:${claimedRunId}:${claimStartedAt.toISOString()}`;
     const [aiResponse, profileOutcome] = await Promise.all([
       aiBackend.evaluateInterview({
-      runId: aiRunId,
-      context,
-      qaHistory,
-      audioAnalysis,
+        runId: aiRunId,
+        context,
+        qaHistory,
+        audioAnalysis,
       }),
       profileExtractionPromise,
     ]);
@@ -403,7 +418,9 @@ async function POSTHandler(
           })
         );
       } else if (profileError instanceof AiBackendError && profileError.usage) {
-        const profileUsage = profileError.usage;
+        const profileUsage = profileError.usage as GrpcDeepSeekUsage;
+        const profileErrorCode = String(profileError.status);
+        const profileErrorMessage = profileError.message;
         after(() =>
           recordDeepSeekUsageSafely({
             eventKey: profileUsageEventKey,
@@ -414,8 +431,8 @@ async function POSTHandler(
             operation: "interview_profile_extract",
             status: "FAILED",
             usage: profileUsage,
-            errorCode: String(profileError.status),
-            errorMessage: profileError.message,
+            errorCode: profileErrorCode,
+            errorMessage: profileErrorMessage,
           })
         );
       }
@@ -435,13 +452,13 @@ async function POSTHandler(
             {
               category: "other",
               label: "Nội dung giới thiệu",
-              value: run.candidateIntro!.transcript.trim(),
-              evidence: [run.candidateIntro!.transcript.trim().slice(0, 500)],
+              value: activeRun.candidateIntro!.transcript.trim(),
+              evidence: [activeRun.candidateIntro!.transcript.trim().slice(0, 500)],
             },
           ]
       : undefined;
     const durationSec = Math.round(
-      run.answers.reduce(
+      activeRun.answers.reduce(
         (total, answer) => total + (answer.audioDurationSec || 0),
         0
       )
@@ -451,12 +468,12 @@ async function POSTHandler(
       duration: body.duration || "10 phút",
       durationSec,
       feedback: evaluation.feedback,
-      candidateIntro: run.candidateIntro
+      candidateIntro: activeRun.candidateIntro
         ? {
-            prompt: run.candidateIntro.prompt,
-            transcript: run.candidateIntro.transcript,
-            audioDurationSec: run.candidateIntro.audioDurationSec,
-            transcriptionProvider: run.candidateIntro.transcriptionProvider,
+            prompt: activeRun.candidateIntro.prompt,
+            transcript: activeRun.candidateIntro.transcript,
+            audioDurationSec: activeRun.candidateIntro.audioDurationSec,
+            transcriptionProvider: activeRun.candidateIntro.transcriptionProvider,
           }
         : undefined,
       candidateIntroItems,
@@ -485,7 +502,7 @@ async function POSTHandler(
         async () => {
           const runUpdate = await PracticeRun.updateOne(
             {
-              _id: run._id,
+              _id: activeRun._id,
               userId: tokenPayload.userId,
               status: "EVALUATING",
               evaluationStartedAt: claimStartedAt,
@@ -493,7 +510,7 @@ async function POSTHandler(
             {
               $set: {
                 status: "COMPLETED",
-                questionCount,
+                questionCount: evaluationQuestionCount,
                 evaluation: result,
                 ...(candidateIntroItems
                   ? { "candidateIntro.items": candidateIntroItems }
@@ -514,7 +531,7 @@ async function POSTHandler(
             {
               $inc: { attemptCount: 1 },
               $set: {
-                questionCount,
+                questionCount: evaluationQuestionCount,
                 latestResult: result,
               },
               $max: { highestScore: result.score },
@@ -536,7 +553,7 @@ async function POSTHandler(
                 $set: {
                   status: "COMPLETED",
                   completedAt: new Date(),
-                  lastRunId: run._id,
+                  lastRunId: activeRun._id,
                   finalScore: result.score,
                 },
               },
@@ -573,6 +590,10 @@ async function POSTHandler(
       usageSessionId &&
       usageEventKey
     ) {
+      const aiError = error;
+      const errorCode = String(aiError.status);
+      const errorMessage = aiError.message;
+      const errorUsage = aiError.usage as GrpcDeepSeekUsage;
       after(() =>
         recordDeepSeekUsageSafely({
           eventKey: usageEventKey,
@@ -582,9 +603,9 @@ async function POSTHandler(
           aiRunId: usageAiRunId,
           operation: "interview_evaluate",
           status: "FAILED",
-          usage: error.usage!,
-          errorCode: String(error.status),
-          errorMessage: error.message,
+          usage: errorUsage,
+          errorCode,
+          errorMessage,
         })
       );
     }

@@ -29,6 +29,7 @@ const practiceRunSchema = new Schema<IPracticeRun>(
         "COMPLETED",
         "FAILED",
         "REFUNDED",
+        "CANCELLED",
       ],
       default: "STARTED",
       index: true,
