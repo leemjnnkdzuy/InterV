@@ -18,8 +18,8 @@ const benefits: Benefit[] = [
     titleKey: "landing.whyAi.benefit1Title",
     descriptionKey: "landing.whyAi.benefit1Description",
     icon: <CpuBolt weight="BoldDuotone" className="w-11 h-11" />,
-    bgGlow: "bg-[var(--chart-1)]/5",
-    iconColor: "text-[var(--chart-1)]",
+    bgGlow: "bg-primary/5 dark:bg-[var(--chart-1)]/5",
+    iconColor: "text-primary dark:text-[var(--chart-1)]",
     iconBg: "",
   },
   {
@@ -27,7 +27,7 @@ const benefits: Benefit[] = [
     descriptionKey: "landing.whyAi.benefit2Description",
     icon: <Pulse weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-emerald-500/5",
-    iconColor: "text-emerald-400",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
     iconBg: "",
   },
   {
@@ -35,7 +35,7 @@ const benefits: Benefit[] = [
     descriptionKey: "landing.whyAi.benefit3Description",
     icon: <LockKeyhole weight="BoldDuotone" className="w-11 h-11" />,
     bgGlow: "bg-violet-500/5",
-    iconColor: "text-violet-400",
+    iconColor: "text-violet-600 dark:text-violet-400",
     iconBg: "",
   },
 ];
@@ -49,11 +49,11 @@ export default function WhyOurAi() {
         
         {/* Section Header */}
         <div className="text-center max-w-2xl flex flex-col gap-4">
-          <span className="text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">{t("landing.whyAi.eyebrow")}</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <span className="text-primary dark:text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">{t("landing.whyAi.eyebrow")}</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
             {t("landing.whyAi.title")}
           </h2>
-          <p className="text-zinc-400 text-base leading-relaxed">
+          <p className="text-muted-foreground text-base leading-relaxed">
             {t("landing.whyAi.description")}
           </p>
         </div>
@@ -63,7 +63,7 @@ export default function WhyOurAi() {
           {benefits.map((benefit, idx) => (
             <div
               key={idx}
-              className="relative group rounded-3xl border border-white/[0.08] bg-zinc-900/50 backdrop-blur-md p-8 flex flex-col gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300"
+              className="relative group rounded-3xl border border-border/80 dark:border-white/[0.08] hover:border-primary/40 bg-card/85 dark:bg-zinc-900/50 backdrop-blur-md p-8 flex flex-col gap-6 overflow-hidden shadow-sm dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300"
             >
               {/* Radial gradient background hover glow */}
               <div className={`absolute -top-24 -left-24 w-48 h-48 rounded-full ${benefit.bgGlow} blur-3xl`} />
@@ -75,10 +75,10 @@ export default function WhyOurAi() {
 
               {/* Content */}
               <div className="flex flex-col gap-3 z-10">
-                <h4 className="font-bold text-white text-base md:text-lg">
+                <h4 className="font-bold text-foreground text-base md:text-lg">
                   {t(benefit.titleKey)}
                 </h4>
-                <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
+                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
                   {t(benefit.descriptionKey)}
                 </p>
               </div>

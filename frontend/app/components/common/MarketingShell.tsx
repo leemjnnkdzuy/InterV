@@ -10,8 +10,8 @@ export default function MarketingShell({ children }: { children: React.ReactNode
       className="w-full min-h-screen bg-[var(--marketing-page-bg)] text-foreground flex flex-col relative overflow-x-clip font-sans"
     >
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[var(--chart-1)]/15 blur-[130px]" />
-        <div className="absolute -bottom-60 left-[10%] w-[800px] h-[800px] rounded-full bg-[var(--chart-3)]/6 blur-[150px]" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary/10 dark:bg-[var(--chart-1)]/15 blur-[130px]" />
+        <div className="absolute -bottom-60 left-[10%] w-[800px] h-[800px] rounded-full bg-emerald-400/10 dark:bg-[var(--chart-3)]/6 blur-[150px]" />
       </div>
       <div className="relative flex flex-col flex-1 z-10">
         <div className="absolute inset-x-0 top-0 h-[96svh] z-0">

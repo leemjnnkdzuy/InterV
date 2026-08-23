@@ -32,7 +32,7 @@ export default function Header() {
 		<header
 			className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out flex items-center justify-between ${
 				isScrolled ?
-					"translate-y-0 opacity-100 bg-[var(--sidebar)]/65 backdrop-blur-xl border-b border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] py-4 px-4 sm:px-12 md:px-36"
+					"translate-y-0 opacity-100 bg-background/80 dark:bg-[var(--sidebar)]/65 backdrop-blur-xl border-b border-border/80 dark:border-zinc-800/40 shadow-sm dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] py-4 px-4 sm:px-12 md:px-36"
 				:	"translate-y-0 opacity-100 bg-transparent border-b border-transparent shadow-none py-5 px-4 sm:py-6 sm:px-12 md:px-36"
 			}`}
 		>
@@ -50,11 +50,11 @@ export default function Header() {
 							alt='InterV Logo'
 							width={48}
 							height={48}
-							className='brightness-0 invert object-contain'
+							className='brightness-0 dark:brightness-100 object-contain'
 							priority
 						/>
 					</div>
-					<span className='font-logo text-xl font-bold tracking-normal text-white sm:text-3xl'>
+					<span className='font-logo text-xl font-bold tracking-normal text-foreground sm:text-3xl'>
 						InterV<span className='text-[var(--chart-1)]'>.</span>
 					</span>
 				</button>
@@ -66,7 +66,7 @@ export default function Header() {
 							key={item.path}
 							type='button'
 							onClick={() => router.push(item.path)}
-							className='text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200'
+							className='text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200'
 						>
 							{item.label}
 						</button>
@@ -79,14 +79,14 @@ export default function Header() {
 				<button
 					type='button'
 					onClick={() => router.push("/login")}
-					className='hidden text-sm font-medium text-zinc-400 transition-colors duration-200 hover:text-white sm:inline-flex'
+					className='hidden text-sm font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground sm:inline-flex'
 				>
 					{t("landing.login")}
 				</button>
 				<button
 					type='button'
 					onClick={() => router.push("/login")}
-					className='flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-white sm:hidden'
+					className='flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground sm:hidden'
 					aria-label={t("landing.login")}
 					title={t("landing.login")}
 				>
@@ -94,7 +94,7 @@ export default function Header() {
 				</button>
 				<Button
 					onClick={() => router.push("/register")}
-					className='h-9 whitespace-nowrap rounded-full border-none bg-[var(--chart-1)] px-4 py-2 text-xs font-bold text-zinc-950 shadow-[0_0_15px_rgba(187,244,81,0.15)] transition-all duration-300 hover:bg-[var(--chart-2)] sm:h-auto sm:px-5 sm:text-sm'
+					className='h-9 whitespace-nowrap rounded-full border-none bg-[var(--chart-1)] px-4 py-2 text-xs font-bold text-zinc-950 shadow-[0_0_15px_rgba(187,244,81,0.2)] transition-all duration-300 hover:bg-[var(--chart-2)] sm:h-auto sm:px-5 sm:text-sm'
 				>
 					{t("landing.joinNow")}
 				</Button>

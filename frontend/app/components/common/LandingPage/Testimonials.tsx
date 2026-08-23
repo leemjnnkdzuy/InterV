@@ -68,11 +68,11 @@ export default function Testimonials() {
         
         {/* Section Header */}
         <div className="text-center max-w-2xl flex flex-col gap-4">
-          <span className="text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">{t("landing.testimonials.eyebrow")}</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <span className="text-primary dark:text-[var(--chart-1)] text-xs font-bold tracking-wider uppercase">{t("landing.testimonials.eyebrow")}</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
             {t("landing.testimonials.title")}
           </h2>
-          <p className="text-zinc-400 text-base leading-relaxed">
+          <p className="text-muted-foreground text-base leading-relaxed">
             {t("landing.testimonials.description")}
           </p>
         </div>
@@ -82,20 +82,20 @@ export default function Testimonials() {
           {testimonials.map((item, idx) => (
             <motion.div
               key={idx}
-              className="relative rounded-3xl bg-zinc-900/50 border border-white/[0.08] p-8 flex flex-col justify-between gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:border-white/15 transition-all duration-300"
+              className="relative rounded-3xl bg-card/85 dark:bg-zinc-900/50 border border-border/80 dark:border-white/[0.08] p-8 flex flex-col justify-between gap-6 shadow-sm dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:border-border dark:hover:border-white/15 transition-all duration-300"
               whileHover={{ y: -4 }}
             >
               {/* Quote Mark */}
-              <QuoteIcon className="absolute top-6 right-6 w-8 h-8 text-zinc-800/40 z-0 pointer-events-none" />
+              <QuoteIcon className="absolute top-6 right-6 w-8 h-8 text-muted-foreground/15 dark:text-zinc-800/40 z-0 pointer-events-none" />
 
               {/* Quote Text */}
-              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed z-10 italic font-medium">
+              <p className="text-foreground/90 dark:text-zinc-300 text-sm sm:text-base leading-relaxed z-10 italic font-medium">
                 &quot;{t(item.quoteKey)}&quot;
               </p>
 
               {/* Author Section */}
-              <div className="flex items-center gap-3.5 mt-4 z-10 border-t border-white/5 pt-4">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10">
+              <div className="flex items-center gap-3.5 mt-4 z-10 border-t border-border/60 dark:border-white/5 pt-4">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-border/80 dark:border-white/10">
                   <Image
                     src={item.avatar}
                     alt={item.author}
@@ -106,11 +106,11 @@ export default function Testimonials() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-white">{item.author}</span>
+                  <span className="text-xs font-bold text-foreground">{item.author}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-400 font-semibold">{t(item.roleKey)}</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold">{t(item.roleKey)}</span>
                     {item.type === "employer" && (
-                      <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                      <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
                         {t("landing.testimonials.enterprise")}
                       </span>
                     )}

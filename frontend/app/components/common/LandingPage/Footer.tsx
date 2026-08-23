@@ -32,10 +32,10 @@ export default function Footer() {
   const socials = ["LinkedIn", "Twitter", "GitHub", "Facebook"];
 
   const navigate = (path: string) => router.push(path);
-  const linkClass = "text-left text-zinc-400 hover:text-white transition-colors flex items-center gap-1 group";
+  const linkClass = "text-left text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group";
 
   return (
-    <footer className="w-full bg-zinc-950/70 backdrop-blur-md border-t border-white/5 py-16 px-12 md:px-36 relative z-10">
+    <footer className="w-full bg-card/60 dark:bg-zinc-950/70 backdrop-blur-md border-t border-border/60 dark:border-white/5 py-16 px-6 sm:px-12 md:px-36 relative z-10">
       <div className="w-full flex flex-col gap-12">
         {/* Top Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
@@ -49,14 +49,14 @@ export default function Footer() {
                   alt="InterV Logo"
                   width={32}
                   height={32}
-                  className="brightness-0 invert object-contain"
+                  className="brightness-0 dark:brightness-100 object-contain"
                 />
               </div>
-              <span className="font-logo font-bold text-xl tracking-tight text-white">
+              <span className="font-logo font-bold text-xl tracking-tight text-foreground">
                 InterV
               </span>
             </div>
-            <p className="text-zinc-400 text-sm leading-relaxed mt-2">
+            <p className="text-muted-foreground text-sm leading-relaxed mt-2">
               {t("landing.footer.description")}
             </p>
             {/* Social Icons */}
@@ -65,7 +65,7 @@ export default function Footer() {
               <button
                 key={social}
                 type="button"
-                className="w-9 h-9 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 hover:bg-[var(--chart-1)] hover:text-zinc-950 transition-all duration-300"
+                className="w-9 h-9 rounded-full bg-muted dark:bg-zinc-900 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground dark:hover:bg-[var(--chart-1)] dark:hover:text-zinc-950 transition-all duration-300"
                 aria-label={social}
               >
                 {index === 0 ? (
@@ -95,13 +95,13 @@ export default function Footer() {
 
           {/* Links Column 1: Candidates */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.candidatesTitle")}</h4>
+            <h4 className="text-foreground font-bold text-sm tracking-wide">{t("landing.footer.candidatesTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               {candidateLinks.map((item) => (
                 <li key={item.path}>
                   <button type="button" onClick={() => navigate(item.path)} className={linkClass}>
                     {item.label}
-                    {item.highlight ? <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" /> : null}
+                    {item.highlight ? <ArrowRightUp className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" /> : null}
                   </button>
                 </li>
               ))}
@@ -110,13 +110,13 @@ export default function Footer() {
 
           {/* Links Column 2: Employers */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.employersTitle")}</h4>
+            <h4 className="text-foreground font-bold text-sm tracking-wide">{t("landing.footer.employersTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               {employerLinks.map((item) => (
                 <li key={item.path}>
                   <button type="button" onClick={() => navigate(item.path)} className={linkClass}>
                     {item.label}
-                    {item.highlight ? <ArrowRightUp className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" /> : null}
+                    {item.highlight ? <ArrowRightUp className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" /> : null}
                   </button>
                 </li>
               ))}
@@ -125,7 +125,7 @@ export default function Footer() {
 
           {/* Links Column 3: Legal & Resources */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold text-sm tracking-wide">{t("landing.footer.resourcesTitle")}</h4>
+            <h4 className="text-foreground font-bold text-sm tracking-wide">{t("landing.footer.resourcesTitle")}</h4>
             <ul className="flex flex-col gap-3 text-sm">
               {resourceLinks.map((item) => (
                 <li key={item.path}>
@@ -140,10 +140,10 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px bg-white/5" />
+        <div className="w-full h-px bg-border/60 dark:bg-white/5" />
 
         {/* Bottom Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <span>{t("landing.footer.copyright", { year })}</span>
         </div>
       </div>

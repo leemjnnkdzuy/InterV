@@ -19,22 +19,22 @@ export default function Hero() {
 		<section className='w-full min-h-[108svh] px-6 sm:px-12 md:px-36 pt-28 md:pt-32 lg:pt-36 pb-24 flex items-center justify-center relative z-10 overflow-hidden'>
 			<div className='relative z-10 mx-auto flex w-full max-w-7xl min-h-[620px] items-center justify-center py-8 lg:py-10'>
 				<div className='relative z-20 flex w-full max-w-[800px] flex-col items-center text-center'>
-					<h1 className='max-w-[800px] text-[34px] sm:text-[46px] lg:text-[58px] font-extrabold leading-[1.08]'>
-						<span className='bg-gradient-to-r from-white via-white to-zinc-300 bg-clip-text text-transparent'>
+					<h1 className='max-w-[800px] text-[34px] sm:text-[46px] lg:text-[58px] font-extrabold leading-[1.08] text-foreground'>
+						<span className='bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent dark:from-white dark:via-white dark:to-zinc-300'>
 							{t("landing.heroTitleLine1")}
 						</span>
 						<br />
-						<span className='bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent'>
+						<span className='bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent dark:from-white dark:via-zinc-100 dark:to-zinc-300'>
 							{t("landing.heroTitleLine2")}{" "}
 						</span>
-						<span className='bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent'>
+						<span className='bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-[var(--chart-1)] dark:to-[var(--chart-2)] bg-clip-text text-transparent'>
 							{t("landing.heroPractice")}
 						</span>
-						<span className='bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent'>
+						<span className='bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent dark:from-white dark:via-zinc-100 dark:to-zinc-300'>
 							{" "}
 							{t("landing.heroOr")}{" "}
 						</span>
-						<span className='bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent'>
+						<span className='bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-[var(--chart-1)] dark:to-[var(--chart-2)] bg-clip-text text-transparent'>
 							{t("landing.heroRecruit")}
 						</span>
 						<br />
