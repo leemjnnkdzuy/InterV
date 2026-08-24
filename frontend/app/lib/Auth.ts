@@ -252,9 +252,43 @@ export async function authorizeRequest(
 
 export async function getCurrentUser(): Promise<SerializedPrincipalUser | null> {
   const cookieStore = await cookies();
-  const principal = await resolvePrincipal(
-    cookieStore.get("access_token")?.value
-  );
+  const accessToken = cookieStore.get("access_token")?.value;
+  let principal = await resolvePrincipal(accessToken);
+
+  // If access token is expired or missing, check if a valid refresh token exists in DB session
+  if (!principal) {
+    const refreshToken = cookieStore.get("refresh_token")?.value;
+    if (refreshToken) {
+      const refreshPayload = verifyRefreshToken(refreshToken);
+      if (refreshPayload?.sessionId) {
+        const connectDB = (await import("./ConnectDB")).default;
+        const Session = (await import("@/app/models/Session")).default;
+        const User = (await import("@/app/models/User")).default;
+        await connectDB();
+
+        const [session, user] = await Promise.all([
+          Session.findOne({
+            _id: refreshPayload.sessionId,
+            userId: refreshPayload.userId,
+            isActive: true,
+            refreshExpiresAt: { $gt: new Date() },
+          })
+            .select("_id")
+            .lean(),
+          User.findOne({ _id: refreshPayload.userId, isActive: true })
+            .select(
+              "_id username email role avatar credits isActive isVerified createdAt"
+            )
+            .lean<PrincipalUser>(),
+        ]);
+
+        if (session && user) {
+          principal = { payload: refreshPayload, user };
+        }
+      }
+    }
+  }
+
   if (!principal) {
     return null;
   }

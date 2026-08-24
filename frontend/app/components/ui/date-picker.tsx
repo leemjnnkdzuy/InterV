@@ -936,32 +936,50 @@ export function DateTimePickerInput({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Clock className="size-3.5 text-primary" />
-                <span>Giờ:</span>
+                <span>Thời gian:</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <select
-                  value={currentHours}
-                  onChange={(e) => handleHourChange(Number(e.target.value))}
-                  className="h-7 rounded-md border border-input bg-background/80 px-2 text-xs font-semibold focus:border-primary focus:ring-1 focus:ring-ring cursor-pointer"
+                <Select
+                  value={String(currentHours)}
+                  onValueChange={(val) => handleHourChange(Number(val))}
                 >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {String(i).padStart(2, "0")}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-16 h-7 text-xs rounded-md bg-background/60 px-2 font-semibold">
+                    <SelectValue placeholder="Giờ" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="max-h-48 min-w-16">
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <SelectItem
+                        key={i}
+                        value={String(i)}
+                        className="text-xs font-medium"
+                      >
+                        {String(i).padStart(2, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <span className="font-bold text-muted-foreground">:</span>
-                <select
-                  value={currentMinutes}
-                  onChange={(e) => handleMinuteChange(Number(e.target.value))}
-                  className="h-7 rounded-md border border-input bg-background/80 px-2 text-xs font-semibold focus:border-primary focus:ring-1 focus:ring-ring cursor-pointer"
+
+                <Select
+                  value={String(currentMinutes)}
+                  onValueChange={(val) => handleMinuteChange(Number(val))}
                 >
-                  {Array.from({ length: 60 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {String(i).padStart(2, "0")}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-16 h-7 text-xs rounded-md bg-background/60 px-2 font-semibold">
+                    <SelectValue placeholder="Phút" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="max-h-48 min-w-16">
+                    {Array.from({ length: 60 }, (_, i) => (
+                      <SelectItem
+                        key={i}
+                        value={String(i)}
+                        className="text-xs font-medium"
+                      >
+                        {String(i).padStart(2, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

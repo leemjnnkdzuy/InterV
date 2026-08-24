@@ -13,7 +13,7 @@ export const cookieOptions = {
   priority: "high" as const,
 };
 
-export const MAX_SESSIONS = 2;
+export const MAX_SESSIONS = 5;
 
 export const MAX_PIN_ATTEMPTS = 5;
 export const PIN_LOCK_MS = 10 * 60 * 1000;

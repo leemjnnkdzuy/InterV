@@ -51,11 +51,6 @@ interface CandidateSearchResponse {
   candidates: CandidateSuggestion[];
 }
 
-interface VoiceResponse {
-  success: true;
-  voices: InterviewVoice[];
-}
-
 interface CreateResponse {
   success: true;
   campaignId: string;
@@ -120,7 +115,6 @@ export default function CreateRecruitmentInterviewPage() {
   const [loadingVoices, setLoadingVoices] = useState(false);
   const [isPreviewingVoice, setIsPreviewingVoice] = useState(false);
   const [isVoicePreviewPlaying, setIsVoicePreviewPlaying] = useState(false);
-  const [preparedVoicePreviewKey, setPreparedVoicePreviewKey] = useState("");
 
   const voicePreviewGenerationRef = useRef(0);
   const voicePreviewCacheRef = useRef(new Map<string, VoicePreviewAudio>());
@@ -148,10 +142,11 @@ export default function CreateRecruitmentInterviewPage() {
     invitationMessage: "",
   });
 
-  const update = <K extends keyof typeof form>(
-    key: K,
-    value: (typeof form)[K]
-  ) => setForm((current) => ({ ...current, [key]: value }));
+  const update = useCallback(
+    <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
+      setForm((current) => ({ ...current, [key]: value })),
+    []
+  );
 
   const selectedLanguageOption = useMemo(
     () =>
@@ -177,8 +172,8 @@ export default function CreateRecruitmentInterviewPage() {
   const stopVoicePreview = useCallback(() => {
     voicePreviewGenerationRef.current += 1;
     stopInterviewAudio();
-    setIsPreviewingVoice(false);
     setIsVoicePreviewPlaying(false);
+    setIsPreviewingVoice(false);
   }, []);
 
   useEffect(() => () => stopInterviewAudio(), []);
@@ -203,15 +198,21 @@ export default function CreateRecruitmentInterviewPage() {
         if (cancelled) return;
         const nextVoices = response.voices || [];
         setVoices(nextVoices);
-        if (
-          nextVoices.length > 0 &&
-          !nextVoices.some((voice) => voice.id === form.voiceId)
-        ) {
-          const defaultVoice =
-            DEFAULT_VOICE_BY_LANGUAGE[form.language] || nextVoices[0].id;
-          const exists = nextVoices.some((v) => v.id === defaultVoice);
-          update("voiceId", exists ? defaultVoice : nextVoices[0].id);
-        }
+        setForm((current) => {
+          if (
+            nextVoices.length > 0 &&
+            !nextVoices.some((voice) => voice.id === current.voiceId)
+          ) {
+            const defaultVoice =
+              DEFAULT_VOICE_BY_LANGUAGE[current.language] || nextVoices[0].id;
+            const exists = nextVoices.some((v) => v.id === defaultVoice);
+            return {
+              ...current,
+              voiceId: exists ? defaultVoice : nextVoices[0].id,
+            };
+          }
+          return current;
+        });
       } catch {
         if (!cancelled) setVoices([]);
       } finally {
@@ -231,7 +232,6 @@ export default function CreateRecruitmentInterviewPage() {
     const cached = voicePreviewCacheRef.current.get(key);
 
     if (cached) {
-      setPreparedVoicePreviewKey(key);
       setIsPreviewingVoice(false);
       return;
     }
@@ -269,10 +269,6 @@ export default function CreateRecruitmentInterviewPage() {
     }
 
     void request
-      .then(() => {
-        if (cancelled) return;
-        setPreparedVoicePreviewKey(key);
-      })
       .catch((error) => {
         if (cancelled) return;
         console.error("Voice preview error:", error);
@@ -318,7 +314,6 @@ export default function CreateRecruitmentInterviewPage() {
           contentType: data.contentType || "audio/wav",
         };
         voicePreviewCacheRef.current.set(voicePreviewKey, previewAudio);
-        setPreparedVoicePreviewKey(voicePreviewKey);
       } catch (err) {
         toast.error(getErrorMessage(err, "Không thể nghe thử giọng đọc"));
         return;
@@ -457,12 +452,13 @@ export default function CreateRecruitmentInterviewPage() {
       toast.success(response.message);
       router.push(`/recruiter/interviews/${response.campaignId}`);
     } catch (error) {
-      if (
-        error instanceof DashboardApiError &&
-        Array.isArray(error.payload?.invalidEmails)
-      ) {
+      const invalidEmails =
+        error instanceof DashboardApiError
+          ? error.payload?.invalidEmails
+          : undefined;
+      if (Array.isArray(invalidEmails)) {
         toast.error(
-          `Ứng viên không hợp lệ: ${error.payload.invalidEmails.join(", ")}`
+          `Ứng viên không hợp lệ: ${invalidEmails.join(", ")}`
         );
       } else {
         toast.error(
@@ -762,18 +758,6 @@ export default function CreateRecruitmentInterviewPage() {
                   </Button>
                 </div>
               </div>
-            </div>
-            {/* Sample text hint and status */}
-            <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
-              <span className="text-muted-foreground truncate">
-                Mẫu câu thử: <span className="text-foreground italic">"{selectedLanguageOption.sample}"</span>
-              </span>
-              {isVoicePreviewPlaying && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary shrink-0 animate-pulse">
-                  <span className="size-2 rounded-full bg-primary" />
-                  Đang phát
-                </span>
-              )}
             </div>
           </section>
 
