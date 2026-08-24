@@ -15,6 +15,8 @@ import PracticeAudio from "@/app/models/PracticeAudio";
 import PracticeRun from "@/app/models/PracticeRun";
 import PracticeSession from "@/app/models/PracticeSession";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
+import User from "@/app/models/User";
+import { formatCandidateOnboardingProfile } from "@/app/lib/CandidateProfileHelper";
 import {
   normalizeInterviewQuestionCount,
 } from "@/app/lib/PracticeBilling";
@@ -312,6 +314,11 @@ async function POSTHandler(
     claimedRunId = activeRun._id.toString();
     usageSessionId = activeRun.sessionId.toString();
 
+    const userRecord = await User.findById(tokenPayload.userId)
+      .select("fullName headline targetRole targetIndustry skills education workExperience")
+      .lean();
+    const candidateProfile = formatCandidateOnboardingProfile(userRecord);
+
     const context = {
       sessionId: activeRun.sessionId.toString(),
       title: session.title,
@@ -325,6 +332,7 @@ async function POSTHandler(
         activeRun.voiceId ||
         session.voiceId ||
         "hn_female_ngochuyen_full_48k-fhg",
+      candidateProfile,
     };
 
     type ProfileExtractionOutcome = {
@@ -352,6 +360,7 @@ async function POSTHandler(
                   title: session.title,
                   jobDescription: session.jobDescription || "",
                   language: activeRun.language || session.language || "vi-VN",
+                  candidateProfile,
                 })
                 .then((response) => ({
                   attempted: true,

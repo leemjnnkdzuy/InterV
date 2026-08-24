@@ -155,6 +155,7 @@ export interface GrpcInterviewContext {
   questionCount: number;
   language: string;
   voiceId: string;
+  candidateProfile?: string;
 }
 
 export interface GrpcQaPair {
@@ -368,6 +369,7 @@ interface IntervAiClient extends grpc.Client {
       title: string;
       jobDescription: string;
       language: string;
+      candidateProfile?: string;
     },
     {
       success: boolean;
@@ -382,6 +384,7 @@ interface IntervAiClient extends grpc.Client {
       context: GrpcInterviewContext;
       openingPrompt: string;
       openingTranscript: string;
+      candidateProfile?: string;
     },
     GrpcInterviewTurn
   >;
@@ -647,6 +650,7 @@ export const aiBackend = {
     context: GrpcInterviewContext;
     openingPrompt: string;
     openingTranscript: string;
+    candidateProfile?: string;
   }) => unary(getClient().generateOpeningTurn, request, 120_000),
 
   transcribeAudio: (request: {
@@ -676,12 +680,13 @@ export const aiBackend = {
     title: string;
     jobDescription: string;
     language: string;
+    candidateProfile?: string;
   }) => unary(getClient().extractCandidateProfile, request, 90_000),
 
   createStreamingToken: (request: {
     expiresInSeconds: number;
     maxSessionDurationSeconds: number;
-  }) => unary(getClient().createStreamingToken, request, 15_000),
+  }) => unary(getClient().createStreamingToken, request, 30_000),
 
   analyzeInterview: (
     chunks: GrpcAudioAnalysisChunk[]

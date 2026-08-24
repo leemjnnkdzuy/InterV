@@ -293,6 +293,7 @@ def _context_kwargs(context) -> dict[str, object]:
         "difficulty": context.difficulty or "Middle",
         "language": context.language or "vi-VN",
         "voice_id": context.voice_id or "hn_female_ngochuyen_full_48k-fhg",
+        "candidate_profile": getattr(context, "candidate_profile", "") or "",
     }
 
 
@@ -511,6 +512,9 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 language=source.language or "vi-VN",
                 opening_prompt=request.opening_prompt,
                 opening_transcript=request.opening_transcript,
+                candidate_profile=getattr(request, "candidate_profile", "")
+                or getattr(source, "candidate_profile", "")
+                or "",
             )
             question, transition, spoken_text, provider = await generate_opening_turn(
                 payload
@@ -595,6 +599,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 next_question_index=request.next_question_index,
                 language=source.language or "vi-VN",
                 qa_history=qa_history,
+                candidate_profile=getattr(source, "candidate_profile", "") or "",
             )
             question, transition, spoken_text, provider = await generate_follow_up(
                 payload
@@ -656,6 +661,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 language=source.language or "vi-VN",
                 qa_history=qa_history,
                 audio_analysis=audio_analysis,
+                candidate_profile=getattr(source, "candidate_profile", "") or "",
             )
             evaluation, provider = await evaluate_interview(payload)
             await get_rag_agent().index_completed_interview(
@@ -738,6 +744,7 @@ class IntervAiService(interv_ai_pb2_grpc.IntervAiServicer):
                 title=request.title,
                 job_description=request.job_description,
                 language=request.language or "vi-VN",
+                candidate_profile=getattr(request, "candidate_profile", "") or "",
             )
             items, provider = await extract_candidate_profile(payload)
         except Exception as error:

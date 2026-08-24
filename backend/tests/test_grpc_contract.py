@@ -440,6 +440,59 @@ class GrpcContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.items[0].category, "experience")
         self.assertEqual(response.items[0].value, "3 năm backend")
 
+    async def test_candidate_profile_propagates_in_grpc_calls(self):
+        profile_text = "Họ tên: Nguyen Van A\nKỹ năng: React, Node.js, TypeScript"
+        question = GeneratedQuestion(
+            id="q_1",
+            text="Hãy chia sẻ về dự án Node.js gần nhất của bạn.",
+            tts_text="Hãy chia sẻ về dự án nốt dây ét gần nhất của bạn.",
+            competency="jd_fit",
+            difficulty="Middle",
+            expected_signals=["Chi tiết kiến trúc API"],
+            grounding_ids=["rule:profile:information-technology:middle"],
+        )
+        transition = InterviewTransition(
+            acknowledgement_text="Chào bạn Nguyen Van A, rất vui được trao đổi.",
+            transition_text="Mình sẽ bắt đầu với câu hỏi chuyên môn đầu tiên.",
+            transition_type="opening_to_first",
+        )
+
+        with patch(
+            "app.grpc_server.generate_opening_turn",
+            new=AsyncMock(
+                return_value=(
+                    question,
+                    transition,
+                    "Chào bạn Nguyen Van A, rất vui được trao đổi. Hãy chia sẻ về dự án Node.js gần nhất của bạn.",
+                    "deepseek",
+                )
+            ),
+        ) as mock_generate:
+            response = await self.stub.GenerateOpeningTurn(
+                interv_ai_pb2.InterviewOpeningRequest(
+                    run_id="run-profile-1",
+                    context=interv_ai_pb2.InterviewContext(
+                        session_id="session-1",
+                        title="Node.js Developer",
+                        industry="Công nghệ thông tin",
+                        difficulty="Middle",
+                        question_count=5,
+                        language="vi-VN",
+                        candidate_profile=profile_text,
+                    ),
+                    opening_prompt="Hãy giới thiệu về bản thân.",
+                    opening_transcript="Tôi là Nguyen Van A, có kinh nghiệm với Node.js.",
+                    candidate_profile=profile_text,
+                ),
+                metadata=self.metadata,
+            )
+
+            self.assertTrue(response.success)
+            self.assertEqual(response.next_question.id, "q_1")
+            call_payload = mock_generate.call_args[0][0]
+            self.assertEqual(call_payload.candidate_profile, profile_text)
+            self.assertEqual(call_payload.opening_transcript, "Tôi là Nguyen Van A, có kinh nghiệm với Node.js.")
+
 
 class SenseVoiceInvariantTests(unittest.IsolatedAsyncioTestCase):
     async def test_audio_analysis_rejects_empty_audio(self):

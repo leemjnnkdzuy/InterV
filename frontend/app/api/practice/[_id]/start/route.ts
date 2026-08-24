@@ -28,6 +28,7 @@ import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
+import { formatCandidateOnboardingProfile } from "@/app/lib/CandidateProfileHelper";
 
 export const maxDuration = 360;
 const START_LEASE_MS = 370 * 1000;
@@ -481,7 +482,12 @@ async function POSTHandler(
         throw error;
       }
     }
-    createdRunId = practiceRun._id.toString();
+
+    if (!practiceRun) {
+      throw new Error("Không thể khởi tạo lượt phỏng vấn");
+    }
+    const activeRun = practiceRun;
+    createdRunId = activeRun._id.toString();
     usageEventKey = `interview-start:${createdRunId}:${startLeaseId}`;
 
     const charge =
@@ -517,7 +523,12 @@ async function POSTHandler(
     }
 
     chargedCredits = quote.totalCredits;
-    practiceRun.creditUsage.chargedCredits = chargedCredits;
+    activeRun.creditUsage.chargedCredits = chargedCredits;
+
+    const userRecord = await User.findById(userId)
+      .select("fullName headline targetRole targetIndustry skills education workExperience")
+      .lean();
+    const candidateProfile = formatCandidateOnboardingProfile(userRecord);
 
     const [aiStartResult, openingAudioResult] = await Promise.allSettled([
       aiBackend.startInterview({
@@ -530,6 +541,7 @@ async function POSTHandler(
         questionCount,
         language,
         voiceId,
+        candidateProfile,
       }),
       aiBackend.synthesizeTts({
         text: openingPrompt,
@@ -565,7 +577,7 @@ async function POSTHandler(
     }
     const aiRunPersisted = await PracticeRun.updateOne(
       {
-        _id: practiceRun._id,
+        _id: activeRun._id,
         userId,
         status: "STARTED",
         startLeaseId,
@@ -592,7 +604,7 @@ async function POSTHandler(
         async () => {
           const runUpdate = await PracticeRun.updateOne(
             {
-              _id: practiceRun._id,
+              _id: activeRun._id,
               userId,
               status: "STARTED",
               startLeaseId,
@@ -663,7 +675,7 @@ async function POSTHandler(
                 $set: {
                   status: "IN_PROGRESS",
                   startedAt: recruitmentStartedAt || new Date(),
-                  lastRunId: practiceRun._id,
+                  lastRunId: activeRun._id,
                 },
                 $unset: {
                   completedAt: "",
@@ -716,6 +728,8 @@ async function POSTHandler(
     ) {
       const failedRunId = createdRunId;
       const failedUsage = error.usage;
+      const failedErrorCode = String(error.status);
+      const failedErrorMessage = error.message;
       after(() =>
         recordDeepSeekUsageSafely({
           eventKey: usageEventKey,
@@ -725,8 +739,8 @@ async function POSTHandler(
           operation: "interview_start",
           status: "FAILED",
           usage: failedUsage,
-          errorCode: String(error.status),
-          errorMessage: error.message,
+          errorCode: failedErrorCode,
+          errorMessage: failedErrorMessage,
         })
       );
     }

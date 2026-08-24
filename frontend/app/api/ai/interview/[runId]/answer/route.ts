@@ -8,6 +8,8 @@ import { generateInterviewLookahead } from "@/app/lib/InterviewLookahead";
 import PracticeAudio from "@/app/models/PracticeAudio";
 import PracticeRun from "@/app/models/PracticeRun";
 import PracticeSession from "@/app/models/PracticeSession";
+import User from "@/app/models/User";
+import { formatCandidateOnboardingProfile } from "@/app/lib/CandidateProfileHelper";
 import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
 import {
   isFileUpload,
@@ -344,6 +346,11 @@ async function POSTHandler(
       );
     }
 
+    const userRecord = await User.findById(tokenPayload.userId)
+      .select("fullName headline targetRole targetIndustry skills education workExperience")
+      .lean();
+    const candidateProfile = formatCandidateOnboardingProfile(userRecord);
+
     const context = {
       sessionId: run.sessionId.toString(),
       title: session.title,
@@ -357,6 +364,7 @@ async function POSTHandler(
         run.voiceId ||
         session.voiceId ||
         "hn_female_ngochuyen_full_48k-fhg",
+      candidateProfile,
     };
     const targetQuestionIndex = Math.min(
       nextQuestionIndex + 1,

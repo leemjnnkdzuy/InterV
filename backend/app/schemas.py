@@ -64,6 +64,7 @@ class InterviewStartRequest(BaseModel):
         min_length=1,
         max_length=120,
     )
+    candidate_profile: str = Field(default="", max_length=10_000)
 
 
 class GeneratedQuestion(BaseModel):
@@ -95,6 +96,7 @@ class InterviewOpeningRequest(BaseModel):
     language: str = Field(default="vi-VN", min_length=2, max_length=20)
     opening_prompt: str = Field(min_length=1, max_length=1_000)
     opening_transcript: str = Field(min_length=1, max_length=20_000)
+    candidate_profile: str = Field(default="", max_length=10_000)
 
 
 class InterviewTransition(BaseModel):
@@ -138,6 +140,7 @@ class InterviewFollowUpRequest(InterviewAnswerRequest):
         default_factory=list,
         max_length=25,
     )
+    candidate_profile: str = Field(default="", max_length=10_000)
 
 
 class InterviewAnswerResponse(BaseModel):
@@ -185,6 +188,7 @@ class InterviewEvaluateRequest(BaseModel):
     language: str = Field(default="vi-VN", min_length=2, max_length=20)
     qa_history: list[dict[str, object]] = Field(min_length=5, max_length=25)
     audio_analysis: dict[str, object] | None = None
+    candidate_profile: str = Field(default="", max_length=10_000)
 
 
 class InterviewEvaluateResponse(BaseModel):
@@ -205,3 +209,4 @@ class CandidateProfileRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     job_description: str = Field(default="", max_length=50_000)
     language: str = Field(default="vi-VN", min_length=2, max_length=20)
+    candidate_profile: str = Field(default="", max_length=10_000)

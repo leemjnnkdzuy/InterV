@@ -8,6 +8,8 @@ import { recordDeepSeekUsageSafely } from "@/app/lib/DeepSeekUsage";
 import { normalizeInterviewQuestionCount } from "@/app/lib/PracticeBilling";
 import PracticeRun from "@/app/models/PracticeRun";
 import PracticeSession from "@/app/models/PracticeSession";
+import User from "@/app/models/User";
+import { formatCandidateOnboardingProfile } from "@/app/lib/CandidateProfileHelper";
 import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
@@ -191,16 +193,23 @@ async function POSTHandler(
       });
     }
 
-    const session = await PracticeSession.findOne({
-      _id: detailedRun.sessionId,
-      userId: tokenPayload.userId,
-    }).select("title industry jobDescription topic difficulty language voiceId");
+    const [session, user] = await Promise.all([
+      PracticeSession.findOne({
+        _id: detailedRun.sessionId,
+        userId: tokenPayload.userId,
+      }).select("title industry jobDescription topic difficulty language voiceId"),
+      User.findById(tokenPayload.userId)
+        .select("fullName headline targetRole targetIndustry skills education workExperience")
+        .lean(),
+    ]);
     if (!session) {
       return NextResponse.json(
         { success: false, message: "Không tìm thấy buổi luyện tập" },
         { status: 404 }
       );
     }
+
+    const candidateProfile = formatCandidateOnboardingProfile(user);
 
     const context = {
       sessionId: detailedRun.sessionId.toString(),
@@ -215,12 +224,14 @@ async function POSTHandler(
         detailedRun.voiceId ||
         session.voiceId ||
         "hn_female_ngochuyen_full_48k-fhg",
+      candidateProfile,
     };
     const turn = await aiBackend.generateOpeningTurn({
       runId: detailedRun.aiRunId || runId,
       context,
       openingPrompt: savedPrompt,
       openingTranscript: savedTranscript,
+      candidateProfile,
     });
     if (turn.usage) {
       after(() =>

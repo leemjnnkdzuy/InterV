@@ -108,6 +108,7 @@ message InterviewContext {
   int32 question_count = 7;
   string language = 8;
   string voice_id = 9;
+  string candidate_profile = 10;
 }
 
 message InterviewStartRequest {
@@ -127,6 +128,7 @@ message InterviewOpeningRequest {
   InterviewContext context = 2;
   string opening_prompt = 3;
   string opening_transcript = 4;
+  string candidate_profile = 5;
 }
 
 message InterviewTurnResponse {
@@ -254,6 +256,7 @@ message CandidateProfileRequest {
   string title = 2;
   string job_description = 3;
   string language = 4;
+  string candidate_profile = 5;
 }
 
 message CandidateProfileItem {
