@@ -33,6 +33,7 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
     },
     scheduledAt: {
       type: Date,
+      index: true,
     },
     expiresAt: {
       type: Date,
@@ -41,7 +42,6 @@ const practiceSessionSchema = new Schema<IPracticeSession>(
     maxAttempts: {
       type: Number,
       min: 1,
-      max: 3,
       default: 1,
     },
     lockedConfig: {

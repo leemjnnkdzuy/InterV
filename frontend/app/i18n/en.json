@@ -195,7 +195,9 @@
     "AI_INTERVIEW": "AI interview",
     "AI_INTERVIEW_REFUND": "AI interview refund",
     "AI_JD_EXTRACT": "JD extraction",
-    "ADMIN_ADJUST": "Admin adjustment"
+    "ADMIN_ADJUST": "Admin adjustment",
+    "RECRUITMENT_CAMPAIGN": "Recruitment campaign",
+    "RECRUITMENT_REFUND": "Recruitment credit refund"
   },
   "sidebar": {
     "dashboard": "Dashboard",

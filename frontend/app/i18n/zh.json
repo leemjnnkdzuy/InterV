@@ -195,7 +195,9 @@
     "AI_INTERVIEW": "AI 面试",
     "AI_INTERVIEW_REFUND": "AI 面试退款",
     "AI_JD_EXTRACT": "JD 提取",
-    "ADMIN_ADJUST": "管理员调整"
+    "ADMIN_ADJUST": "管理员调整",
+    "RECRUITMENT_CAMPAIGN": "招聘面试活动",
+    "RECRUITMENT_REFUND": "招聘退款"
   },
   "sidebar": {
     "dashboard": "仪表盘",

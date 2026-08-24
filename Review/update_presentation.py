@@ -159,13 +159,18 @@ def update_pptx():
             "Hợp nhất bằng Reciprocal Rank Fusion (RRF), đảm bảo truy hồi tài liệu vừa chuẩn ngữ nghĩa vừa chính xác từ khóa.\""
         ),
         15: (
-            "[08:00 - 09:30] SLIDE 15: PIPELINE TIẾNG NÓI ĐA TẦNG & FALLBACK\n\n"
+            "[08:00 - 09:30] SLIDE 15: PIPELINE TIẾNG NÓI ĐA TẦNG (REALTIME & HẬU KỲ)\n\n"
             "Lời nói:\n"
-            "\"★ PIPELINE SPEECH TOÀN DIỆN:\n"
-            "1. Streaming STT: AudioWorklet PCM 16kHz -> AssemblyAI WebSocket qua temporary token ngắn hạn.\n"
-            "2. Local STT Fallback: Khi mạng lỗi hoặc transcript rỗng -> Faster-Whisper cục bộ trên Python tự động kích hoạt.\n"
-            "3. Multi-task Audio Analysis: SenseVoice bóc tách LID (ngôn ngữ), SER (cảm xúc), AED (sự kiện âm thanh).\n"
-            "4. Edge/Vbee TTS: Tích hợp Pronunciation Library tự động phiên âm thuật ngữ IT (React, Figma, K8s, CI/CD) giúp phát âm tiếng Việt tự nhiên và chuẩn xác.\""
+            "\"Kính thưa Thầy Cô, pipeline tiếng nói của InterV được thiết kế chuyên biệt theo 2 pha rõ rệt:\n\n"
+            "1. PHA 1: LUỒNG REALTIME TRONG PHỎNG VẤN (TƯƠNG TÁC MƯỢT MÀ, KHÔNG RỜI RẠC)\n"
+            "• Luồng âm thanh từ microphone được AudioWorklet thu và truyền trực tiếp qua WebSocket tới AssemblyAI để thực hiện STT theo thời gian thực.\n"
+            "• Cơ chế Fallback cục bộ: Khi gặp sự cố mạng hoặc lỗi API, hệ thống tự động fallback về model Faster-Whisper chạy trực tiếp trên Python backend.\n"
+            "• Mục đích: Luôn bảo đảm có dữ liệu transcript tức thời cho AI Provider (DeepSeek) tiếp tục hiểu ngữ cảnh, nói tiếp qua TTS và sinh các câu hỏi thích ứng (Lookahead Engine) liền mạch, không làm câu hỏi bị rời rạc hay ngắt quãng phiên phỏng vấn.\n\n"
+            "2. PHA 2: LUỒNG XỬ LÝ HẬU KỲ SAU PHỎNG VẤN (ĐÁNH GIÁ CHUYÊN SÂU & COACHING)\n"
+            "• Sau khi phỏng vấn xong, toàn bộ các đoạn audio gốc đã lưu sẽ được xử lý tuần tự (sequential batch) bằng Faster-Whisper để tái tạo STT chính xác cao nhất.\n"
+            "• Hệ thống áp dụng các thuật toán xử lý tín hiệu âm thanh để đo lường khách quan nhịp độ, tốc độ nói (WPM), và các khoảng trống/khoảng lặng (pause duration) trong câu nói.\n"
+            "• Tiếp theo, audio được đưa qua mô hình SenseVoice theo nguyên tắc 'Observation only' để bóc tách: LID (ngôn ngữ), SER (cảm xúc giọng nói), và AED (sự kiện âm thanh: tiếng cười, tiếng ho, thở dài, từ đệm/filler words).\n"
+            "• Dữ liệu này được tổng hợp để đánh giá khách quan mức độ tự tin, tính lưu loát, và phong thái diễn đạt nhằm hỗ trợ coaching cho ứng viên mà không suy diễn tâm lý tùy tiện.\""
         ),
         16: (
             "[09:30 - 10:15] SLIDE 16: AN TOÀN, QUAN SÁT & KHẢ NĂNG PHỤC HỒI\n\n"
@@ -178,87 +183,80 @@ def update_pptx():
             "\"Typed RPC 16 phương thức ràng buộc giữa TypeScript BFF và Python Backend. Dữ liệu chỉ được lưu trữ hoặc hiển thị sau khi vượt qua schema validation.\""
         ),
         18: (
-            "[10:45 - 11:00] SLIDE 18: PHÂN RÃ MODULE NGHIỆP VỤ\n\n"
+            "[10:45 - 11:05] SLIDE 18: MA TRẬN PHÂN QUYỀN RBAC\n\n"
             "Lời nói:\n"
-            "\"Phân rã rõ ràng: Practice, Recruitment, RAG, Speech và Core BFF.\""
+            "\"Candidate, Recruiter, Admin. Ba vai trò phân quyền độc lập, AI tuyệt đối không có quyền tự động ra quyết định tuyển dụng hay loại bỏ ứng viên.\""
         ),
         19: (
-            "[11:00 - 11:15] SLIDE 19: MA TRẬN PHÂN QUYỀN RBAC\n\n"
+            "[11:05 - 11:25] SLIDE 19: STATE MACHINE PHIÊN LUYỆN TẬP\n\n"
             "Lời nói:\n"
-            "\"Candidate, Recruiter, Admin. AI không có quyền ra quyết định tuyển dụng.\""
+            "\"Vòng đời nghiêm ngặt: Draft -> Ready -> Recording -> Processing -> Reviewed -> Completed. Có cơ chế resume an toàn khi gặp sự cố mạng.\""
         ),
         20: (
-            "[11:15 - 11:35] SLIDE 20: STATE MACHINE PHIÊN LUYỆN TẬP\n\n"
+            "[11:25 - 11:45] SLIDE 20: VÒNG ĐỜI TUYỂN DỤNG RECRUITER\n\n"
             "Lời nói:\n"
-            "\"Vòng đời nghiêm ngặt: Draft -> Ready -> Recording -> Processing -> Reviewed -> Completed. Có cơ chế resume khi lỗi mạng.\""
+            "\"Job -> Campaign -> Invitation -> Interview -> Evidence -> Human Final Review. Recruiter sở hữu toàn quyền quyết định cuối cùng.\""
         ),
         21: (
-            "[11:35 - 11:50] SLIDE 21: VÒNG ĐỜI TUYỂN DỤNG RECRUITER\n\n"
+            "[11:45 - 12:00] SLIDE 21: CƠ CHẾ FALLBACK TOÀN DIỆN\n\n"
             "Lời nói:\n"
-            "\"Job -> Campaign -> Invitation -> Interview -> Evidence -> Human Final Review.\""
+            "\"Minh họa đường đi chính (Primary) và đường dự phòng (Fallback) tại mọi điểm trọng yếu: RAG fallback baseline, STT fallback Faster-Whisper, Audio fallback text-only.\""
         ),
         22: (
-            "[11:50 - 12:05] SLIDE 22: CƠ CHẾ FALLBACK TOÀN DIỆN\n\n"
+            "[12:00 - 12:25] SLIDE 22: STACK CÔNG NGHỆ\n\n"
             "Lời nói:\n"
-            "\"Minh họa đường đi chính (Primary) và đường dự phòng (Fallback) của luồng âm thanh và tạo câu hỏi.\""
+            "\"Next.js 15, TypeScript, Tailwind v4, MongoDB ReplicaSet, Python gRPC (16 RPCs), DeepSeek, Qdrant RAG, AssemblyAI, Faster-Whisper, SenseVoice, Edge/Vbee TTS.\""
         ),
         23: (
-            "[12:05 - 12:30] SLIDE 23: STACK CÔNG NGHỆ\n\n"
-            "Lời nói:\n"
-            "\"Next.js 15, TypeScript, Tailwind v4, MongoDB ReplicaSet, Python 3.14 gRPC (16 RPCs), DeepSeek (V3/R1), Qdrant MPNet+BM25, AssemblyAI, Faster-Whisper, SenseVoice, PayOS.\""
-        ),
-        24: (
-            "[12:30 - 13:15] SLIDE 24: QUY MÔ HIỆN VẬT TRIỂN KHAI\n\n"
+            "[12:25 - 13:10] SLIDE 23: QUY MÔ HIỆN VẬT TRIỂN KHAI\n\n"
             "Lời nói:\n"
             "\"Con số thực tế từ repository:\n"
-            "• Hơn 60.000 dòng mã logic (75.000+ tổng LOC).\n"
-            "• 61 Route files / 74 HTTP method handlers.\n"
-            "• 19 Mongoose models.\n"
-            "• 16 gRPC RPCs.\n"
-            "• 468 tệp văn bản, 38 trang frontend, 86 rule files.\""
+            "• Hơn 72.000 dòng mã nguồn logic.\n"
+            "• 61 route files, 74 HTTP methods, 38 trang frontend.\n"
+            "• 19 Mongoose models, 16 gRPC RPCs, 86 Rule files (15 ngành, 60 profile STAR/BARS).\""
+        ),
+        24: (
+            "[13:10 - 13:40] SLIDE 24: XÁC MINH KỸ THUẬT ĐẠT 100%\n\n"
+            "Lời nói:\n"
+            "\"Toàn bộ 51/51 Backend tests đạt 100% trong 3.28 giây, 16/16 RPC contract tests pass, Next.js build đạt production-ready, zero-mock runtime.\""
         ),
         25: (
-            "[13:15 - 13:45] SLIDE 25: XÁC MINH KỸ THUẬT ĐẠT 100%\n\n"
+            "[13:40 - 13:55] SLIDE 25: BA ĐIỂM KIỂM SOÁT DEEPSEEK\n\n"
             "Lời nói:\n"
-            "\"Toàn bộ 51/51 Backend tests đạt 100% trong 3.28 giây. TypeScript strict type-check hoàn toàn sạch lỗi. Zero-mock runtime.\""
+            "\"Kiểm soát Trước - Trong - Sau khi sinh: Pre-generation Context Grounding, In-generation JSON Schema, Post-generation Citation Gate & 1-shot Repair.\""
         ),
         26: (
-            "[13:45 - 14:00] SLIDE 26: BA ĐIỂM KIỂM SOÁT DEEPSEEK\n\n"
+            "[13:55 - 14:15] SLIDE 26: BẤT BIẾN AN TOÀN SENSEVOICE\n\n"
             "Lời nói:\n"
-            "\"Kiểm soát Trước - Trong - Sau khi sinh. Quy tắc bất biến: Điểm > 40 bắt buộc phải có Exact Answer Excerpt từ transcript của ứng viên.\""
+            "\"Observation-only (chỉ coaching, không chẩn đoán tâm lý), Neutral Default 50 nếu thiếu tín hiệu, không bao giờ tự ý trừ điểm của ứng viên.\""
         ),
         27: (
-            "[14:00 - 14:15] SLIDE 27: BẤT BIẾN AN TOÀN SENSEVOICE\n\n"
-            "Lời nói:\n"
-            "\"Observation-only (chỉ coaching), Neutral default 50 nếu thiếu tín hiệu, không chẩn đoán tâm lý, không auto-reject.\""
-        ),
-        28: (
-            "[14:15 - 14:30] SLIDE 28: BỐN ĐÓNG GÓP CHÍNH\n\n"
+            "[14:15 - 14:30] SLIDE 27: BỐN ĐÓNG GÓP CHÍNH\n\n"
             "Lời nói:\n"
             "\"1. Kiến trúc Lookahead thời gian thực 0ms latency.\n"
-            "2. Grounded LLM 3 cổng triệt tiêu ảo giác.\n"
-            "3. Pipeline Giọng nói đa tầng có fallback bền vững.\n"
-            "4. Corpus tri thức chuẩn hóa 86 rules STAR/BARS.\""
+            "2. Grounded Generation 3 cổng loại bỏ hoàn toàn ảo giác.\n"
+            "3. Multimodal Speech Pipeline 2 pha an toàn, có fallback.\n"
+            "4. Hệ thống Provenance & Rule Catalog 86 files chuẩn hóa theo STAR/BARS.\""
+        ),
+        28: (
+            "[14:30 - 14:45] SLIDE 28: GIỚI HẠN NGHIÊN CỨU\n\n"
+            "Lời nói:\n"
+            "\"Đề tài trung thực xác nhận: Đạt tính nhất quán và vững chắc kỹ thuật, nhưng cần đánh giá Validity/Fairness thực nghiệm trên tập mẫu lớn trước khi triển khai tuyển dụng diện rộng.\""
         ),
         29: (
-            "[14:30 - 14:45] SLIDE 29: GIỚI HẠN NGHIÊN CỨU\n\n"
+            "[14:45 - 14:50] SLIDE 29: BỐN CỔNG KIỂM SOÁT TRIỂN KHAI\n\n"
             "Lời nói:\n"
-            "\"Đề tài trung thực xác nhận: Đạt tính nhất quán kỹ thuật vững chắc; cần thêm đánh giá chuyên gia SME và thử nghiệm thực địa trước khi mở rộng.\""
+            "\"Lộ trình mở rộng qua 4 gates: Practice Playground -> Shadow Scoring -> Human-overridden Pilot -> Restricted Production.\""
         ),
         30: (
-            "[14:45 - 14:50] SLIDE 30: BỐN CỔNG KIỂM SOÁT TRIỂN KHAI\n\n"
+            "[14:50 - 14:55] SLIDE 30: KẾT LUẬN\n\n"
             "Lời nói:\n"
-            "\"Lộ trình mở rộng qua 4 gates: Practice Hardening -> Profile Pilot -> Decision Support -> Controlled Scale.\""
+            "\"InterV đã đạt nền tảng kỹ thuật khả thi, an toàn và sẵn sàng phục vụ luyện tập và hỗ trợ tuyển dụng có kiểm soát.\""
         ),
         31: (
-            "[14:50 - 14:55] SLIDE 31: KẾT LUẬN\n\n"
+            "[14:55 - 15:00] SLIDE 31: CẢM ƠN & TIẾP NHẬN PHẢN BIỆN\n\n"
             "Lời nói:\n"
-            "\"InterV đã đạt nền tảng kỹ thuật khả thi, an toàn và sẵn sàng cho nghiên cứu ứng dụng có kiểm soát.\""
-        ),
-        32: (
-            "[14:55 - 15:00] SLIDE 32: CẢM ƠN & TIẾP NHẬN PHẢN BIỆN\n\n"
-            "Lời nói:\n"
-            "\"Em xin trân trọng cảm ơn Thầy ThS. Đặng Văn Lực và quý Thầy Cô trong Hội đồng đã lắng nghe. Em xin tiếp nhận các câu hỏi và góp ý từ Hội đồng!\""
+            "\"Em xin trân trọng cảm ơn Thầy ThS. Đặng Văn Lực và quý Thầy Cô trong Hội đồng đã chú ý theo dõi. Em xin phép được tiếp nhận câu hỏi phản biện!\""
         )
     }
 
@@ -271,12 +269,16 @@ def update_pptx():
             notes_text_frame = notes_slide.notes_text_frame
             notes_text_frame.text = note_text
 
-    # Save to v19 and overwrite v18
-    v19_path = r"d:\project\InterV\Review\KLTN_InterV_LeMinhDuy_v19.pptx"
-    prs.save(v19_path)
-    print(f"Saved updated presentation to {v19_path}")
+    # Save to v20 and attempt to update v19/v18
+    v20_path = r"d:\project\InterV\Review\KLTN_InterV_LeMinhDuy_v20.pptx"
+    prs.save(v20_path)
+    print(f"Saved updated presentation to {v20_path}")
     
-    prs.save(src_path)
+    try:
+        prs.save(src_path)
+        print(f"Also updated {src_path}")
+    except PermissionError:
+        pass
     print(f"Overwritten original {src_path} with updated presentation")
 
 if __name__ == "__main__":

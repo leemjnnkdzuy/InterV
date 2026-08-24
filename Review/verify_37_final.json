@@ -1,0 +1,261 @@
+[
+  {
+    "slide_num": 1,
+    "layout": "TITLE",
+    "badge": "",
+    "title": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG V",
+    "note_header": "[00:00 - 00:30] SLIDE 1: GIỚI THIỆU ĐỀ TÀI"
+  },
+  {
+    "slide_num": 2,
+    "layout": "CUSTOM_11",
+    "badge": "",
+    "title": "Lộ trình trình bày",
+    "note_header": "[00:30 - 00:50] SLIDE 2: LỘ TRÌNH BÀI TRÌNH BÀY"
+  },
+  {
+    "slide_num": 3,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Bài toán",
+    "note_header": "[00:50 - 00:55] PHẦN 01: BÀI TOÁN & MỤC TIÊU"
+  },
+  {
+    "slide_num": 4,
+    "layout": "CUSTOM_4",
+    "badge": "#01",
+    "title": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người",
+    "note_header": "[00:55 - 01:15] SLIDE 4: BÀI TOÁN & THỰC TRẠNG"
+  },
+  {
+    "slide_num": 5,
+    "layout": "CUSTOM_4",
+    "badge": "#01",
+    "title": "Ba nhóm người dùng, ba ranh giới trách nhiệm",
+    "note_header": "[01:15 - 01:30] SLIDE 5: BA NHÓM NGƯỜI DÙNG & RANH GIỚI TRÁC"
+  },
+  {
+    "slide_num": 6,
+    "layout": "CUSTOM_11",
+    "badge": "#01",
+    "title": "Mục tiêu và câu hỏi nghiên cứu",
+    "note_header": "[01:30 - 01:45] SLIDE 6: MỤC TIÊU NGHIÊN CỨU"
+  },
+  {
+    "slide_num": 7,
+    "layout": "CUSTOM_5",
+    "badge": "#01",
+    "title": "Phạm vi đề tài được khóa bằng bốn nguyên tắc",
+    "note_header": "[01:45 - 02:00] SLIDE 7: BỐN NGUYÊN TẮC KHÓA PHẠM VI"
+  },
+  {
+    "slide_num": 8,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Phương pháp",
+    "note_header": "[02:00 - 02:05] PHẦN 02: PHƯƠNG PHÁP NGHIÊN CỨU"
+  },
+  {
+    "slide_num": 9,
+    "layout": "TITLE_ONLY_1",
+    "badge": "#02",
+    "title": "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”",
+    "note_header": "[02:05 - 02:20] SLIDE 9: PHƯƠNG PHÁP NGHIÊN CỨU"
+  },
+  {
+    "slide_num": 10,
+    "layout": "CUSTOM_4",
+    "badge": "#02",
+    "title": "Lý thuyết được chuyển thành cơ chế phần mềm",
+    "note_header": "[02:20 - 02:35] SLIDE 10: ÁNH XẠ LÝ THUYẾT VÀO HỆ THỐNG"
+  },
+  {
+    "slide_num": 11,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Thiết kế",
+    "note_header": "[02:35 - 02:40] PHẦN 03: THIẾT KẾ KIẾN TRÚC & PIPELINE"
+  },
+  {
+    "slide_num": 12,
+    "layout": "CUSTOM_26",
+    "badge": "#03",
+    "title": "AI + tri thức",
+    "note_header": "[02:40 - 03:05] SLIDE 12: KIẾN TRÚC TỔNG THỂ 2 TẦNG"
+  },
+  {
+    "slide_num": 13,
+    "layout": "CUSTOM_3_1",
+    "badge": "#03",
+    "title": "Mô hình dữ liệu giữ ownership và provenance",
+    "note_header": "[03:05 - 03:20] SLIDE 13: MÔ HÌNH DỮ LIỆU & PROVENANCE"
+  },
+  {
+    "slide_num": 14,
+    "layout": "CUSTOM_21",
+    "badge": "#03",
+    "title": "Ba actor dùng chung nền tảng nhưng không chia sẻ quyền quyết",
+    "note_header": "[03:20 - 03:35] SLIDE 14: USE CASE THEO QUYỀN SỞ HỮU"
+  },
+  {
+    "slide_num": 15,
+    "layout": "SECTION_HEADER_1",
+    "badge": "#03",
+    "title": "Lookahead thích ứng câu hỏi mà không ngắt phiên",
+    "note_header": "[03:35 - 05:30] SLIDE 15: LOOKAHEAD ADAPTIVE QUESTION ENGINE"
+  },
+  {
+    "slide_num": 16,
+    "layout": "CUSTOM_20",
+    "badge": "#03",
+    "title": "Grounded generation",
+    "note_header": "[05:30 - 07:00] SLIDE 16: GROUNDED GENERATION & CƠ CHẾ KIỂM "
+  },
+  {
+    "slide_num": 17,
+    "layout": "TITLE_ONLY",
+    "badge": "#03",
+    "title": "Vòng đời tài liệu RAG có provenance",
+    "note_header": "[07:00 - 08:00] SLIDE 17: VÒNG ĐỜI TÀI LIỆU RAG & HYBRID RET"
+  },
+  {
+    "slide_num": 18,
+    "layout": "CUSTOM_15",
+    "badge": "#03",
+    "title": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn",
+    "note_header": "[08:00 - 09:30] SLIDE 18: PIPELINE TIẾNG NÓI ĐA TẦNG (REALTI"
+  },
+  {
+    "slide_num": 19,
+    "layout": "CUSTOM_14",
+    "badge": "#03",
+    "title": "An toàn, quan sát và khả năng phục hồi",
+    "note_header": "[09:30 - 10:15] SLIDE 19: AN TOÀN, QUAN SÁT & KHẢ NĂNG PHỤC "
+  },
+  {
+    "slide_num": 20,
+    "layout": "SECTION_TITLE_AND_DESCRIPTION",
+    "badge": "#03",
+    "title": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán",
+    "note_header": "[10:15 - 10:45] SLIDE 20: HỢP ĐỒNG TYPED gRPC"
+  },
+  {
+    "slide_num": 21,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Sản phẩm",
+    "note_header": "[10:45 - 10:50] PHẦN 04: SẢN PHẨM & TRẢI NGHIỆM"
+  },
+  {
+    "slide_num": 22,
+    "layout": "CUSTOM_7_2",
+    "badge": "#04",
+    "title": "RBAC giữ quyền quyết định ở đúng actor",
+    "note_header": "[10:50 - 11:10] SLIDE 22: MA TRẬN PHÂN QUYỀN RBAC"
+  },
+  {
+    "slide_num": 23,
+    "layout": "CUSTOM_7_2",
+    "badge": "#04",
+    "title": "State machine giữ phiên luyện tập nhất quán",
+    "note_header": "[11:10 - 11:30] SLIDE 23: STATE MACHINE PHIÊN LUYỆN TẬP"
+  },
+  {
+    "slide_num": 24,
+    "layout": "CUSTOM_7_1",
+    "badge": "#04",
+    "title": "Vòng đời tuyển dụng tách mời, phiên và đánh giá",
+    "note_header": "[11:30 - 11:45] SLIDE 24: VÒNG ĐỜI TUYỂN DỤNG RECRUITER"
+  },
+  {
+    "slide_num": 25,
+    "layout": "CUSTOM_17",
+    "badge": "#04",
+    "title": "Fallback giữ phiên tiếp tục khi provider lỗi",
+    "note_header": "[11:45 - 12:00] SLIDE 25: CƠ CHẾ FALLBACK TOÀN DIỆN"
+  },
+  {
+    "slide_num": 26,
+    "layout": "CUSTOM_11",
+    "badge": "#04",
+    "title": "Stack công nghệ theo ranh giới trách nhiệm",
+    "note_header": "[12:00 - 12:20] SLIDE 26: STACK CÔNG NGHỆ"
+  },
+  {
+    "slide_num": 27,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Bằng chứng",
+    "note_header": "[12:20 - 12:25] PHẦN 05: BẰNG CHỨNG & XÁC MINH"
+  },
+  {
+    "slide_num": 28,
+    "layout": "CUSTOM_28",
+    "badge": "#05",
+    "title": "Quy mô hiện vật triển khai",
+    "note_header": "[12:25 - 13:10] SLIDE 28: QUY MÔ HIỆN VẬT TRIỂN KHAI"
+  },
+  {
+    "slide_num": 29,
+    "layout": "CUSTOM_36",
+    "badge": "#05",
+    "title": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng m",
+    "note_header": "[13:10 - 13:40] SLIDE 29: XÁC MINH KỸ THUẬT ĐẠT 100%"
+  },
+  {
+    "slide_num": 30,
+    "layout": "CUSTOM_4",
+    "badge": "#05",
+    "title": "DeepSeek/RAG được kiểm soát ở ba điểm",
+    "note_header": "[13:40 - 13:55] SLIDE 30: BA ĐIỂM KIỂM SOÁT DEEPSEEK"
+  },
+  {
+    "slide_num": 31,
+    "layout": "CUSTOM_5",
+    "badge": "#05",
+    "title": "Bất biến an toàn của SenseVoice",
+    "note_header": "[13:55 - 14:15] SLIDE 31: BẤT BIẾN AN TOÀN SENSEVOICE"
+  },
+  {
+    "slide_num": 32,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Kết luận",
+    "note_header": "[14:15 - 14:20] PHẦN 06: KẾT LUẬN & ĐÓNG GÓP"
+  },
+  {
+    "slide_num": 33,
+    "layout": "CUSTOM_5",
+    "badge": "#06",
+    "title": "Bốn đóng góp chính",
+    "note_header": "[14:20 - 14:35] SLIDE 33: BỐN ĐÓNG GÓP CHÍNH"
+  },
+  {
+    "slide_num": 34,
+    "layout": "CUSTOM_4",
+    "badge": "#06",
+    "title": "Giới hạn cần được đọc cùng kết quả",
+    "note_header": "[14:35 - 14:50] SLIDE 34: GIỚI HẠN NGHIÊN CỨU"
+  },
+  {
+    "slide_num": 35,
+    "layout": "TITLE_ONLY",
+    "badge": "#06",
+    "title": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa",
+    "note_header": "[14:50 - 14:55] SLIDE 35: BỐN CỔNG KIỂM SOÁT TRIỂN KHAI"
+  },
+  {
+    "slide_num": 36,
+    "layout": "MAIN_POINT",
+    "badge": "#06",
+    "title": "InterV đã đạt nền tảng kỹ thuật khả thi cho nghiên cứu và tr",
+    "note_header": "[14:55 - 14:58] SLIDE 36: KẾT LUẬN"
+  },
+  {
+    "slide_num": 37,
+    "layout": "SECTION_HEADER",
+    "badge": "",
+    "title": "Kết luận",
+    "note_header": "[14:15 - 14:20] PHẦN 06: KẾT LUẬN & ĐÓNG GÓP"
+  }
+]

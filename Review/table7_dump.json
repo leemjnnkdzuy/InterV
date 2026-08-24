@@ -1,0 +1,26 @@
+[
+  [
+    "Thành phần",
+    "Vai trò chính",
+    "Đầu ra dùng trong InterV",
+    "Giới hạn"
+  ],
+  [
+    "AssemblyAI",
+    "ASR streaming",
+    "Transcript thời gian thực, token phiên.",
+    "Phụ thuộc dịch vụ mạng và khóa cấu hình."
+  ],
+  [
+    "Faster-Whisper",
+    "ASR dự phòng",
+    "Transcript và ngôn ngữ khi luồng chính thiếu.",
+    "Tài nguyên cục bộ, độ trễ theo thiết bị."
+  ],
+  [
+    "SenseVoice",
+    "LID + SER + AED + ASR giàu tag",
+    "Ngôn ngữ, emotion tag, sự kiện âm thanh, observation.",
+    "Không phải công cụ đo tâm lý hay năng lực."
+  ]
+]

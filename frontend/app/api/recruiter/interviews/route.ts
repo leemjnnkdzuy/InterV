@@ -189,6 +189,18 @@ async function POSTHandler(request: NextRequest) {
       campaign: validation.data,
       candidates: eligibility.candidates,
     });
+    if (!created.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "INSUFFICIENT_CREDITS",
+          message: `Không đủ Credits. Bạn cần ${created.requiredCredits} Credits để tạo phỏng vấn cho ${eligibility.candidates.length} ứng viên, nhưng số dư hiện tại là ${created.balanceCredits} Credits.`,
+          requiredCredits: created.requiredCredits,
+          balanceCredits: created.balanceCredits,
+        },
+        { status: 402 }
+      );
+    }
     await recordAdminAudit({
       request,
       actorId: actor.payload.userId,
@@ -196,11 +208,13 @@ async function POSTHandler(request: NextRequest) {
       action: "RECRUITMENT_CAMPAIGN_CREATED",
       targetType: "RecruitmentCampaign",
       targetId: created.campaignId,
-      summary: `Tạo chiến dịch "${validation.data.title}" với ${eligibility.candidates.length} ứng viên`,
+      summary: `Tạo chiến dịch "${validation.data.title}" với ${eligibility.candidates.length} ứng viên (-${created.chargedCredits} Credits)`,
       changes: {
         candidateCount: eligibility.candidates.length,
         questionCount: validation.data.questionCount,
         endsAt: validation.data.endsAt.toISOString(),
+        chargedCredits: created.chargedCredits,
+        remainingCredits: created.remainingCredits,
       },
     });
     after(async () => {
@@ -213,6 +227,8 @@ async function POSTHandler(request: NextRequest) {
           "Đã tạo cuộc phỏng vấn. Thư mời đang được gửi tự động đến ứng viên.",
         campaignId: created.campaignId,
         invitationCount: created.invitationIds.length,
+        chargedCredits: created.chargedCredits,
+        remainingCredits: created.remainingCredits,
         emailDispatch: "QUEUED",
       },
       { status: 201 }

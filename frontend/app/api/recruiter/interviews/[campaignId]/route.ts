@@ -12,9 +12,13 @@ import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
 } from "@/app/lib/ServerSecurity";
+import { QUESTION_CREDIT_COST } from "@/app/lib/PracticeBilling";
+import { publishCreditUpdated } from "@/app/lib/CreditEvents";
+import CreditLog from "@/app/models/CreditLog";
 import PracticeSession from "@/app/models/PracticeSession";
 import RecruitmentCampaign from "@/app/models/RecruitmentCampaign";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
+import User from "@/app/models/User";
 import type { IPracticeSession } from "@/app/types";
 
 const CAMPAIGN_STATUSES = new Set(["ACTIVE", "CLOSED", "ARCHIVED"]);
@@ -240,6 +244,8 @@ async function PATCHHandler(
       );
     }
 
+    let archivedRefundAmount = 0;
+    let archivedUpdatedBalance = 0;
     const dbSession = await mongoose.startSession();
     try {
       await dbSession.withTransaction(async () => {
@@ -312,6 +318,61 @@ async function PATCHHandler(
           );
         }
         if (updates.status === "ARCHIVED") {
+          const unattemptedInvitations = await RecruitmentInvitation.find({
+            campaignId: transactionalCampaign._id,
+            status: { $in: ["INVITED", "VIEWED"] },
+          })
+            .select("_id candidateEmail practiceSessionId")
+            .session(dbSession)
+            .lean();
+
+          if (unattemptedInvitations.length > 0) {
+            const costPerCandidate =
+              (transactionalCampaign.questionCount || 5) * QUESTION_CREDIT_COST;
+            const totalRefund = unattemptedInvitations.length * costPerCandidate;
+            archivedRefundAmount = totalRefund;
+
+            const recruiter = await User.findByIdAndUpdate(
+              actor.payload.userId,
+              { $inc: { credits: totalRefund } },
+              { returnDocument: "after", session: dbSession }
+            ).select("credits");
+
+            if (recruiter) {
+              archivedUpdatedBalance = recruiter.credits;
+            }
+
+            await CreditLog.create(
+              [
+                {
+                  userId: actor.payload.userId,
+                  credits: totalRefund,
+                  action: "RECRUITMENT_REFUND",
+                  referenceId: transactionalCampaign._id.toString(),
+                  description: `Hoàn ${totalRefund} Credits khi lưu trữ chiến dịch "${transactionalCampaign.title}" (${unattemptedInvitations.length} ứng viên chưa phỏng vấn)`,
+                  metadata: {
+                    campaignId: transactionalCampaign._id.toString(),
+                    candidateCount: unattemptedInvitations.length,
+                    costPerCandidate,
+                    totalRefund,
+                  },
+                },
+              ],
+              { session: dbSession }
+            );
+
+            const sessionIds = unattemptedInvitations
+              .map((inv) => inv.practiceSessionId)
+              .filter(Boolean);
+            if (sessionIds.length > 0) {
+              await PracticeSession.updateMany(
+                { _id: { $in: sessionIds } },
+                { $set: { expiresAt: new Date(0) } },
+                { session: dbSession }
+              );
+            }
+          }
+
           await RecruitmentInvitation.updateMany(
             {
               campaignId: transactionalCampaign._id,
@@ -328,7 +389,11 @@ async function PATCHHandler(
           action: "RECRUITMENT_CAMPAIGN_UPDATED",
           targetType: "RecruitmentCampaign",
           targetId: transactionalCampaign._id.toString(),
-          summary: `Cập nhật chiến dịch "${transactionalCampaign.title}"`,
+          summary: `Cập nhật chiến dịch "${transactionalCampaign.title}"${
+            archivedRefundAmount > 0
+              ? ` (+${archivedRefundAmount} Credits hoàn trả)`
+              : ""
+          }`,
           changes: updates,
           session: dbSession,
         });
@@ -336,9 +401,22 @@ async function PATCHHandler(
     } finally {
       await dbSession.endSession();
     }
+    if (archivedRefundAmount > 0) {
+      publishCreditUpdated({
+        userId: actor.payload.userId,
+        balance: archivedUpdatedBalance,
+        delta: archivedRefundAmount,
+        reason: "RECRUITMENT_REFUND",
+        referenceId: campaignId,
+      });
+    }
     return NextResponse.json({
       success: true,
-      message: "Đã cập nhật cuộc phỏng vấn",
+      message:
+        archivedRefundAmount > 0
+          ? `Đã cập nhật cuộc phỏng vấn và hoàn ${archivedRefundAmount} Credits cho các ứng viên chưa làm bài`
+          : "Đã cập nhật cuộc phỏng vấn",
+      refundedCredits: archivedRefundAmount > 0 ? archivedRefundAmount : undefined,
     });
   } catch (error: unknown) {
     if (error instanceof RateLimitError) {

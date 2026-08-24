@@ -1,0 +1,354 @@
+[
+  {
+    "index": 0,
+    "slide_number": 1,
+    "title": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG TÍCH HỢP XỬ LÝ GIỌNG NÓI ĐA TẦNG, TRUY XUẤT TRI THỨC TĂNG CƯỜNG (RAG) VÀ MÔ HÌNH NGÔN NGỮ LỚN",
+    "first_few_texts": [
+      "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG TÍCH HỢP XỬ LÝ GIỌNG NÓI ĐA TẦNG, TRUY XUẤT TRI THỨC TĂNG CƯỜNG (RAG) VÀ MÔ HÌNH NGÔN NGỮ LỚN",
+      "Sinh viên: Lê Minh Duy - MSSV: 221A011220",
+      "GVHD: ThS. Đặng Văn Lực • Trường Đại học Văn Hiến • 2026"
+    ],
+    "notes_preview": "[00:00 - 00:30] SLIDE 1: GIỚI THIỆU ĐỀ TÀI  Lời nói: \"Kính thưa quý Thầy Cô trong Hội đồng. Em tên l"
+  },
+  {
+    "index": 1,
+    "slide_number": 2,
+    "title": "Lộ trình trình bày",
+    "first_few_texts": [
+      "Lộ trình trình bày",
+      "01",
+      "Bài toán"
+    ],
+    "notes_preview": "[00:30 - 00:50] SLIDE 2: LỘ TRÌNH BÀI TRÌNH BÀY  Lời nói: \"Nội dung trình bày gồm 6 phần chính. Để l"
+  },
+  {
+    "index": 2,
+    "slide_number": 3,
+    "title": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người",
+    "first_few_texts": [
+      "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người",
+      "LLM thiếu căn cứ",
+      "Câu hỏi có thể trôi chảy nhưng lệch JD hoặc không truy nguyên."
+    ],
+    "notes_preview": "[00:50 - 01:15] SLIDE 3: BÀI TOÁN & THỰC TRẠNG  Lời nói: \"Các hệ thống phỏng vấn AI hiện nay thường "
+  },
+  {
+    "index": 3,
+    "slide_number": 4,
+    "title": "Ba nhóm người dùng, ba ranh giới trách nhiệm",
+    "first_few_texts": [
+      "Ba nhóm người dùng, ba ranh giới trách nhiệm",
+      "Recruiter",
+      "Quản lý JD, chiến dịch, bằng chứng và đánh giá cuối."
+    ],
+    "notes_preview": "[01:15 - 01:30] SLIDE 4: BA NHÓM NGƯỜI DÙNG & RANH GIỚI TRÁCH NHIỆM  Lời nói: \"Hệ thống phân định 3 "
+  },
+  {
+    "index": 4,
+    "slide_number": 5,
+    "title": "Mục tiêu và câu hỏi nghiên cứu",
+    "first_few_texts": [
+      "Mục tiêu và câu hỏi nghiên cứu",
+      "01",
+      "Hai chế độ"
+    ],
+    "notes_preview": "[01:30 - 01:45] SLIDE 5: MỤC TIÊU NGHIÊN CỨU  Lời nói: \"Sáu mục tiêu thiết kế: Tách 2 chế độ, Ground"
+  },
+  {
+    "index": 5,
+    "slide_number": 6,
+    "title": "Phạm vi đề tài được khóa bằng bốn nguyên tắc",
+    "first_few_texts": [
+      "Phạm vi đề tài được khóa bằng bốn nguyên tắc",
+      "Ngoài phạm vi: chẩn đoán tâm lý • auto-hire/auto-reject • tuyên bố validity/fairness.",
+      "01"
+    ],
+    "notes_preview": "[01:45 - 02:00] SLIDE 6: BỐN NGUYÊN TẮC KHÓA PHẠM VI  Lời nói: \"Phạm vi đề tài được khóa bằng 4 nguy"
+  },
+  {
+    "index": 6,
+    "slide_number": 7,
+    "title": "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”",
+    "first_few_texts": [
+      "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”",
+      "Thiết kế hệ thống",
+      "Kiến trúc, pipeline, state và sequence"
+    ],
+    "notes_preview": "[02:00 - 02:15] SLIDE 7: PHƯƠNG PHÁP NGHIÊN CỨU  Lời nói: \"Phương pháp tách rõ hai tầng: Xác minh kỹ"
+  },
+  {
+    "index": 7,
+    "slide_number": 8,
+    "title": "Lý thuyết được chuyển thành cơ chế phần mềm",
+    "first_few_texts": [
+      "Lý thuyết được chuyển thành cơ chế phần mềm",
+      "STAR + BARS",
+      "Hành vi quan sát được gắn với mốc đánh giá."
+    ],
+    "notes_preview": "[02:15 - 02:30] SLIDE 8: ÁNH XẠ LÝ THUYẾT VÀO HỆ THỐNG  Lời nói: \"Các khung lý thuyết chuẩn được chu"
+  },
+  {
+    "index": 8,
+    "slide_number": 9,
+    "title": "AI + tri thức",
+    "first_few_texts": [
+      "AI + tri thức",
+      "Python/gRPC (16 RPCs), DeepSeek, Qdrant, speech",
+      "Web + BFF"
+    ],
+    "notes_preview": "[02:30 - 03:00] SLIDE 9: KIẾN TRÚC TỔNG THỂ 2 TẦNG  Lời nói: \"Kiến trúc phân tầng rạch ròi: • Web/BF"
+  },
+  {
+    "index": 9,
+    "slide_number": 10,
+    "title": "Mô hình dữ liệu giữ ownership và provenance",
+    "first_few_texts": [
+      "Mô hình dữ liệu giữ ownership và provenance",
+      "User, job, invitation, interview, answer, evaluation và audit liên kết theo vòng đời.",
+      "User"
+    ],
+    "notes_preview": "[03:00 - 03:15] SLIDE 10: MÔ HÌNH DỮ LIỆU & PROVENANCE  Lời nói: \"19 Mongoose models liên kết chặt c"
+  },
+  {
+    "index": 10,
+    "slide_number": 11,
+    "title": "Ba actor dùng chung nền tảng nhưng không chia sẻ quyền quyết định; AI nằm ngoài biên tuyển dụng.",
+    "first_few_texts": [
+      "Ba actor dùng chung nền tảng nhưng không chia sẻ quyền quyết định; AI nằm ngoài biên tuyển dụng.",
+      "InterV",
+      "application core"
+    ],
+    "notes_preview": "[03:15 - 03:30] SLIDE 11: USE CASE THEO QUYỀN SỞ HỮU  Lời nói: \"Các use case bảo đảm AI nằm ngoài bi"
+  },
+  {
+    "index": 11,
+    "slide_number": 12,
+    "title": "Lookahead thích ứng câu hỏi mà không ngắt phiên",
+    "first_few_texts": [
+      "Lookahead thích ứng câu hỏi mà không ngắt phiên",
+      "Qᵢ₊₁ được trả ngay; after() sinh Qᵢ₊₂ từ QA vừa commit.",
+      "01"
+    ],
+    "notes_preview": "[03:30 - 05:30] SLIDE 12: LOOKAHEAD ADAPTIVE QUESTION ENGINE (TRỌNG TÂM)  Lời nói: \"★ ĐIỂM SÁNG KIẾN"
+  },
+  {
+    "index": 12,
+    "slide_number": 13,
+    "title": "Grounded generation",
+    "first_few_texts": [
+      "Grounded generation",
+      "Chuẩn hóa context → truy hồi evidence → sinh JSON → hậu kiểm schema và citation.",
+      "02"
+    ],
+    "notes_preview": "[05:30 - 07:00] SLIDE 13: GROUNDED GENERATION & CƠ CHẾ KIỂM SOÁT  Lời nói: \"★ CƠ CHẾ GROUNDING 3 CỔN"
+  },
+  {
+    "index": 13,
+    "slide_number": 14,
+    "title": "Vòng đời tài liệu RAG có provenance",
+    "first_few_texts": [
+      "Vòng đời tài liệu RAG có provenance",
+      "Mỗi evidence ID truy ngược được về nguồn, phiên bản và trạng thái lưu giữ.",
+      "INGEST"
+    ],
+    "notes_preview": "[07:00 - 08:00] SLIDE 14: VÒNG ĐỜI TÀI LIỆU RAG & HYBRID RETRIEVAL  Lời nói: \"Kho tri thức 86 Rule M"
+  },
+  {
+    "index": 14,
+    "slide_number": 15,
+    "title": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn",
+    "first_few_texts": [
+      "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn",
+      "03",
+      "AssemblyAI streaming • Faster-Whisper fallback & batch • SenseVoice LID/SER/AED"
+    ],
+    "notes_preview": "[08:00 - 09:30] SLIDE 15: PIPELINE TIẾNG NÓI ĐA TẦNG (REALTIME & HẬU KỲ)  Lời nói: \"Kính thưa Thầy C"
+  },
+  {
+    "index": 15,
+    "slide_number": 16,
+    "title": "An toàn, quan sát và khả năng phục hồi",
+    "first_few_texts": [
+      "An toàn, quan sát và khả năng phục hồi",
+      "Auth/RBAC • schema • timeout/retry • audit/usage • health • graceful fallback",
+      "Auth + RBAC"
+    ],
+    "notes_preview": "[09:30 - 10:15] SLIDE 16: AN TOÀN, QUAN SÁT & KHẢ NĂNG PHỤC HỒI  Lời nói: \"5 lớp bảo vệ: Auth/RBAC, "
+  },
+  {
+    "index": 16,
+    "slide_number": 17,
+    "title": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán",
+    "first_few_texts": [
+      "Hợp đồng typed giữ TypeScript ↔ Python nhất quán",
+      "BFF xác thực và chuẩn hóa request; dữ liệu chỉ được lưu hoặc hiển thị sau khi qua schema validation.",
+      "REQUEST  →"
+    ],
+    "notes_preview": "[10:15 - 10:45] SLIDE 17: HỢP ĐỒNG TYPED gRPC  Lời nói: \"Typed RPC 16 phương thức ràng buộc giữa Typ"
+  },
+  {
+    "index": 17,
+    "slide_number": 18,
+    "title": "Phân rã module theo ranh giới nghiệp vụ",
+    "first_few_texts": [
+      "Phân rã module theo ranh giới nghiệp vụ",
+      "InterV core",
+      "Practice"
+    ],
+    "notes_preview": "[10:45 - 11:00] SLIDE 18: PHÂN RÃ MODULE NGHIỆP VỤ  Lời nói: \"Phân rã rõ ràng: Practice, Recruitment"
+  },
+  {
+    "index": 18,
+    "slide_number": 19,
+    "title": "RBAC giữ quyền quyết định ở đúng actor",
+    "first_few_texts": [
+      "RBAC giữ quyền quyết định ở đúng actor",
+      "Ứng viên",
+      "Practice"
+    ],
+    "notes_preview": "[11:00 - 11:15] SLIDE 19: MA TRẬN PHÂN QUYỀN RBAC  Lời nói: \"Candidate, Recruiter, Admin. AI không c"
+  },
+  {
+    "index": 19,
+    "slide_number": 20,
+    "title": "State machine giữ phiên luyện tập nhất quán",
+    "first_few_texts": [
+      "State machine giữ phiên luyện tập nhất quán",
+      "DRAFT",
+      "READY"
+    ],
+    "notes_preview": "[11:15 - 11:35] SLIDE 20: STATE MACHINE PHIÊN LUYỆN TẬP  Lời nói: \"Vòng đời nghiêm ngặt: Draft -> Re"
+  },
+  {
+    "index": 20,
+    "slide_number": 21,
+    "title": "Vòng đời tuyển dụng tách mời, phiên và đánh giá",
+    "first_few_texts": [
+      "Vòng đời tuyển dụng tách mời, phiên và đánh giá",
+      "Job + JD",
+      "Campaign"
+    ],
+    "notes_preview": "[11:35 - 11:50] SLIDE 21: VÒNG ĐỜI TUYỂN DỤNG RECRUITER  Lời nói: \"Job -> Campaign -> Invitation -> "
+  },
+  {
+    "index": 21,
+    "slide_number": 22,
+    "title": "Fallback giữ phiên tiếp tục khi provider lỗi",
+    "first_few_texts": [
+      "Fallback giữ phiên tiếp tục khi provider lỗi",
+      "Audio stream",
+      "AssemblyAI"
+    ],
+    "notes_preview": "[11:50 - 12:05] SLIDE 22: CƠ CHẾ FALLBACK TOÀN DIỆN  Lời nói: \"Minh họa đường đi chính (Primary) và "
+  },
+  {
+    "index": 22,
+    "slide_number": 23,
+    "title": "Stack công nghệ theo ranh giới trách nhiệm",
+    "first_few_texts": [
+      "Stack công nghệ theo ranh giới trách nhiệm",
+      "Mỗi nhóm công nghệ sở hữu một trách nhiệm; các lớp giao tiếp qua hợp đồng typed.",
+      "PRODUCT & STATE"
+    ],
+    "notes_preview": "[12:05 - 12:30] SLIDE 23: STACK CÔNG NGHỆ  Lời nói: \"Next.js 15, TypeScript, Tailwind v4, MongoDB Re"
+  },
+  {
+    "index": 23,
+    "slide_number": 24,
+    "title": "Quy mô hiện vật triển khai",
+    "first_few_texts": [
+      "Quy mô hiện vật triển khai",
+      "Các con số được đối chiếu trực tiếp từ repository và hợp đồng dịch vụ.",
+      "72.445"
+    ],
+    "notes_preview": "[12:30 - 13:15] SLIDE 24: QUY MÔ HIỆN VẬT TRIỂN KHAI  Lời nói: \"Con số thực tế từ repository: • Hơn "
+  },
+  {
+    "index": 24,
+    "slide_number": 25,
+    "title": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh",
+    "first_few_texts": [
+      "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh",
+      "Kiểm tra bổ sung: TypeScript ✓ • corpus provenance ✓ • backend 51/51 ✓",
+      "51/51"
+    ],
+    "notes_preview": "[13:15 - 13:45] SLIDE 25: XÁC MINH KỸ THUẬT ĐẠT 100%  Lời nói: \"Toàn bộ 51/51 Backend tests đạt 100%"
+  },
+  {
+    "index": 25,
+    "slide_number": 26,
+    "title": "DeepSeek/RAG được kiểm soát ở ba điểm",
+    "first_few_texts": [
+      "DeepSeek/RAG được kiểm soát ở ba điểm",
+      "Trong khi sinh",
+      "Prompt yêu cầu JSON cấu trúc và citation."
+    ],
+    "notes_preview": "[13:45 - 14:00] SLIDE 26: BA ĐIỂM KIỂM SOÁT DEEPSEEK  Lời nói: \"Kiểm soát Trước - Trong - Sau khi si"
+  },
+  {
+    "index": 26,
+    "slide_number": 27,
+    "title": "Bất biến an toàn của SenseVoice",
+    "first_few_texts": [
+      "Bất biến an toàn của SenseVoice",
+      "Mặc định an toàn: confidence/composure = 50 (trung tính); tín hiệu giọng nói chỉ dùng để mô tả.",
+      "01"
+    ],
+    "notes_preview": "[14:00 - 14:15] SLIDE 27: BẤT BIẾN AN TOÀN SENSEVOICE  Lời nói: \"Observation-only (chỉ coaching), Ne"
+  },
+  {
+    "index": 27,
+    "slide_number": 28,
+    "title": "Bốn đóng góp chính",
+    "first_few_texts": [
+      "Bốn đóng góp chính",
+      "Mỗi đóng góp đều có thể truy ngược về code, proto, rule và kiểm thử.",
+      "01"
+    ],
+    "notes_preview": "[14:15 - 14:30] SLIDE 28: BỐN ĐÓNG GÓP CHÍNH  Lời nói: \"1. Kiến trúc Lookahead thời gian thực 0ms la"
+  },
+  {
+    "index": 28,
+    "slide_number": 29,
+    "title": "Giới hạn cần được đọc cùng kết quả",
+    "first_few_texts": [
+      "Giới hạn cần được đọc cùng kết quả",
+      "Blueprint cần SME",
+      "60 profile cần chuyên gia miền thẩm định."
+    ],
+    "notes_preview": "[14:30 - 14:45] SLIDE 29: GIỚI HẠN NGHIÊN CỨU  Lời nói: \"Đề tài trung thực xác nhận: Đạt tính nhất q"
+  },
+  {
+    "index": 29,
+    "slide_number": 30,
+    "title": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa",
+    "first_few_texts": [
+      "Bốn cổng kiểm soát trước khi mở rộng tự động hóa",
+      "Validity, fairness, legal review",
+      "1–2 profile có SME, BARS"
+    ],
+    "notes_preview": "[14:45 - 14:50] SLIDE 30: BỐN CỔNG KIỂM SOÁT TRIỂN KHAI  Lời nói: \"Lộ trình mở rộng qua 4 gates: Pra"
+  },
+  {
+    "index": 30,
+    "slide_number": 31,
+    "title": "InterV đã đạt nền tảng kỹ thuật khả thi",
+    "first_few_texts": [
+      "InterV đã đạt nền tảng kỹ thuật khả thi",
+      "cho nghiên cứu và triển khai có kiểm soát",
+      "KẾT LUẬN"
+    ],
+    "notes_preview": "[14:50 - 14:55] SLIDE 31: KẾT LUẬN  Lời nói: \"InterV đã đạt nền tảng kỹ thuật khả thi, an toàn và sẵ"
+  },
+  {
+    "index": 31,
+    "slide_number": 32,
+    "title": "Cảm ơn Hội đồng",
+    "first_few_texts": [
+      "Cảm ơn Hội đồng",
+      "Em xin tiếp nhận câu hỏi và góp ý.",
+      "Q&A"
+    ],
+    "notes_preview": "[14:55 - 15:00] SLIDE 32: CẢM ƠN & TIẾP NHẬN PHẢN BIỆN  Lời nói: \"Em xin trân trọng cảm ơn Thầy ThS."
+  }
+]

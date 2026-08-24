@@ -24,15 +24,15 @@ export default function DashboardLayout({
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={false}>
-        <div className="relative flex min-h-screen w-full overflow-hidden bg-background text-foreground">
+        <div className="relative flex min-h-screen w-full bg-background text-foreground">
           <div className="fixed inset-0 z-0 pointer-events-none">
             <SilkBackground />
           </div>
           <DashboardSidebar scope={scope} />
           <SidebarInset className="relative z-10 min-w-0 bg-transparent">
-            <main className="min-w-0 flex-1 px-5 py-8 md:px-10 lg:px-16 xl:px-20">
+            <div className="min-w-0 flex-1 px-5 py-8 md:px-10 lg:px-16 xl:px-20">
               <div className="mx-auto w-full max-w-[1600px]">{children}</div>
-            </main>
+            </div>
           </SidebarInset>
         </div>
       </SidebarProvider>

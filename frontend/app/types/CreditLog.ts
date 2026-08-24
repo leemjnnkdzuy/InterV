@@ -9,7 +9,9 @@ export interface ICreditLog extends Document {
     | "AI_INTERVIEW_REFUND"
     | "AI_JD_EXTRACT"
     | "REGISTER_BONUS"
-    | "ADMIN_ADJUST";
+    | "ADMIN_ADJUST"
+    | "RECRUITMENT_CAMPAIGN"
+    | "RECRUITMENT_REFUND";
   description?: string;
   referenceId?: string;
   metadata?: Record<string, unknown>;

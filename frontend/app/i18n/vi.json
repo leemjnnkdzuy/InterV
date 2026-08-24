@@ -195,7 +195,9 @@
     "AI_INTERVIEW": "Phỏng vấn AI",
     "AI_INTERVIEW_REFUND": "Hoàn Credits phỏng vấn AI",
     "AI_JD_EXTRACT": "Trích xuất JD",
-    "ADMIN_ADJUST": "Điều chỉnh bởi Admin"
+    "ADMIN_ADJUST": "Điều chỉnh bởi Admin",
+    "RECRUITMENT_CAMPAIGN": "Chiến dịch tuyển dụng",
+    "RECRUITMENT_REFUND": "Hoàn Credits tuyển dụng"
   },
   "sidebar": {
     "dashboard": "Bảng điều khiển",

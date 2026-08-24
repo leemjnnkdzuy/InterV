@@ -1,0 +1,707 @@
+[
+  {
+    "index": 25,
+    "style": "Front Matter",
+    "text": "Tôi chịu trách nhiệm về tính trung thực của nội dung, tính hợp lệ của nguồn trích dẫn và ranh giới giữa kết quả đã kiểm chứng với định hướng phát triển. Đặc biệt, các tín hiệu âm thanh do SenseVoice sinh ra chỉ được mô tả như đầu ra kỹ thuật hỗ trợ luyện tập, không được diễn giải thành chẩn đoán tâm lý, phát hiện nói dối hoặc bằng chứng tuyển dụng."
+  },
+  {
+    "index": 42,
+    "style": "Front Matter",
+    "text": "Đóng góp kỹ thuật trọng tâm là pipeline hội thoại có cấu trúc. DeepSeek đảm nhiệm trích xuất JD, sinh câu hỏi, tạo opening turn từ phần giới thiệu, tạo follow-up và tổng hợp evaluation theo JSON schema. Qdrant cung cấp evidence với grounding ID được allow-list; SenseVoice cung cấp tín hiệu âm thanh quan sát được; AssemblyAI và Faster-Whisper tạo lớp transcript dự phòng. Hệ thống cũng bổ sung auto-turn-taking, text-only fallback, lưu preview TTS dùng chung, lịch sử practice phân trang và đối soát PayOS theo trạng thái."
+  },
+  {
+    "index": 44,
+    "style": "Front Matter",
+    "text": "Từ khóa: phỏng vấn có cấu trúc, trí tuệ nhân tạo, DeepSeek, SenseVoice, RAG, Qdrant, tâm lý phỏng vấn, đánh giá có căn cứ."
+  },
+  {
+    "index": 47,
+    "style": "Front Matter",
+    "text": "This thesis presents InterV, an AI-assisted interview and interview-practice system for candidates, recruiters, and administrators. The platform supports practice and recruitment workflows. The practice flow now includes a candidate introduction, a grounded opening turn, adaptive follow-up questions, realtime transcription, optional automatic turn-taking, text fallback, and a persisted analysis result. The recruitment flow adds job descriptions, campaigns, invitations, candidate profile evidence, and human review."
+  },
+  {
+    "index": 48,
+    "style": "Front Matter",
+    "text": "The main technical contribution is a structured conversation pipeline. DeepSeek performs job-description extraction, question generation, opening-turn generation, follow-up generation, and schema-constrained evaluation. Qdrant supplies allow-listed evidence identifiers; AssemblyAI and Faster-Whisper provide transcript paths; SenseVoice produces observable delivery signals without treating emotion tags as psychological or hiring decisions. The current source snapshot contains 499 text files, 61 Next.js route files, 73 HTTP methods, 19 Mongoose models, 16 gRPC RPCs, and 86 rule Markdown files. Backend and realtime tests, lint, and production build evidence are reported with their exact verification limits."
+  },
+  {
+    "index": 49,
+    "style": "Front Matter",
+    "text": "Keywords: structured interview, artificial intelligence, DeepSeek, SenseVoice, retrieval-augmented generation, interview psychology."
+  },
+  {
+    "index": 67,
+    "style": "Normal",
+    "text": "Mục tiêu tổng quát là xây dựng và đánh giá về mặt kỹ thuật một hệ thống phỏng vấn và luyện tập phỏng vấn tích hợp AI, trong đó kết quả sinh và đánh giá được ràng buộc bởi JD, rule, bằng chứng truy hồi và trạng thái phiên. Mục tiêu cụ thể gồm: hỗ trợ practice và recruitment trong cùng kiến trúc nhưng tách quyền và dữ liệu; nối phần giới thiệu ứng viên với competency đầu tiên bằng opening turn có kiểm chứng; duy trì hội thoại realtime có fallback; lưu kết quả, usage và audit có thể truy nguyên; và xác định rõ giới hạn trước khi dùng AI trong quyết định tuyển dụng."
+  },
+  {
+    "index": 72,
+    "style": "Normal",
+    "text": "SenseVoice nên được tích hợp và diễn giải thế nào để hữu ích cho luyện cách trình bày nhưng không tạo ra suy luận tâm lý quá mức?"
+  },
+  {
+    "index": 81,
+    "style": "List Paragraph",
+    "text": "- Dịch vụ AI. Chức năng chính: RAG, DeepSeek, STT, TTS, SenseVoice và hợp đồng gRPC.; Ranh giới quyền: Không tự đưa ra quyết định tuyển dụng cuối cùng."
+  },
+  {
+    "index": 87,
+    "style": "List Paragraph",
+    "text": "- Một pipeline tiếng nói phân vai giữa AssemblyAI streaming, Faster-Whisper fallback, Edge TTS và SenseVoice; hỗ trợ persistent session, auto-turn-taking, text-only fallback và bất biến không suy luận tâm lý từ emotion tag."
+  },
+  {
+    "index": 95,
+    "style": "Normal",
+    "text": "Đối với giảng viên và hội đồng, hiện vật quan trọng không chỉ là giao diện chạy được mà còn là khả năng đối chiếu giữa luận văn và mã nguồn. Vì vậy, các số lượng route, model, RPC, test và rule được lấy từ script kiểm kê; mô tả SenseVoice và DeepSeek được gắn với module triển khai; những kết luận chưa có thí nghiệm được ghi là giả thuyết hoặc kế hoạch đánh giá. Cách trình bày này giúp tránh biến một bản demo tốt thành tuyên bố khoa học vượt quá bằng chứng."
+  },
+  {
+    "index": 104,
+    "style": "Normal",
+    "text": "Trong từng lượt, câu hỏi được đọc bằng TTS và hiển thị bằng văn bản. Ở phần mở đầu, người dùng nghe opening prompt, ghi âm hoặc nhập text, sau đó transcript được lưu qua route opening. Backend gọi GenerateOpeningTurn để nối phần giới thiệu với competency đầu tiên bằng acknowledgement, transition và câu hỏi q_1. Ở các lượt tiếp theo, recorder gửi audio và transcript realtime; SubmitAnswer kiểm tra ownership, trạng thái, thứ tự câu và idempotency trước khi lưu QA, sau đó nhận follow-up có transition hoặc lấy câu hỏi đã được lookahead chuẩn bị. Auto-turn-taking có thể tự chốt final turn, còn text-only mode cho phép tiếp tục khi microphone hoặc streaming không dùng được."
+  },
+  {
+    "index": 105,
+    "style": "Normal",
+    "text": "Kết thúc phiên không đồng nghĩa kết quả luôn tồn tại. Hệ thống chỉ gọi EvaluateInterview khi QA history hợp lệ và SenseVoice đã phân tích ít nhất một audio sample. Với recruitment interview, finish route có thể chạy CandidateProfile extraction song song với evaluation; profile chỉ giữ thông tin có evidence từ transcript. Nếu audio không có, transcript rỗng hoặc JSON evaluation không vượt qua schema/grounding gate, run phải lưu trạng thái lỗi có thể giải thích thay vì nhận điểm mặc định giả."
+  },
+  {
+    "index": 119,
+    "style": "Normal",
+    "text": "Nhóm thứ tư liên quan đến AI. Một câu hỏi phải có text, competency, difficulty, expected signals và grounding ID hợp lệ. Opening turn bắt buộc dùng transition_type=opening_to_first; follow-up chỉ dùng continue_competency, probe_gap hoặc bridge_to_next_competency. Evaluation phải dựa trên QA history của đúng run, không lấy dữ liệu phiên khác. SenseVoice analysis phải có audio sample và provider đúng hợp đồng; emotion tag không được thay đổi confidence/composure hay quyết định tuyển dụng. Các quy tắc được kiểm tra ở schema, service validation, route guard, contract test và grounding test."
+  },
+  {
+    "index": 130,
+    "style": "List Paragraph",
+    "text": "- SenseVoice tags. Mục đích: Observation kỹ thuật.; Độ nhạy: Cao; Khuyến nghị vòng đời: Không tái sử dụng để profiling."
+  },
+  {
+    "index": 135,
+    "style": "Normal",
+    "text": "Tính khả thi kỹ thuật được hỗ trợ bởi việc tách frontend/BFF và AI backend. Next.js xử lý giao diện, session, route theo vai trò, payment state và realtime recorder; Python xử lý DeepSeek, Qdrant và speech. gRPC cung cấp contract typed giữa hai runtime với 16 RPC. Các provider ngoài có API chính thức, còn Qdrant và MongoDB có thể chạy cục bộ cho phát triển. Tuy nhiên, SenseVoice yêu cầu checkpoint và tài nguyên tính toán; độ trễ realtime và tính ổn định microphone vẫn cần browser E2E trên môi trường mục tiêu."
+  },
+  {
+    "index": 136,
+    "style": "Normal",
+    "text": "Tính khả thi vận hành phụ thuộc nhiều hơn vào cấu hình và giám sát. Hệ thống cần secret management, health check, quota, budget alert, retry/circuit breaker và backup. Việc có GetDeepSeekBalance và usage snapshot là nền tảng nhưng chưa đủ cho production; cần ngưỡng cảnh báo và dashboard theo operation. Streaming ASR phụ thuộc mạng nên phải thông báo trạng thái rõ và cho phép fallback có kiểm soát."
+  },
+  {
+    "index": 137,
+    "style": "Normal",
+    "text": "Tính khả thi khoa học là phần cần thận trọng nhất. Các nguyên tắc phỏng vấn cấu trúc có bằng chứng mạnh, nhưng ánh xạ sang 60 profile chưa được chuyên gia xác nhận. SenseVoice có khả năng SER/AED theo công bố mô hình, nhưng không có nghĩa các tag có hiệu lực đo trạng thái tâm lý trong tuyển dụng. DeepSeek có thể trả JSON và nội dung phù hợp, nhưng chất lượng phải được đánh giá theo rubric chuyên gia. Vì vậy, đề tài khả thi như hệ thống hỗ trợ và nền tảng nghiên cứu, chưa đủ bằng chứng cho tuyển chọn tự động."
+  },
+  {
+    "index": 172,
+    "style": "Normal",
+    "text": "Lo âu phỏng vấn và tải nhận thức: Lo âu phỏng vấn có thể biểu hiện ở suy nghĩ tự đánh giá, kích hoạt sinh lý và hành vi né tránh. McCarthy và Goffin xây dựng thang đo lo âu phỏng vấn việc làm đa chiều, cho thấy đây không phải một biến duy nhất có thể đọc trực tiếp từ giọng nói [5]. Một ứng viên nói nhanh có thể do lo âu, giới hạn thời gian, thói quen ngôn ngữ hoặc điều kiện thu âm. Vì vậy, hệ thống không được dùng tốc độ nói hay emotion tag để kết luận trạng thái tâm lý."
+  },
+  {
+    "index": 191,
+    "style": "Heading 2",
+    "text": "1.5. Xử lý tiếng nói nhiều tầng và SenseVoice"
+  },
+  {
+    "index": 192,
+    "style": "Normal",
+    "text": "Một mô hình duy nhất không tối ưu cho mọi nhiệm vụ âm thanh. InterV phân tách transcript trực tuyến, transcript dự phòng và phân tích tín hiệu phong phú. AssemblyAI cấp token streaming cho trình duyệt và trả transcript theo thời gian thực. Nếu transcript cuối trống hoặc cần xử lý tệp độc lập, Faster-Whisper cung cấp ASR dự phòng. SenseVoice không thay thế hoàn toàn hai vai trò này; nó bổ sung LID, SER và AED trên các đoạn âm thanh đã ghi."
+  },
+  {
+    "index": 193,
+    "style": "Table Caption",
+    "text": "Bảng 1.5. So sánh vai trò AssemblyAI, Faster-Whisper và SenseVoice"
+  },
+  {
+    "index": 195,
+    "style": "Normal",
+    "text": "SenseVoice: nền tảng, đầu ra và giới hạn — Khả năng mô hình: SenseVoice là mô hình nền tảng tiếng nói của FunAudioLLM, kết hợp nhận dạng tiếng nói, nhận diện ngôn ngữ, nhận dạng cảm xúc từ tiếng nói và phát hiện sự kiện âm thanh [11], [12]. Mô hình card của SenseVoiceSmall mô tả đầu ra chứa các token đặc biệt biểu diễn ngôn ngữ, cảm xúc và sự kiện. InterV tải checkpoint iic/SenseVoiceSmall qua FunASR, cố định revision và có thể kiểm tra SHA-256 để giảm rủi ro checkpoint bị thay đổi ngoài ý muốn."
+  },
+  {
+    "index": 197,
+    "style": "Normal",
+    "text": "Ngữ pháp tag và ánh xạ: Đầu ra mẫu có dạng <|en|><|ANGRY|><|Speech|> kèm văn bản. Parser của InterV tách ba nhóm token. Nhóm LID ánh xạ mã ngôn ngữ sang nhãn hiển thị. Nhóm SER thu thập emotion tag như neutral, happy, sad, angry hoặc các nhãn do checkpoint trả. Nhóm AED ghi nhận speech, background music, applause, laughter, crying, sneeze và cough. Các tag được tổng hợp theo nhiều đoạn ghi, sau đó chuyển thành observation có nguồn SenseVoice."
+  },
+  {
+    "index": 198,
+    "style": "Table Caption",
+    "text": "Bảng 1.6. Diễn giải đầu ra SenseVoice trong InterV"
+  },
+  {
+    "index": 200,
+    "style": "Normal",
+    "text": "Tiền xử lý và tổng hợp nhiều đoạn: Âm thanh được nhận theo chunk cùng run ID, question ID, transcript, content type, duration và cờ final. Persistent session giữ microphone, AudioWorklet và AssemblyAI WebSocket giữa các lượt auto-turn-taking; segment ID và turn order ngăn final message cũ đi vào lượt mới. Dịch vụ chuẩn hóa mẫu thành AudioSample rồi phân tích ngoài event loop bằng asyncio.to_thread. Nếu không có đoạn âm thanh đã ghi, đánh giá SenseVoice bị từ chối thay vì tạo dữ liệu mặc định giả."
+  },
+  {
+    "index": 201,
+    "style": "Normal",
+    "text": "Baseline âm thanh sử dụng duration và số từ để ước lượng tốc độ nói. Chỉ vocal_delivery được điều chỉnh theo các ngưỡng minh bạch nhằm gợi ý luyện pacing. Confidence và composure luôn khởi tạo ở 50 và không bị emotion tag thay đổi. Đây là placeholder trung tính để tương thích hợp đồng hiện tại, không phải điểm tâm lý. Kiểm thử bất biến xác nhận chuỗi <|en|><|ANGRY|><|Speech|> vẫn giữ hai giá trị này ở 50."
+  },
+  {
+    "index": 202,
+    "style": "Normal",
+    "text": "Giá trị sử dụng và giới hạn khoa học: SenseVoice hữu ích khi mô tả một số hiện tượng người dùng có thể tự kiểm tra: ngôn ngữ mô hình nhận ra, sự kiện âm thanh nền, transcript phụ và pacing. Nó không cung cấp thang đo đã chuẩn hóa cho confidence, composure, tính cách, mức phù hợp công việc hay khả năng nói dối. Nhãn SER còn chịu ảnh hưởng của ngôn ngữ, văn hóa, giọng vùng miền, micro, nén âm thanh, tiếng ồn và chênh lệch miền dữ liệu."
+  },
+  {
+    "index": 234,
+    "style": "List Paragraph",
+    "text": "- Time pressure. Biểu hiện: Nói nhanh hoặc câu trả lời ngắn.; Thiết kế hỗ trợ: Pacing rõ; practice có thể tạm dừng.; Rủi ro nếu xử lý sai: Nhầm tốc độ với confidence."
+  },
+  {
+    "index": 239,
+    "style": "Normal",
+    "text": "Ở chế độ luyện tập, mục tiêu hợp lý hơn là hỗ trợ self-efficacy. Hệ thống có thể chỉ ra câu trả lời đã có đủ Situation/Action/Result, đưa một gợi ý cải thiện cụ thể và cho phép luyện lại. Progress nên dựa trên hành vi người dùng kiểm soát được như evidence specificity, cấu trúc và pacing, không dựa trên nhãn 'lo âu'. Khi người dùng thấy tiến bộ có thể kiểm chứng, self-efficacy tăng mà không cần AI tuyên bố đọc cảm xúc."
+  },
+  {
+    "index": 242,
+    "style": "List Paragraph",
+    "text": "- Tốc độ từ/phút. Diễn giải được phép: Pacing trong đoạn thu.; Suy luận không hợp lệ: Lo âu, tự tin, năng lực.; Hành động phù hợp: Gợi ý nói chậm/nhanh hơn trong practice."
+  },
+  {
+    "index": 267,
+    "style": "Normal",
+    "text": "Schema version cũng cần quản trị. Khi thêm vocal_delivery hoặc thay tên field, frontend, proto và backend phải tương thích. Trong gRPC, trường mới có thể được thêm theo quy tắc protobuf nhưng ý nghĩa vẫn cần migration. Tài liệu phải ghi field nào là rating nội dung, field nào là observation, và field nào chỉ giữ tương thích. Nếu không, người dùng có thể hiểu nhầm giá trị 50 trung tính là một phép đo thật."
+  },
+  {
+    "index": 279,
+    "style": "Normal",
+    "text": "SenseVoice: chuỗi xử lý tín hiệu chi tiết — Thu nhận và chuẩn hóa âm thanh: Âm thanh bắt đầu từ MediaRecorder hoặc cơ chế tương đương trong trình duyệt. Content type và codec phụ thuộc browser, nên backend không được giả định mọi chunk là WAV PCM. Trước khi đưa vào model, hệ thống cần giải mã container, chuẩn hóa channel và sample rate theo yêu cầu FunASR, đồng thời bảo toàn duration. Nếu conversion lỗi, chunk phải được đánh dấu thay vì đưa byte tùy ý vào model. Current code tổ chức AudioSample và chạy model trong thread; production nên ghi codec và conversion result để truy nguyên."
+  },
+  {
+    "index": 281,
+    "style": "Normal",
+    "text": "Suy luận đa nhiệm và parser tag: SenseVoice tạo một chuỗi kết hợp token đặc biệt và transcript. LID token mô tả ngôn ngữ model nhận diện; SER token mô tả lớp cảm xúc âm học theo không gian nhãn của model; AED token mô tả speech hoặc sự kiện như music, applause, laughter, crying, sneeze và cough. Parser InterV quét output, chuẩn hóa chữ hoa/thường, gom tag theo nhóm và giữ transcript còn lại. Việc parser tách nhóm rõ giúp tránh coi mọi token đặc biệt là text."
+  },
+  {
+    "index": 283,
+    "style": "Normal",
+    "text": "Pacing heuristic: Tốc độ nói được ước lượng bằng số từ transcript chia duration. Phép tính đơn giản nhưng có ba nguồn sai số: tokenization tiếng Việt/tiếng Anh khác nhau, transcript thiếu từ do ASR và duration chứa pause. Ngưỡng 75/60/40 hiện tại là quyết định coaching của dự án, không phải chuẩn dân số. Vì vậy, field vocal_delivery phải hiển thị giải thích và không cộng vào điểm tuyển dụng trừ khi có validation cho mục đích cụ thể."
+  },
+  {
+    "index": 285,
+    "style": "Normal",
+    "text": "Các bước xử lý SenseVoice và lỗi có thể xảy ra:"
+  },
+  {
+    "index": 292,
+    "style": "Normal",
+    "text": "7. Coaching. Xử lý: Pacing heuristic.; Lỗi: Bị hiểu là tâm lý/năng lực.; Cách kiểm soát: Nhãn heuristic; không dùng tuyển/loại."
+  },
+  {
+    "index": 293,
+    "style": "Normal",
+    "text": "Đánh giá SenseVoice theo từng nhiệm vụ: Không nên báo một accuracy chung cho SenseVoice vì ASR, LID, SER và AED có target khác nhau. ASR dùng word error rate hoặc character error rate, nhưng tiếng Việt cần quy tắc chuẩn hóa dấu câu, số và viết tắt. LID dùng accuracy/F1 theo ngôn ngữ và duration. AED dùng event-level precision/recall/F1 với quy tắc overlap. SER dùng macro-F1 và confusion matrix, song trong InterV kết quả chỉ phục vụ mô tả chứ không xếp hạng."
+  },
+  {
+    "index": 296,
+    "style": "Table Caption",
+    "text": "Bảng 1.17. Thiết kế benchmark SenseVoice"
+  },
+  {
+    "index": 321,
+    "style": "Normal",
+    "text": "Điểm khác biệt phương pháp là provenance của rule và ranh giới SenseVoice. Thay vì tuyên bố mọi profile lấy từ sách, hệ thống ghi rõ phần nào có nguồn trực tiếp và phần nào là blueprint. Thay vì biến emotion thành confidence, hệ thống giữ psychometric-looking fields trung tính và nêu kế hoạch loại bỏ. Những lựa chọn này làm hệ thống ít 'ấn tượng' hơn về mặt marketing nhưng đáng tin cậy hơn về mặt nghiên cứu."
+  },
+  {
+    "index": 334,
+    "style": "Normal",
+    "text": "Công bằng ngôn ngữ và sai số bản chép lời: Phỏng vấn bằng ngôn ngữ tự nhiên tạo construct-irrelevant variance nếu năng lực công việc không yêu cầu mức lưu loát đang bị đo. ASR có thể sai theo accent, code-switch, tiếng chuyên ngành và thiết bị. Nếu LLM chỉ thấy transcript sai, lỗi được khuếch đại: evidence excerpt sai, follow-up hỏi nhầm và evaluation thấp. Vì vậy, pipeline phải ghi nguồn transcript, confidence nếu có, correction và tình trạng audio; reviewer cần biết khi nội dung dựa trên fallback."
+  },
+  {
+    "index": 354,
+    "style": "Normal",
+    "text": "Cơ sở hợp nhất bằng chứng đa phương thức: Một phiên phỏng vấn tạo ra ít nhất ba lớp bằng chứng khác nhau. Lớp thứ nhất là nội dung ngôn ngữ trong transcript: ứng viên đã mô tả tình huống nào, hành động nào do chính họ thực hiện và kết quả nào có thể kiểm chứng. Lớp thứ hai là tín hiệu âm học có thể quan sát như khoảng dừng, tốc độ nói, sự kiện không phải lời nói và nhãn cảm xúc do mô hình nhận dạng. Lớp thứ ba là ngữ cảnh đánh giá gồm JD, competency, rubric, lịch sử hỏi đáp và tài liệu truy hồi. Ba lớp này không có cùng ý nghĩa đo lường, vì vậy không được cộng trực tiếp như ba thước đo tương đương."
+  },
+  {
+    "index": 355,
+    "style": "Normal",
+    "text": "InterV lựa chọn late fusion, nghĩa là mỗi nhánh được xử lý và mô tả độc lập trước khi đưa vào bước đánh giá tổng hợp. Transcript chính đến từ AssemblyAI; Faster-Whisper chỉ khôi phục nội dung khi transcript thiếu hoặc rỗng. SenseVoice nhận audio gốc để tạo LID, SER, AED và các chỉ báo delivery có điều kiện. DeepSeek nhận lịch sử hỏi đáp, kết quả SenseVoice đã hoàn tất, JD và evidence từ RAG để lập nhận xét theo schema. Cách tổ chức này giữ được provenance của từng tín hiệu và cho phép vô hiệu hóa một nhánh khi chất lượng không đạt."
+  },
+  {
+    "index": 356,
+    "style": "Normal",
+    "text": "Hợp nhất trong phiên bản hiện tại là hợp nhất theo prompt và schema, không phải công thức trọng số cố định. DeepSeek được yêu cầu ưu tiên bằng chứng nội dung đối với điểm năng lực, dùng tín hiệu âm thanh như quan sát phụ trợ và không diễn giải emotion tag thành trạng thái tâm lý thật. Vì không có trọng số toán học đã được hiệu chuẩn, khóa luận không tuyên bố tỷ lệ đóng góp của SenseVoice vào điểm cuối. Mọi thay đổi thành weighted fusion trong tương lai phải có tập nhãn chuyên gia, nghiên cứu ablation và kiểm tra công bằng trước khi triển khai."
+  },
+  {
+    "index": 357,
+    "style": "Normal",
+    "text": "Missing modality là trường hợp bình thường chứ không phải ngoại lệ hiếm. Microphone có thể lỗi, âm thanh quá ngắn, provider có thể timeout hoặc người dùng chỉ nhập văn bản. Khi thiếu audio, hệ thống vẫn có thể đánh giá nội dung nhưng phải ghi rõ audio availability bằng false và không tạo giá trị thay thế giả. Khi transcript có độ tin cậy thấp, hệ thống nên yêu cầu xác nhận hoặc dùng nhánh fallback; không được để DeepSeek tự đoán phần lời bị mất từ nhãn âm thanh. Khi RAG không có evidence, operation cần fail closed hoặc hạ phạm vi kết luận theo policy."
+  },
+  {
+    "index": 361,
+    "style": "Figure Caption",
+    "text": "Hình 1.1. Nguyên tắc hợp nhất transcript, SenseVoice, JD/RAG và DeepSeek"
+  },
+  {
+    "index": 367,
+    "style": "Normal",
+    "text": "Ranh giới cuối cùng là không biến tín hiệu kỹ thuật thành chẩn đoán tâm lý. SenseVoice có thể phát hiện mẫu âm thanh theo taxonomy huấn luyện nhưng không đo anxiety lâm sàng, tính cách, động cơ, sự trung thực hoặc độ phù hợp văn hóa. AI chỉ hỗ trợ tổ chức câu hỏi, thu thập bằng chứng và phản hồi hành vi. Suy luận nhạy cảm, quyết định tuyển hoặc loại, và giải quyết khiếu nại thuộc quy trình có con người chịu trách nhiệm, tài liệu hóa và kiểm tra công bằng."
+  },
+  {
+    "index": 379,
+    "style": "Normal",
+    "text": "Biên gRPC làm giảm ghép nối giữa TypeScript và Python. Hợp đồng proto định nghĩa 16 RPC: Health, ExtractJd, ListVoices, SynthesizeTts, StartInterview, GenerateOpeningTurn, TranscribeAudio, SubmitAnswer, EvaluateInterview, ExtractCandidateProfile, CreateStreamingToken, AnalyzeInterview, GetRagStatus, SearchKnowledge, DeleteKnowledge và GetDeepSeekBalance. InterviewTurnResponse biểu diễn câu hỏi kế tiếp cùng acknowledgement, transition, spoken_text, transition_type và usage. Mỗi response có success và payload có kiểu; thông tin bí mật không thuộc schema."
+  },
+  {
+    "index": 385,
+    "style": "List Paragraph",
+    "text": "- Audio. Trách nhiệm: Streaming token, transcript, TTS, SenseVoice.; Dữ liệu tiêu biểu: Chunk metadata, transcript, observations."
+  },
+  {
+    "index": 399,
+    "style": "Normal",
+    "text": "Pipeline âm thanh và SenseVoice: "
+  },
+  {
+    "index": 400,
+    "style": "Figure Caption",
+    "text": "Hình 2.4. Pipeline xử lý âm thanh nhiều tầng và SenseVoice"
+  },
+  {
+    "index": 401,
+    "style": "Normal",
+    "text": "Trong lúc trả lời, trình duyệt thu âm và nhận token streaming từ CreateStreamingToken. Transcript trực tuyến giúp giao diện hiển thị và lưu câu trả lời. Khi transcript không có hoặc tệp cần xử lý lại, TranscribeAudio gọi Faster-Whisper. Song song, các AudioAnalysisChunk được đẩy qua RPC stream AnalyzeInterview; dịch vụ gom sample theo run/question và chỉ hoàn tất khi nhận final_chunk."
+  },
+  {
+    "index": 402,
+    "style": "Normal",
+    "text": "SenseVoice chạy trong worker thread để không chặn vòng lặp bất đồng bộ. Kết quả generate được parse thành LID, SER, AED và transcript phụ. Baseline pacing chỉ dùng duration và word count để tạo vocal_delivery heuristic. Hai trường confidence/composure giữ 50 và observation ghi rõ không suy luận trạng thái tâm lý từ nhãn cảm xúc. Evaluation chỉ được chạy khi audio_analysis có provider='sensevoice', nhằm bảo đảm pipeline hoàn tất, chứ không biến tag thành điểm nội dung."
+  },
+  {
+    "index": 423,
+    "style": "List Paragraph",
+    "text": "- Âm thanh. RPC: CreateStreamingToken, TranscribeAudio, AnalyzeInterview; Mục đích: Streaming ASR, fallback ASR, SenseVoice."
+  },
+  {
+    "index": 427,
+    "style": "Normal",
+    "text": "Bảo mật được thực hiện theo nhiều lớp: xác thực người dùng, kiểm tra vai trò, ownership/tenant boundary, validation đầu vào, giới hạn secret, timeout provider và audit event. Token streaming có thời hạn ngắn và giới hạn thời lượng phiên. GetDeepSeekBalance không trả API key. Dữ liệu âm thanh và transcript cần retention riêng vì mức nhạy cảm cao hơn cấu hình giao diện."
+  },
+  {
+    "index": 428,
+    "style": "Normal",
+    "text": "Khả năng quan sát gồm health của DeepSeek/AssemblyAI/SenseVoice/RAG, số tài liệu Qdrant, request IDs và usage. Log không nên chứa nguyên văn secret hoặc toàn bộ hồ sơ khi không cần thiết. Sự kiện audit cần ghi actor, action, resource, result và timestamp; nội dung nhạy cảm chỉ lưu khi mục đích điều tra đã được xác định và có thời hạn xóa."
+  },
+  {
+    "index": 431,
+    "style": "Normal",
+    "text": "Quyết định thiết kế và trade-off: Việc dùng nhiều provider tăng độ phức tạp nhưng giúp phân vai theo năng lực: streaming, fallback, TTS và rich tagging. RAG tăng độ trễ nhưng tạo đường truy nguyên. JSON validation có thể làm một số yêu cầu thất bại dù output đọc được, đổi lại hệ thống không truyền dữ liệu thiếu trường sang lớp sau. Tách event store hỗ trợ quan sát nhưng đòi hỏi chính sách đồng bộ và retention rõ."
+  },
+  {
+    "index": 451,
+    "style": "Normal",
+    "text": "Finish request kiểm tra mọi câu bắt buộc đã có answer, audio stream đã nhận final marker và SenseVoice analysis có provider đúng. EvaluateInterview dùng snapshot context thay vì đọc JD đang thay đổi. Output sau validation được gắn vào run, session được cập nhật summary và tài nguyên tạm có thể được dọn theo policy. Hậu điều kiện gồm run complete, evaluation có evidence hoặc trạng thái failed rõ; frontend không tự suy đoán thành công chỉ từ HTTP 200 của một bước trung gian."
+  },
+  {
+    "index": 457,
+    "style": "List Paragraph",
+    "text": "- Finish. Tiền điều kiện: QA/audio hoàn tất.; Luồng chính: SenseVoice + evaluation; commit result.; Ngoại lệ bắt buộc: Audio rỗng, JSON/grounding lỗi."
+  },
+  {
+    "index": 459,
+    "style": "Normal",
+    "text": "Kiến trúc frontend và tổ chức trang: Frontend có 39 trang, được tổ chức theo nhóm public/auth, ứng viên, recruiter và admin. App Router cho phép layout theo phân đoạn, server component cho dữ liệu cần bảo vệ và client component cho thu âm/streaming. Quyền không chỉ được ẩn ở navigation; route API phải xác minh lại vì người dùng có thể gọi endpoint trực tiếp. Trang nên nhận view model tối thiểu từ BFF thay vì truy cập MongoDB hoặc gRPC trong component tương tác."
+  },
+  {
+    "index": 460,
+    "style": "Normal",
+    "text": "Luồng practice có các nhóm trạng thái UI: chuẩn bị, opening speaking/recording/reviewing/submitting, câu hỏi speaking/recording/reviewing/submitting, closing và finishing. Auto-turn-taking tự chốt final turn sau end_of_turn; textAnswerEnabled cho phép chuyển sang text-only. Mỗi trạng thái đồng bộ với server và có generation guard để callback của opening hoặc question cũ không ghi đè lượt mới. Nút gửi bị khóa khi answer đang commit; retry giữ khóa logic; recorder và transcript streaming được cleanup khi đổi trang hoặc kết thúc."
+  },
+  {
+    "index": 467,
+    "style": "Normal",
+    "text": "Thiết kế BFF và 73 phương thức HTTP: 61 tệp route cung cấp 73 phương thức HTTP và đóng vai trò Backend for Frontend. Route auth xử lý login, logout, refresh, sessions và identity hiện tại. Route user xử lý hồ sơ, username, email, password, credit history. Route practice/recruiter điều phối nghiệp vụ và lịch sử. Route AI chuyển request sang gRPC, gồm opening, answer, finish, result, voice preview và streaming token. Route payment xử lý create, pending, check-status, verify, webhook và cancel. Route admin cung cấp quản trị và quan sát."
+  },
+  {
+    "index": 490,
+    "style": "Normal",
+    "text": "EvaluationRatings gồm communication, knowledge, problem_solving, confidence, jd_fit, composure và vocal_delivery. Đây là điểm cần xem xét lại: confidence/composure trong evaluation nội dung có thể được LLM chấm từ evidence theo rubric, còn cùng tên trong AudioBehaviorAnalysis dễ khiến người dùng tưởng đều là tâm lý từ giọng. Thiết kế tương lai nên đổi tên hoặc tách namespace content_ratings và audio_observations. Hiện tại, invariant ở audio service giữ hai trường âm thanh trung tính."
+  },
+  {
+    "index": 491,
+    "style": "Normal",
+    "text": "AnalyzeInterview là client-streaming RPC. Mỗi chunk có run_id, question_id, transcript, audio, content_type, duration_sec và final_chunk; server trả một AudioBehaviorAnalysis sau khi stream kết thúc. Streaming contract phải giới hạn tổng byte, số chunk và thời lượng để tránh lạm dụng. Nếu client ngắt trước final, server cần hủy buffer và ghi lỗi có kiểm soát. Unary RPC còn lại cần deadline từ BFF và mapping status code nhất quán."
+  },
+  {
+    "index": 494,
+    "style": "Heading 2",
+    "text": "2.6. Thiết kế DeepSeek, RAG và SenseVoice"
+  },
+  {
+    "index": 497,
+    "style": "Normal",
+    "text": "generate_questions lấy grounding bundle, gọi fast model, validate list và chọn đúng số câu. generate_follow_up dùng fast model với current/history. evaluate_interview yêu cầu SenseVoice provider, dùng eval model và kiểm tra evidence. Nếu lần đầu sai, repair một lần với lỗi cụ thể. Cuối cùng, response gRPC chuyển usage snapshot ra metadata/message để BFF lưu AiUsageEvent. Không bước nào được ghi API key vào output."
+  },
+  {
+    "index": 516,
+    "style": "Normal",
+    "text": "Thuật toán phân tích SenseVoice trong hệ thống: Audio service có ba tầng. Tầng đầu _score_baseline duyệt AudioSample, tính tổng duration và word count từ transcript để tạo vocal_delivery heuristic, đồng thời đặt confidence/composure bằng 50. Tầng hai _sensevoice_tags tải model, tạo file/array phù hợp, gọi generate với language='auto' và parse output. Tầng ba _analyze_with_sensevoice kết hợp tags với observation, chọn dominant emotion theo quy tắc mô tả và clamp giá trị contract vào 0–100."
+  },
+  {
+    "index": 521,
+    "style": "Normal",
+    "text": "Điều phối ASR, TTS và audio streaming: CreateStreamingToken gọi AssemblyAI backend để tạo token ngắn hạn, trả websocket URL, speech model và expiry. Client dùng token trực tiếp với provider, tránh lộ API key dài hạn. Max session duration và token expiry phải nhỏ hơn hoặc bằng policy, đồng thời token không được tái sử dụng cho phiên khác. Nếu provider không trả token, route báo unavailable thay vì tạo chuỗi rỗng."
+  },
+  {
+    "index": 522,
+    "style": "Normal",
+    "text": "TranscribeAudio dùng Faster-Whisper cho tệp hoàn chỉnh khi transcript streaming thiếu. Model Whisper được lazy-load và có cấu hình device/compute type. Response gồm transcript, language, duration, provider và message. Fallback chỉ kích hoạt theo điều kiện rõ; chạy đồng thời mọi audio qua cả hai ASR sẽ tăng chi phí và có thể tạo hai transcript khác nhau mà không có policy chọn."
+  },
+  {
+    "index": 524,
+    "style": "Normal",
+    "text": "Chính sách fallback tiếng nói:"
+  },
+  {
+    "index": 525,
+    "style": "List Paragraph",
+    "text": "- Streaming hoạt động. Luồng chính: AssemblyAI transcript.; Fallback: Không gọi Faster-Whisper.; Trải nghiệm người dùng: Hiển thị text realtime."
+  },
+  {
+    "index": 526,
+    "style": "List Paragraph",
+    "text": "- Streaming mất kết nối. Luồng chính: Giữ audio local/chunk.; Fallback: TranscribeAudio sau lượt.; Trải nghiệm người dùng: Báo đang khôi phục, không mất answer."
+  },
+  {
+    "index": 527,
+    "style": "List Paragraph",
+    "text": "- Transcript rỗng. Luồng chính: Kiểm tra audio/duration.; Fallback: Faster-Whisper nếu audio hợp lệ.; Trải nghiệm người dùng: Cho xem/sửa transcript."
+  },
+  {
+    "index": 528,
+    "style": "List Paragraph",
+    "text": "- SenseVoice lỗi. Luồng chính: Đánh dấu analysis failed.; Fallback: Không giả provider/điểm.; Trải nghiệm người dùng: Retry hoặc kết thúc không audio score."
+  },
+  {
+    "index": 529,
+    "style": "List Paragraph",
+    "text": "- TTS lỗi. Luồng chính: Câu hỏi text vẫn có.; Fallback: Tắt audio hoặc retry.; Trải nghiệm người dùng: Không chặn phiên."
+  },
+  {
+    "index": 545,
+    "style": "Normal",
+    "text": "Quan sát hệ thống và nhật ký kiểm toán: Observability gồm metric, log và trace/request correlation. AI health báo DeepSeek configured, AssemblyAI configured, SenseVoice ready, RAG ready/backend/document count. Usage event ghi operation, model, token và latency. API request log ghi method/path/status/latency theo policy đã mask. Audit log ghi actor/action/resource/result cho hành động quản trị. Ba loại dữ liệu không nên trộn vì mục đích và retention khác nhau."
+  },
+  {
+    "index": 549,
+    "style": "List Paragraph",
+    "text": "- AI health. Nguồn: Health RPC/startup.; Mục tiêu: Readiness provider/model.; Cảnh báo mẫu: SenseVoice/RAG not ready."
+  },
+  {
+    "index": 563,
+    "style": "Normal",
+    "text": "Scale web và AI khác nhau. Next.js có thể scale ngang theo request, trong khi SenseVoice model chiếm memory và audio stream dài. AI service cần concurrency limit/queue, còn DeepSeek chủ yếu bị quota/latency mạng. Qdrant search có thể scale riêng. Admission control nên từ chối sớm khi capacity thiếu, thay vì nhận audio rồi timeout. Session affinity chỉ dùng nếu state stream nằm trong process; tốt hơn là stream state có lifecycle rõ hoặc routing nhất quán."
+  },
+  {
+    "index": 571,
+    "style": "List Paragraph",
+    "text": "- Checkpoint/cache. State: SenseVoice/TTS assets.; Scale: Per AI node/shared cache.; Health/backup: Hash/revision và warmup."
+  },
+  {
+    "index": 572,
+    "style": "Normal",
+    "text": "Practice interview ưu tiên nhiệm vụ chính: đọc/nghe câu hỏi, chuẩn bị, ghi âm, xem transcript, chỉnh sửa hoặc gửi. Trạng thái microphone, connection, timer, realtime transcript và upload cần rõ nhưng không gây áp lực thị giác. Auto-turn-taking giảm thao tác nhưng phải cho phép dừng, xem lại và retry; text-only fallback đảm bảo phiên không phụ thuộc tuyệt đối vào microphone. Nếu TTS không phát, câu hỏi văn bản vẫn đầy đủ; nếu transcript thiếu, route transcribe dùng Faster-Whisper và hiển thị nguồn transcript."
+  },
+  {
+    "index": 573,
+    "style": "Normal",
+    "text": "Result page nên tách content evidence, structure coaching và audio observations. Nhãn SenseVoice phải ghi 'tín hiệu mô hình âm thanh, không phải đánh giá tâm lý'. Confidence/composure trung tính không nên hiển thị như gauge. Recommendation cần hành động cụ thể và dẫn về câu trả lời. Với recruiter, warning completeness và provenance phải xuất hiện trước score tổng để giảm automation bias."
+  },
+  {
+    "index": 577,
+    "style": "List Paragraph",
+    "text": "- Interview. Thông tin bắt buộc: Question, progress, mic/transcript/connectivity.; Hành động chính: Record/review/submit.; Trạng thái lỗi: Reconnect, fallback, duplicate prevention."
+  },
+  {
+    "index": 582,
+    "style": "Normal",
+    "text": "Trình tự dữ liệu cho DeepSeek evaluation: Khi finish bắt đầu, BFF khóa logical snapshot của run: context, question order, answers, grounding và audio analysis. Nó không lấy history từ client vì client có thể thiếu hoặc sửa. Request EvaluateInterview được tạo từ snapshot, deadline dài hơn fast calls và usage context interview_evaluate. Python service xác nhận provider SenseVoice, chuẩn hóa audio fields và gọi prepare_grounding với purpose evaluation."
+  },
+  {
+    "index": 588,
+    "style": "Normal",
+    "text": "Python server nhận chunk, không phân tích từng byte bằng LLM. Nó lưu AudioSample tối thiểu trong memory hoặc temp storage, kiểm tra final và khi stream đóng gọi analyze_interview_audio trong worker thread. SenseVoice loader dùng model cache. Tags/observations được trả một lần; BFF lưu với run/question hoặc aggregate. Nếu stream bị cắt, buffer cleanup và trạng thái incomplete được ghi."
+  },
+  {
+    "index": 589,
+    "style": "Normal",
+    "text": "Transcript chính và SenseVoice transcript phụ không nên tự động trộn. AssemblyAI final là nguồn realtime; Faster-Whisper thay thế khi nguồn chính trống theo policy; SenseVoice text dùng debug/đối soát. Khi các transcript khác nhau đáng kể, quality flag yêu cầu người dùng/reviewer xem lại. Evaluation dùng transcript đã chọn/corrected và audio observations, không dùng raw rich tag như instruction."
+  },
+  {
+    "index": 610,
+    "style": "Normal",
+    "text": "Thiết kế hợp nhất SenseVoice - STT - DeepSeek: Luồng xử lý bắt đầu từ audio theo từng câu trả lời. Trình duyệt gửi stream tới AssemblyAI để nhận transcript gần thời gian thực, đồng thời lưu audio theo runId và questionId. Transcript đã hoàn tất là nguồn nội dung ưu tiên. Nếu transcript rỗng hoặc provider chính thất bại, backend gọi Faster-Whisper trên audio đã ghi để phục hồi văn bản. Trường transcriptSource phải cho biết nhánh nào tạo dữ liệu, tránh coi hai bản nhận dạng có độ tin cậy như nhau."
+  },
+  {
+    "index": 611,
+    "style": "Normal",
+    "text": "SenseVoice chạy trên audio gốc sau khi câu trả lời hoặc phiên được hoàn tất. Service chuẩn hóa định dạng, kiểm tra thời lượng và gọi checkpoint cấu hình qua FunASR. Parser đọc các tag ngôn ngữ, cảm xúc và sự kiện âm thanh; các đặc trưng delivery như words per minute, filler ratio hoặc pause ratio được tính như heuristic khi dữ liệu đủ. Nếu model hoặc audio lỗi, kết quả phải mang trạng thái unavailable và warning, không sinh nhãn mặc định có vẻ như một phép đo thành công."
+  },
+  {
+    "index": 612,
+    "style": "Normal",
+    "text": "Kết quả SenseVoice không thay transcript chính trong hợp đồng hiện tại. STT nội dung và rich audio understanding là hai trách nhiệm khác nhau: AssemblyAI/Faster-Whisper trả chuỗi lời nói để chấm evidence, còn SenseVoice bổ sung LID, SER, AED và observation về delivery. Cách tách này phù hợp với mã nguồn hiện tại và giúp kiểm thử độc lập. Nếu sau này dùng transcript nội bộ của SenseVoice, cần thêm trường source, metric WER/CER và policy chọn transcript thay vì âm thầm ghi đè."
+  },
+  {
+    "index": 613,
+    "style": "Normal",
+    "text": "EvaluateInterview chỉ được gọi khi lịch sử hỏi đáp đã đầy đủ và phân tích SenseVoice đã đạt trạng thái kết thúc theo policy. Backend tạo payload có qaHistory, rubric/competency, JD, grounding evidence và senseVoiceAnalysis. Prompt quy định rõ bằng chứng nào được dùng cho điểm năng lực, tín hiệu nào chỉ được dùng trong observation và trường nào phải giữ trung tính. DeepSeek trả JSON theo schema gồm overallScore, ratings, strengths, improvements, evidence và cảnh báo; validator từ chối trường thiếu, kiểu sai hoặc grounding ID ngoài allow-list."
+  },
+  {
+    "index": 614,
+    "style": "Normal",
+    "text": "Không có phép cộng cứng giữa một điểm SenseVoice và một điểm DeepSeek. Thay vào đó, DeepSeek thực hiện tổng hợp có ràng buộc trên các trường mô tả. Đây là lựa chọn thực dụng nhưng có rủi ro model thay đổi cách cân nhắc tín hiệu giữa các phiên bản. Vì vậy promptVersion, model, temperature, reasoning mode, token usage và schemaVersion phải được lưu cùng evaluation. Bộ regression fixture cần chạy lại khi model hoặc prompt đổi để phát hiện score drift và thay đổi cách dùng audio."
+  },
+  {
+    "index": 615,
+    "style": "Normal",
+    "text": "Các quy tắc mâu thuẫn được xử lý theo ưu tiên. Grounded evidence và transcript đã xác nhận đứng trên suy đoán âm thanh; explicit missing đứng trên giá trị giả; policy an toàn đứng trên yêu cầu trong JD hoặc tài liệu truy hồi. Nếu SenseVoice báo Angry nhưng transcript chỉ chứa một câu trả lời kỹ thuật đầy đủ, hệ thống có thể ghi observation rằng model phát hiện tag đó kèm cảnh báo, nhưng không trừ điểm knowledge hoặc gán thái độ. Nếu transcript quá ngắn, DeepSeek đánh dấu insufficient evidence thay vì dùng audio để lấp khoảng trống."
+  },
+  {
+    "index": 616,
+    "style": "Normal",
+    "text": "Mỗi bước có điểm quan sát vận hành riêng: thời lượng audio, latency STT, fallback count, segment/turn boundary, SenseVoice provider/model, warning, DeepSeek retry, schema repair, profile extraction, voice cache hit/miss, payment reconciliation và usage. Correlation ID nối request từ Next.js qua gRPC đến provider. Log không chứa audio hoặc transcript đầy đủ theo mặc định; dữ liệu nhạy được lưu trong kho nghiệp vụ có quyền và retention rõ."
+  },
+  {
+    "index": 619,
+    "style": "Figure Caption",
+    "text": "Hình 2.9. Luồng kỹ thuật hợp nhất SenseVoice, STT và DeepSeek"
+  },
+  {
+    "index": 629,
+    "style": "Normal",
+    "text": "Frontend và BFF được xây dựng trên Next.js/TypeScript. Dữ liệu nghiệp vụ dùng MongoDB qua Mongoose; sự kiện có thể tách sang MongoDB riêng. Dịch vụ AI dùng Python, gRPC, DeepSeek API, Qdrant, FunASR/SenseVoice, Faster-Whisper, AssemblyAI và Edge TTS. PayOS phục vụ thanh toán, còn persistent voice preview dùng MongoDB làm cache lâu dài. Sự kết hợp này phù hợp với web giàu tương tác và workload AI có dependency Python."
+  },
+  {
+    "index": 635,
+    "style": "List Paragraph",
+    "text": "- Speech. Công nghệ: AssemblyAI, Faster-Whisper, SenseVoice, Edge TTS; Vai trò: Transcript, rich tags và phát giọng hỏi."
+  },
+  {
+    "index": 648,
+    "style": "Normal",
+    "text": "Triển khai SenseVoice: Dịch vụ khởi động gọi warmup_sensevoice để tải model sớm. Hàm tải model kiểm tra đường dẫn checkpoint, revision và SHA-256 nếu cấu hình cung cấp. Việc generate đặt language='auto' và merge_vad=True theo tích hợp FunASR. Parser không phụ thuộc thứ tự tuyệt đối của tag mà gom token vào ba tập languages, emotions và events, đồng thời thu transcript phụ."
+  },
+  {
+    "index": 649,
+    "style": "Normal",
+    "text": "Hàm _score_baseline không còn hạ confidence/composure theo emotion tag. Hai trường này bằng 50; observation giải thích rõ lý do. Vocal delivery nhận 75 ở khoảng tốc độ nói trung bình do dự án quy định, 40 ở quá chậm/quá nhanh và 60 ở khoảng biên. Các ngưỡng này là heuristic coaching cần hiệu chỉnh theo ngôn ngữ và nhóm người dùng, không phải thang đo chuẩn hóa."
+  },
+  {
+    "index": 650,
+    "style": "Table Caption",
+    "text": "Bảng 3.5. Bất biến SenseVoice và trạng thái kiểm thử"
+  },
+  {
+    "index": 663,
+    "style": "Normal",
+    "text": "Phân tích công bằng, riêng tư và rủi ro: Các nguồn sai lệch gồm ASR khác nhau theo giọng/ngôn ngữ, LLM phản ứng với phong cách viết, profile blueprint chưa được thẩm định, và recruiter có thể over-rely vào điểm tổng. Một quy trình đánh giá công bằng cần phân tích subgroup, missingness, adverse impact, calibration và cơ chế khiếu nại. Không nên dùng biến emotion, accent hoặc tốc độ nói như proxy năng lực trừ khi có job relevance và bằng chứng pháp lý rất rõ."
+  },
+  {
+    "index": 672,
+    "style": "Normal",
+    "text": "Một kiểm thử đạt là bằng chứng có điều kiện: code path và assertion của test phải thật sự bao phủ invariant được nêu. Ví dụ, test audio có input tag ANGRY và assert confidence/composure bằng 50, nên hỗ trợ kết luận trực tiếp về bất biến này. Ngược lại, test gRPC mock kết quả SenseVoice không chứng minh checkpoint nhận dạng đúng ngoài thực tế. Phần đánh giá vì vậy luôn đi kèm phạm vi kết luận và residual risk."
+  },
+  {
+    "index": 678,
+    "style": "Normal",
+    "text": "test_grpc_contract khởi chạy service/stub trong môi trường test và mock các service sâu. Nó kiểm tra Health, balance, StartInterview, SubmitAnswer, AnalyzeInterview và EvaluateInterview map đúng message. SenseVoiceInvariantTests trong contract bổ sung ranh giới: emotion không được biến thành psychological rating. test_security_boundaries xem các boundary cấu hình/secret; test_observability xác nhận event/metadata. Phạm vi còn thiếu là E2E qua Next.js route và MongoDB thật."
+  },
+  {
+    "index": 683,
+    "style": "Normal",
+    "text": "Test data phải deterministic và tách môi trường. Không dùng API key production hoặc MongoDB thật. Provider DeepSeek/AssemblyAI/PayOS được giả lập bằng contract server cho E2E; một suite smoke riêng có thể chạy billable theo cờ explicit. Kết quả cần lưu request ID, fixture version và seed. Cleanup phải xóa user, run, vector và audio test để lần chạy sau không phụ thuộc state cũ."
+  },
+  {
+    "index": 686,
+    "style": "Normal",
+    "text": "Đánh giá rule corpus theo provenance: Audit corpus không chỉ đếm tệp mà kiểm tra nguồn và lời tuyên bố. README phải nói rõ 15 industry và 60 profile là blueprint được tạo từ taxonomy nội bộ, không có một sách hoặc nguồn nào xác nhận toàn bộ. sources.md liên kết structured interview, O*NET, SIOP, NIST, SenseVoice, Qdrant, DeepSeek và pháp lý theo phạm vi. Core rules có provenance A/B; profile/industry có status C cần validation."
+  },
+  {
+    "index": 698,
+    "style": "Heading 2",
+    "text": "3.4. Đánh giá feedback, điểm số, RAG và SenseVoice"
+  },
+  {
+    "index": 706,
+    "style": "Normal",
+    "text": "Ablation test loại từng metadata filter để xem ảnh hưởng. Nếu bỏ profile làm recall tăng nhưng precision giảm, cần điều chỉnh top-k hoặc fallback. Nếu filter profile không có dữ liệu trả empty, agent có thể mở rộng theo thứ tự profile -> industry -> general, nhưng phải ghi fallback tier vào evidence. Không được âm thầm dùng rule general như profile-specific. Source provenance có thể là tiêu chí rerank."
+  },
+  {
+    "index": 710,
+    "style": "Normal",
+    "text": "Kế hoạch benchmark SenseVoice và ASR tiếng Việt: Benchmark audio cần protocol ghi âm và manifest rõ: speaker pseudonym, ngôn ngữ, accent tự khai nếu hợp pháp, thiết bị, phòng/noise, codec, sample rate, duration và script/spontaneous. Tập train không cần nếu chỉ đánh giá model, nhưng dev set dùng chọn ngưỡng pacing phải tách test. Dữ liệu tuyển dụng thật không nên tái sử dụng nếu consent không bao gồm nghiên cứu."
+  },
+  {
+    "index": 711,
+    "style": "Normal",
+    "text": "ASR được đánh giá trên AssemblyAI streaming, Faster-Whisper fallback và transcript SenseVoice nếu sử dụng. Ground truth do người chép và reviewer xác nhận. WER/CER cần normalization policy cho dấu câu, số và filler. Streaming còn đo partial stability và finalization latency. Nếu transcript correction được phép, đo cả raw và corrected path để hiểu lỗi AI tác động evaluation."
+  },
+  {
+    "index": 712,
+    "style": "Normal",
+    "text": "LID/AED/SER đánh riêng. Code-switch sample có segment label thay vì một nhãn toàn file. AED event có time interval. SER label cần protocol và uncertainty; kết quả không đưa vào ranking. Pacing heuristic được so với words/min ground truth và đánh sensitivity với ASR error/pause. System benchmark đo cold/warm inference, peak memory, real-time factor và concurrent streams trên hardware đã ghi."
+  },
+  {
+    "index": 721,
+    "style": "Normal",
+    "text": "Thiết kế thử tải và độ bền: Load test được tách theo workload vì HTTP ngắn, DeepSeek call, Qdrant search và audio stream có đặc tính khác nhau. Web/BFF test đo request rate và P95/P99 cho dashboard/list. AI test đo concurrent interviews, model provider latency và queue. SenseVoice test đo concurrent stream, real-time factor và memory. Qdrant test đo query latency theo collection size/filter. Không gộp mọi thứ thành một con số response time."
+  },
+  {
+    "index": 722,
+    "style": "Normal",
+    "text": "Scenario tăng tải theo bậc, giữ ổn định và burst. Admission control phải bắt đầu từ giới hạn đã cấu hình; khi quá tải, hệ thống trả 429/503 rõ và không nhận audio rồi mất. Soak test vài giờ/ngày tìm memory leak ở stream buffer/model cache và connection pool. Chaos test tắt DeepSeek, AssemblyAI, Qdrant hoặc Mongo secondary để quan sát timeout, circuit breaker, recovery và consistency."
+  },
+  {
+    "index": 731,
+    "style": "Normal",
+    "text": "Khả năng tái lập và quản lý phiên bản thí nghiệm: Mỗi lần đánh giá cần manifest gồm commit hash, rule manifest hash, prompt version, proto version, model config, Qdrant collection/model, SenseVoice revision/hash, dependency lock và thời điểm. Dataset fixture có version và checksum. Random seed được ghi nếu model/local operation sử dụng; với provider nondeterministic, lưu request ID và lặp nhiều lần. Kết quả thô, script tính metric và report được tách."
+  },
+  {
+    "index": 739,
+    "style": "List Paragraph",
+    "text": "- Audio. Trường: SenseVoice revision/hash/device; ASR config.; Lý do: So sánh model/hardware."
+  },
+  {
+    "index": 743,
+    "style": "Normal",
+    "text": "Kết quả kỹ thuật hiện tại chứng minh hệ thống có nhiều boundary và invariant đã được triển khai, đặc biệt grounding, usage, gRPC và SenseVoice neutral placeholders. Tuy nhiên, mock provider làm giảm external validity; test file count không phản ánh branch coverage; type check không phản ánh runtime. Corpus deterministic không phản ánh content validity. Vì vậy, kết luận chỉ dừng ở readiness cho pilot có kiểm soát."
+  },
+  {
+    "index": 774,
+    "style": "Normal",
+    "text": "Để biết SenseVoice thực sự đóng góp gì, nghiên cứu không thể chỉ quan sát điểm cuối của pipeline đầy đủ. Cần ablation study với cùng tập câu trả lời và rubric: điều kiện A chỉ dùng transcript cùng JD/RAG; điều kiện B chỉ cung cấp observation audio nhưng không cho nội dung để kiểm tra giới hạn; điều kiện C dùng transcript cộng SenseVoice; điều kiện D dùng transcript đã được con người sửa cộng SenseVoice. Mọi điều kiện khóa model, prompt, corpus và decoding để khác biệt chủ yếu đến từ modality."
+  },
+  {
+    "index": 776,
+    "style": "Normal",
+    "text": "Kết quả chính gồm agreement với consensus expert, mean absolute error theo competency, grounded evidence precision, insufficient-evidence detection và calibration. Kết quả phụ gồm latency, token, repair rate và tỷ lệ case mà SenseVoice thay đổi nhận xét. Một cải thiện score trung bình nhỏ không đủ nếu lỗi tăng ở nhóm accent hoặc thiết bị cụ thể. Báo cáo cần confidence interval, phân phối sai khác và case analysis thay vì chỉ một con số tổng."
+  },
+  {
+    "index": 777,
+    "style": "Normal",
+    "text": "Tác động của ASR được đo bằng ba phiên bản transcript: raw từ AssemblyAI, fallback Faster-Whisper và bản đã sửa bởi người nghe. So sánh output trên cùng audio cho thấy lỗi nhận dạng lan truyền vào evidence và score. WER/CER chỉ là chỉ số trung gian; từ khóa nghề nghiệp bị sai có thể nghiêm trọng hơn nhiều lỗi chức năng. Error bucket nên gồm tên công nghệ, số liệu, phủ định, code-switching, giọng vùng miền, tốc độ và nhiễu."
+  },
+  {
+    "index": 778,
+    "style": "Normal",
+    "text": "SenseVoice được benchmark riêng cho LID, SER và AED vì độ chính xác của một nhiệm vụ không chứng minh nhiệm vụ khác. LID dùng accuracy/F1 theo ngôn ngữ; AED dùng precision/recall theo event; SER báo confusion matrix và calibration trên taxonomy phù hợp. Vocal delivery heuristic được so với phép đo thủ công về tốc độ, filler và pause. Kết quả không được diễn giải thành hiệu lực tuyển dụng; đây chỉ là độ chính xác của tín hiệu kỹ thuật."
+  },
+  {
+    "index": 780,
+    "style": "Normal",
+    "text": "Tiêu chí chấp nhận phải được đặt trước khi chạy. Ví dụ, condition C chỉ được coi là có ích khi không làm giảm agreement nội dung, tăng chất lượng phản hồi delivery có thể hành động và không vượt ngưỡng chênh lệch nhóm đã định. Nếu không đạt, SenseVoice vẫn có thể dùng cho cảnh báo chất lượng audio hoặc luyện tập tự nguyện nhưng không tham gia điểm tuyển dụng. Quyết định này cần được ghi trong model card và release gate."
+  },
+  {
+    "index": 781,
+    "style": "Normal",
+    "text": "Thực nghiệm phải có manifest tái lập gồm commit, model revision, prompt/rule version, collection hash, tham số provider và random seed khi áp dụng. Mỗi run lưu output thô đã khử dữ liệu nhạy, validation status và usage. Script đánh giá sinh báo cáo từ manifest thay vì tổng hợp thủ công. Khi DeepSeek, SenseVoice hoặc corpus thay đổi, bộ regression và một mẫu chuyên gia được chạy lại trước khi production alias chuyển phiên bản."
+  },
+  {
+    "index": 789,
+    "style": "Normal",
+    "text": "Đối với pipeline đa phương thức, traceability cần sâu đến từng câu trả lời. Một rating phải truy được transcript source, phiên bản transcript, audio availability, SenseVoice provider/model, warning, JD snapshot, competency, rubric anchor, grounding ID và DeepSeek model/prompt. Cấu trúc này hỗ trợ error analysis: nếu expert không đồng ý với AI, nhóm nghiên cứu có thể tách lỗi ASR, lỗi retrieval, lỗi rubric, lỗi tổng hợp hay lỗi hiển thị. Nếu chỉ lưu overall score, mọi sai lệch bị dồn thành một lỗi model chung và hệ thống không học được biện pháp khắc phục đúng. Dữ liệu truy nguyên vẫn phải tuân thủ tối thiểu hóa, phân quyền và retention; traceability không phải lý do để lưu audio hoặc PII vô hạn."
+  },
+  {
+    "index": 790,
+    "style": "Normal",
+    "text": "Quy trình đánh giá liên tục nên dùng hai nhịp. Nhịp nhanh chạy mỗi commit hoặc release candidate, gồm schema, contract, invariant, corpus audit và tập regression nhỏ. Nhịp chậm chạy khi model, prompt, rule hoặc phạm vi nghiệp vụ thay đổi đáng kể, gồm expert review, retrieval benchmark, ASR/SenseVoice slice, fairness check và usability sampling. Cổng phát hành tổng hợp cả hai nhịp nhưng không biến chúng thành một điểm duy nhất. Một lỗi authorization nghiêm trọng hoặc grounding ngoài allow-list phải chặn release dù các metric trung bình khác tốt; ngược lại, một cảnh báo latency nhỏ có thể được chấp nhận tạm thời nếu có owner, thời hạn và rollback rõ."
+  },
+  {
+    "index": 791,
+    "style": "Normal",
+    "text": "Sau triển khai, production evidence bổ sung cho bằng chứng phòng thí nghiệm nhưng không thay thế nó. Telemetry theo dõi completion, empty transcript, fallback, SenseVoice unavailable, schema repair, grounding rejection, override, appeal, latency và chi phí. Dữ liệu được phân tầng theo operation, profile, ngôn ngữ và điều kiện kỹ thuật khi hợp pháp. Alert chỉ kích hoạt điều tra hoặc rollback, không tự thay đổi rubric và trọng số. Mỗi incident tạo một test hồi quy hoặc thay đổi kiểm soát tương ứng. Nhờ vòng phản hồi này, kiến trúc đánh giá không dừng ở một lần kiểm thử tại thời điểm viết khóa luận mà trở thành cơ chế quản trị có thể lặp lại và kiểm toán."
+  },
+  {
+    "index": 794,
+    "style": "Normal",
+    "text": "Đề tài đã xây dựng và rà soát InterV theo hai trục: hệ thống phần mềm và chất lượng đánh giá. Về kỹ thuật, nền tảng kết nối giao diện web, BFF, dữ liệu MongoDB, dịch vụ AI gRPC, DeepSeek, Qdrant và chuỗi xử lý tiếng nói. Hai luồng practice và recruitment được mô hình hóa bằng trạng thái, hợp đồng và sequence riêng; practice có thêm opening turn, adaptive follow-up, auto-turn-taking và text fallback. Pipeline LLM có JSON validation, grounding allow-list, profile evidence filter và telemetry usage. Payment và voice preview cũng có persistence, reconciliation và idempotency riêng."
+  },
+  {
+    "index": 795,
+    "style": "Normal",
+    "text": "Về phương pháp, khóa luận làm rõ rằng một hệ thống phỏng vấn AI không thể chỉ dựa vào khả năng sinh ngôn ngữ. Câu hỏi phải liên quan công việc, probing phải thu thập bằng chứng, rubric phải neo theo hành vi và output phải truy nguyên. Corpus 86 rule đã được gắn provenance để tách nguồn nghiên cứu khỏi blueprint. SenseVoice được mô tả chi tiết nhưng bị giới hạn đúng vai trò: LID/SER/AED là tín hiệu âm thanh, không phải đo tâm lý hay quyết định tuyển dụng."
+  },
+  {
+    "index": 801,
+    "style": "List Paragraph",
+    "text": "- SenseVoice và ASR có thể sai lệch theo ngôn ngữ, accent, thiết bị và nhiễu; chưa có browser E2E đại diện cho microphone, WebSocket và auto-turn-taking trong snapshot này. Candidate profile extraction chỉ là cấu trúc hóa transcript, không phải xác minh sự thật của CV. Voice preview cache chứng minh cơ chế lưu và tái sử dụng audio nhưng chưa phải benchmark chi phí hoặc tải production. Payment reconciliation có contract/source test nhưng cần kiểm tra provider thật trong môi trường an toàn."
+  },
+  {
+    "index": 810,
+    "style": "Normal",
+    "text": "Với SenseVoice, nghiên cứu nên đánh giá riêng từng nhiệm vụ LID, AED, transcript và pacing; tuyệt đối không suy từ độ chính xác SER sang khả năng đo tâm lý. Với DeepSeek, evaluation harness cần tập câu hỏi chuẩn, opening transition, prompt injection set, grounding precision, schema failure rate, candidate profile precision và kiểm tra chuyên gia. Với realtime, cần đo auto-turn-taking latency, false turn boundary và tỷ lệ fallback. Với payment/voice cache, cần kiểm tra retry, provider outage, duplicate request và retention trước production."
+  },
+  {
+    "index": 812,
+    "style": "Normal",
+    "text": "Mục tiêu kiến trúc hai luồng đã được đáp ứng ở mức thiết kế và mã nguồn: practice có session/run/audio, candidate introduction, opening turn và follow-up; recruitment có campaign/invitation, candidate profile evidence và decision tách biệt. Mục tiêu grounding được đáp ứng bằng rule catalog, Qdrant hybrid retrieval, grounding ID và hậu kiểm. Mục tiêu speech được đáp ứng bằng AssemblyAI streaming, Faster-Whisper fallback, Edge TTS và SenseVoice rich tags. Mục tiêu quản trị được hỗ trợ bởi usage event, API log, audit, payment reconciliation, voice cache và provenance."
+  },
+  {
+    "index": 822,
+    "style": "Heading 2",
+    "text": "4.7. Kiến nghị về SenseVoice và DeepSeek"
+  },
+  {
+    "index": 823,
+    "style": "Normal",
+    "text": "Với SenseVoice, kiến nghị gần nhất là tiếp tục dùng namespace AudioObservations cho languages, events, pacing, transcript quality, provider, model revision và warnings; confidence/composure không nên được diễn giải như trạng thái tâm lý. Với realtime, cần đưa segment generation và turn order vào telemetry. Với DeepSeek, opening turn, follow-up và candidate profile phải tiếp tục được đánh giá bằng evidence precision, không chỉ bằng độ trôi chảy. SER nếu giữ cho nghiên cứu phải opt-in, không hiển thị recruiter ranking và không lưu quá mục đích."
+  },
+  {
+    "index": 833,
+    "style": "Normal",
+    "text": "InterV đã đạt một nền tảng kỹ thuật tương đối đầy đủ và một khung nghiên cứu thận trọng cho phỏng vấn AI. Snapshot v7 bổ sung opening turn có grounding, transition hội thoại, persistent realtime recorder, text fallback, candidate profile có evidence, voice preview MongoDB cache và PayOS reconciliation. Hệ thống có thể hỗ trợ practice và recruitment workflow, nhưng các tuyên bố về hiệu lực dự báo, công bằng và mức độ sẵn sàng cho quyết định tuyển dụng vẫn cần nghiên cứu thực nghiệm độc lập."
+  },
+  {
+    "index": 852,
+    "style": "Normal",
+    "text": "[11] An, K. et al. (2024). SenseVoice: Towards Long-Term Robust Speech Understanding. arXiv:2407.04051. https://arxiv.org/abs/2407.04051"
+  },
+  {
+    "index": 853,
+    "style": "Normal",
+    "text": "[12] FunAudioLLM. SenseVoiceSmall model card and official repository. https://huggingface.co/FunAudioLLM/SenseVoiceSmall"
+  },
+  {
+    "index": 861,
+    "style": "Normal",
+    "text": "[20] AssemblyAI. Streaming Speech-to-Text documentation. https://www.assemblyai.com/docs/"
+  },
+  {
+    "index": 862,
+    "style": "Normal",
+    "text": "[21] SYSTRAN. faster-whisper official repository. https://github.com/SYSTRAN/faster-whisper"
+  },
+  {
+    "index": 881,
+    "style": "Normal",
+    "text": "- Điểm nội dung không dùng accent, emotion tag hoặc tốc độ nói làm proxy."
+  },
+  {
+    "index": 885,
+    "style": "Heading 2",
+    "text": "B.2. Quy tắc diễn giải SenseVoice"
+  },
+  {
+    "index": 886,
+    "style": "Table Caption",
+    "text": "Bảng B.1. Quy tắc sử dụng SenseVoice"
+  },
+  {
+    "index": 900,
+    "style": "Normal",
+    "text": "Khởi động AI service; xác nhận Health, RAG status, SenseVoice checkpoint và balance API."
+  },
+  {
+    "index": 905,
+    "style": "Normal",
+    "text": "Không bật quyết định tự động nếu chưa có bằng chứng hiệu lực cho công việc cụ thể, chưa kiểm tra adverse impact, không có cơ chế con người xem xét, hoặc không thể giải thích dữ liệu đã dùng. Không dùng SenseVoice emotion tag, accent, giới tính suy đoán, tuổi suy đoán hay trạng thái sức khỏe làm đặc trưng xếp hạng. Khi provider thay model hoặc chính sách, phải chạy lại evaluation gate trước khi tiếp tục."
+  },
+  {
+    "index": 914,
+    "style": "Normal",
+    "text": "Recorder realtime có hai chế độ: phiên AssemblyAI mới cho từng lượt hoặc persistent session cho auto-turn-taking. AudioWorklet gửi PCM vào WebSocket, MediaRecorder lưu bản ghi, còn RealtimeTranscript lọc final turn trùng và late message theo turn order hoặc segment generation. Khi transcript realtime rỗng, hệ thống dùng Faster-Whisper; khi microphone hoặc streaming không khả dụng, người dùng có thể chuyển sang trả lời bằng text nếu phiên cho phép. Các trạng thái UI openingSpeaking, openingRecording, reviewing, submitting và finishing được tách riêng để tránh gửi lặp hoặc dùng callback của lượt cũ."
+  },
+  {
+    "index": 916,
+    "style": "Normal",
+    "text": "PracticeRun lưu candidateIntro, transition metadata, audio reference, provider transcript và usage snapshot. Luồng finish bắt buộc phải có audio để phân tích SenseVoice; với interview tuyển dụng, CandidateProfile được trích xuất song song với evaluation và chỉ giữ các mục có evidence từ transcript, đồng thời loại bỏ nhóm trường nhạy cảm. Voice preview được hash theo language, voice và sample text, kiểm tra MongoDB trước khi gọi TTS, lưu audioBase64 dưới dạng bản ghi dùng chung và có khóa chống request trùng. PaymentSettlement bổ sung pending recovery, check-status, cancel, reconcile PayOS và settlement idempotent trong MongoDB transaction."
+  }
+]

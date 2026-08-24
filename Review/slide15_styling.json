@@ -1,0 +1,493 @@
+[
+  {
+    "index": 0,
+    "id": 579,
+    "name": "Google Shape;579;p70",
+    "type": "PLACEHOLDER (14)",
+    "left": 819150,
+    "top": 657299,
+    "width": 6381750,
+    "height": 571500,
+    "has_text": true,
+    "text": "Pipeline tiếng nói nhiều tầng",
+    "paragraphs": [
+      {
+        "text": "Pipeline tiếng nói nhiều tầng",
+        "font_size": 22.5,
+        "runs": [
+          {
+            "text": "Pipeline tiếng nói nhiều tầng",
+            "font_name": "Cambria",
+            "font_size": 22.5,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "id": 580,
+    "name": "Google Shape;580;p70",
+    "type": "PLACEHOLDER (14)",
+    "left": 7524750,
+    "top": 695399,
+    "width": 781050,
+    "height": 438150,
+    "has_text": true,
+    "text": "03",
+    "paragraphs": [
+      {
+        "text": "03",
+        "font_size": 20.25,
+        "runs": [
+          {
+            "text": "03",
+            "font_name": "Cambria",
+            "font_size": 20.25,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "id": 581,
+    "name": "Google Shape;581;p70",
+    "type": "PLACEHOLDER (14)",
+    "left": 852022,
+    "top": 1154388,
+    "width": 7429500,
+    "height": 342900,
+    "has_text": true,
+    "text": "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED",
+    "paragraphs": [
+      {
+        "text": "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": false,
+            "color": "526052"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "id": 582,
+    "name": "Rectangle 581",
+    "type": "AUTO_SHAPE (1)",
+    "left": 1000125,
+    "top": 1485116,
+    "width": 2000250,
+    "height": 266700,
+    "has_text": true,
+    "text": "LUỒNG PHIÊN ÂM",
+    "paragraphs": [
+      {
+        "text": "LUỒNG PHIÊN ÂM",
+        "font_size": 8.25,
+        "runs": [
+          {
+            "text": "LUỒNG PHIÊN ÂM",
+            "font_name": "Montserrat",
+            "font_size": 8.25,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "id": 583,
+    "name": "Rectangle 582",
+    "type": "AUTO_SHAPE (1)",
+    "left": 3381375,
+    "top": 3009116,
+    "width": 2524125,
+    "height": 266700,
+    "has_text": true,
+    "text": "FALLBACK KHI STREAMING LỖI",
+    "paragraphs": [
+      {
+        "text": "FALLBACK KHI STREAMING LỖI",
+        "font_size": 7.5,
+        "runs": [
+          {
+            "text": "FALLBACK KHI STREAMING LỖI",
+            "font_name": "Montserrat",
+            "font_size": 7.5,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "id": 584,
+    "name": "Rectangle 583",
+    "type": "AUTO_SHAPE (1)",
+    "left": 1000125,
+    "top": 3009116,
+    "width": 2000250,
+    "height": 266700,
+    "has_text": true,
+    "text": "LUỒNG QUAN SÁT",
+    "paragraphs": [
+      {
+        "text": "LUỒNG QUAN SÁT",
+        "font_size": 7.5,
+        "runs": [
+          {
+            "text": "LUỒNG QUAN SÁT",
+            "font_name": "Montserrat",
+            "font_size": 7.5,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "id": 585,
+    "name": "Rectangle: Rounded Corners 584",
+    "type": "AUTO_SHAPE (1)",
+    "left": 1000125,
+    "top": 1866116,
+    "width": 1809750,
+    "height": 857250,
+    "has_text": true,
+    "text": "Microphone\nAudio đầu vào",
+    "paragraphs": [
+      {
+        "text": "Microphone",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Microphone",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "Audio đầu vào",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Audio đầu vào",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "id": 586,
+    "name": "Rectangle: Rounded Corners 585",
+    "type": "AUTO_SHAPE (1)",
+    "left": 3667125,
+    "top": 1866116,
+    "width": 1952625,
+    "height": 857250,
+    "has_text": true,
+    "text": "AssemblyAI\nStreaming transcript",
+    "paragraphs": [
+      {
+        "text": "AssemblyAI",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "AssemblyAI",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "Streaming transcript",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Streaming transcript",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "id": 587,
+    "name": "Rectangle: Rounded Corners 586",
+    "type": "AUTO_SHAPE (1)",
+    "left": 6477000,
+    "top": 1866116,
+    "width": 1809750,
+    "height": 857250,
+    "has_text": true,
+    "text": "Transcript\nTheo thời gian thực",
+    "paragraphs": [
+      {
+        "text": "Transcript",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Transcript",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "Theo thời gian thực",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Theo thời gian thực",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "id": 588,
+    "name": "Rectangle: Rounded Corners 587",
+    "type": "AUTO_SHAPE (1)",
+    "left": 1000125,
+    "top": 3390116,
+    "width": 1809750,
+    "height": 819150,
+    "has_text": true,
+    "text": "SenseVoice\nLID / SER / AED\nObservation only",
+    "paragraphs": [
+      {
+        "text": "SenseVoice",
+        "font_size": 8.25,
+        "runs": [
+          {
+            "text": "SenseVoice",
+            "font_name": "Montserrat",
+            "font_size": 8.25,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "LID / SER / AED",
+        "font_size": 8.25,
+        "runs": [
+          {
+            "text": "LID / SER / AED",
+            "font_name": "Montserrat",
+            "font_size": 8.25,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "Observation only",
+        "font_size": 8.25,
+        "runs": [
+          {
+            "text": "Observation only",
+            "font_name": "Montserrat",
+            "font_size": 8.25,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "id": 589,
+    "name": "Rectangle: Rounded Corners 588",
+    "type": "AUTO_SHAPE (1)",
+    "left": 3667125,
+    "top": 3390116,
+    "width": 1952625,
+    "height": 819150,
+    "has_text": true,
+    "text": "Faster-Whisper\nFallback cục bộ",
+    "paragraphs": [
+      {
+        "text": "Faster-Whisper",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Faster-Whisper",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      },
+      {
+        "text": "Fallback cục bộ",
+        "font_size": 9.75,
+        "runs": [
+          {
+            "text": "Fallback ",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          },
+          {
+            "text": "cục",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          },
+          {
+            "text": " ",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          },
+          {
+            "text": "bộ",
+            "font_name": "Montserrat",
+            "font_size": 9.75,
+            "bold": true,
+            "color": "111410"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "id": 590,
+    "name": "Rectangle: Rounded Corners 589",
+    "type": "AUTO_SHAPE (1)",
+    "left": 6477000,
+    "top": 3390116,
+    "width": 1809750,
+    "height": 819150,
+    "has_text": true,
+    "text": "Transcript fallback\nTiếp tục phiên",
+    "paragraphs": [
+      {
+        "text": "Transcript fallback",
+        "font_size": 9.0,
+        "runs": [
+          {
+            "text": "Transcript fallback",
+            "font_name": "Montserrat",
+            "font_size": 9.0,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      },
+      {
+        "text": "Tiếp tục phiên",
+        "font_size": 9.0,
+        "runs": [
+          {
+            "text": "Tiếp tục phiên",
+            "font_name": "Montserrat",
+            "font_size": 9.0,
+            "bold": true,
+            "color": "4B8D17"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "id": 693,
+    "name": "Straight Arrow Connector 624",
+    "type": "LINE (9)",
+    "left": 2809875,
+    "top": 2294741,
+    "width": 857250,
+    "height": 0,
+    "has_text": false
+  },
+  {
+    "index": 13,
+    "id": 694,
+    "name": "Straight Arrow Connector 625",
+    "type": "LINE (9)",
+    "left": 5619750,
+    "top": 2294741,
+    "width": 857250,
+    "height": 0,
+    "has_text": false
+  },
+  {
+    "index": 14,
+    "id": 695,
+    "name": "Straight Arrow Connector 626",
+    "type": "LINE (9)",
+    "left": 1905000,
+    "top": 2723366,
+    "width": 0,
+    "height": 666750,
+    "has_text": false
+  },
+  {
+    "index": 15,
+    "id": 696,
+    "name": "Straight Arrow Connector 627",
+    "type": "LINE (9)",
+    "left": 4643438,
+    "top": 2723366,
+    "width": 0,
+    "height": 666750,
+    "has_text": false
+  },
+  {
+    "index": 16,
+    "id": 697,
+    "name": "Straight Arrow Connector 628",
+    "type": "LINE (9)",
+    "left": 5619750,
+    "top": 3799691,
+    "width": 857250,
+    "height": 0,
+    "has_text": false
+  }
+]

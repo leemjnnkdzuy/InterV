@@ -1,0 +1,95 @@
+{
+  "file": "Kich_Ban_Thuyet_Trinh_KLTN_InterV_15Phut.docx",
+  "paragraphs": [
+    {
+      "index": 5,
+      "text": "Chiến lược cốt lõi: Hội đồng đánh giá cao nhất khả năng làm chủ kiến trúc kỹ thuật và giải quyết các bài toán phức tạp của hệ thống. Do đó, thời gian 15 phút (900 giây) được phân bổ nghiêm ngặt theo tỉ lệ vàng: 5 phút cho Tổng quan, Bối cảnh, Ranh giới, FE/BE và Kết luận; 10 phút trọn vẹn dành cho Pipeline Cốt Lõi (Lookahead Engine, Multimodal Speech, Hybrid RAG Grounding, SenseVoice Analysis, Grounded Evaluation)."
+    },
+    {
+      "index": 11,
+      "text": "Lời nói: \"Kính thưa quý Thầy Cô trong Hội đồng chấm khóa luận tốt nghiệp. Em tên là Lê Minh Duy, sinh viên lớp Công nghệ Thông tin. Hôm nay, em xin phép được đại diện nhóm nghiên cứu trình bày đề tài khóa luận tốt nghiệp: 'Xây dựng hệ thống phỏng vấn và luyện tập phỏng vấn tích hợp Trí tuệ Nhân tạo - InterV', dưới sự hướng dẫn của Thầy ThS. Đặng Văn Lực.\n\nInterV là một nền tảng phỏng vấn giọng nói hai chế độ: Luyện tập cá nhân và Phỏng vấn tuyển dụng thực tế, kết hợp mô hình ngôn ngữ lớn DeepSeek, hệ thống truy hồi tri thức chuẩn hóa Qdrant RAG, cùng mô hình nhận diện giọng nói và phân tích hành vi đa phương thức SenseVoice.\""
+    },
+    {
+      "index": 20,
+      "text": "Lời nói: \"Về mặt kiến trúc, InterV được chia thành 2 tầng tách biệt với hợp đồng giao tiếp rõ ràng:\n• Tầng Web/BFF (Next.js App Router): Quản lý phiên, xác thực RBAC, WebSocket audio streaming, và giao dịch cơ sở dữ liệu MongoDB ReplicaSet.\n• Tầng AI Backend (Python gRPC Service): Đóng gói toàn bộ logic tính toán AI, bao gồm DeepSeek LLM, Qdrant Vector Database, FastEmbed Dense & BM25 Sparse, SenseVoice và Edge/Vbee TTS.\n\nGiao tiếp giữa Next.js và Python được ràng buộc nghiêm ngặt bằng giao thức gRPC với 16 RPCs typed có xác thực API key nội bộ. Không có bất kỳ logic AI nào bị lộ trực tiếp ra Client, và không có dữ liệu giả lập (mock) trong quá trình vận hành.\""
+    },
+    {
+      "index": 26,
+      "text": "▶ Slide 15: Pipeline Xử lý Giọng nói Đa tầng (Multimodal Speech Pipeline) [04:30 - 06:30 (2 phút - 120 giây)]"
+    },
+    {
+      "index": 27,
+      "text": "Lời nói: \"Tiếp theo, em xin trình bày về Pipeline Giọng nói Đa tầng của InterV. Hệ thống xây dựng một chu trình khép kín từ Micro ứng viên đến Loa của AI:\n\n1. Thu âm & Realtime Streaming: Trình duyệt mở AudioWorklet, thu âm PCM 16kHz và mở kết nối WebSocket trực tiếp tới AssemblyAI. Để bảo mật tuyệt đối, Next.js cấp một Temporary Streaming Token có thời hạn ngắn (ngăn lộ API key gốc). Chữ chạy hiển thị realtime trên màn hình giúp ứng viên theo dõi câu trả lời của mình.\n\n2. STT Fallback Cục bộ (Local Resilient STT): Nếu mạng chập chờn, kết nối WebSocket bị đứt hoặc transcript rỗng, file audio gốc (được nén và gửi về server) sẽ được chuyển giao cho model Faster-Whisper chạy trực tiếp trên Python Backend. Điều này đảm bảo phiên phỏng vấn không bao giờ bị gián đoạn vì lỗi STT từ bên thứ ba.\n\n3. TTS Phát âm Chuẩn Kỹ thuật (Edge/Vbee TTS): Một bài toán rất thực tế trong phỏng vấn IT là việc phát âm các thuật ngữ tiếng Anh như 'React', 'Figma', 'Kubernetes', 'CI/CD', 'Microservices' khi AI nói tiếng Việt. InterV đã tích hợp bộ thư viện phiên âm ngữ âm (Phonetic Pronunciation Library), tự động chuẩn hóa các thuật ngữ chuyên ngành trước khi đưa vào bộ tổng hợp giọng nói, giúp giọng đọc của AI tự nhiên, chuyên nghiệp và chuẩn xác như một chuyên gia công nghệ.\""
+    },
+    {
+      "index": 32,
+      "text": "▶ Slide 15, 27: Phân tích Hành vi Giọng nói Đa phương thức (SenseVoice Speech Analysis) [08:30 - 10:00 (1.5 phút - 90 giây)]"
+    },
+    {
+      "index": 33,
+      "text": "Lời nói: \"Sau khi ứng viên hoàn thành các câu hỏi, toàn bộ audio gốc được stream qua gRPC tới module SenseVoice để phân tích tín hiệu phi ngôn ngữ:\n\n1. Bóc tách tín hiệu chuyên sâu:\n   • SER (Speech Emotion Recognition): Cảm xúc giọng nói (Tự tin, Trung tính, Căng thẳng, v.v.).\n   • LID (Language Identification): Nhận diện ngôn ngữ phát âm.\n   • AED (Audio Event Detection): Bắt các sự kiện âm thanh như tiếng cười, tiếng ho, thở dài.\n   • Signal Metrics: Đo lường khách quan tốc độ nói (Words Per Minute), tỷ lệ khoảng lặng (Pause ratio), độ ổn định âm lượng (Volume stability qua độ lệch chuẩn dB) và đếm số lượng từ đệm (Filler words bilingual: 'à, ừm, like, you know').\n\n2. Bất biến An toàn Tuyệt đối (Safety Invariants):\n   • Observation Only: Tín hiệu âm thanh chỉ dùng làm bằng chứng mô tả hỗ trợ luyện tập, TUYỆT ĐỐI không chẩn đoán tâm lý hay tính cách.\n   • Neutral Default: Nếu tín hiệu âm thanh không rõ ràng hoặc lỗi, điểm Composure/Confidence mặc định trả về 50 (trung tính), không bao giờ tự ý trừ điểm vô căn cứ của ứng viên.\""
+    },
+    {
+      "index": 36,
+      "text": "Lời nói: \"Khâu cuối cùng của pipeline là Chấm điểm và Tổng hợp báo cáo phỏng vấn:\n\n1. Đánh giá đa chiều 7 tiêu chí: DeepSeek tổng hợp transcript và kết quả SenseVoice để chấm 7 thang điểm độc lập: Communication, Knowledge, Problem Solving, Confidence, JD Fit, Composure, Vocal Delivery.\n\n2. Ràng buộc bằng chứng thực tế (Exact Answer Excerpt Rule): Để ngăn chặn tình trạng AI nhận xét chung chung hoặc tự bịa ra lỗi, Backend áp dụng quy tắc bất biến: Mọi câu hỏi được chấm trên 40 điểm BẮT BUỘC phải trích xuất chính xác một đoạn văn bản (exact substring) từ câu trả lời thật của ứng viên làm minh chứng.\n\n3. Khóa phiên nguyên tử & Chống Race Condition: Sử dụng cơ chế Evaluation Lease (thời hạn 370s) và MongoDB Transaction, đảm bảo mỗi lượt phỏng vấn chỉ được chấm đúng một lần duy nhất, ngăn ngừa hoàn toàn việc trừ credit kép hoặc ghi đè kết quả.\""
+    },
+    {
+      "index": 39,
+      "text": "Lời nói: \"Để kết thúc phần Pipeline cốt lõi, em xin nhấn mạnh tính toàn vẹn của Hợp đồng Typed:\nToàn bộ dữ liệu trao đổi giữa TypeScript (Next.js) và Python đều thông qua Protobuf v3. Mọi payload trước khi lưu vào MongoDB hay render lên UI đều phải vượt qua Schema Validation của Zod và Pydantic.\n\nHệ thống được thiết kế với cơ chế Graceful Fallback ở mọi tầng: RAG lỗi có Baseline rules; Streaming STT lỗi có Faster-Whisper; Lookahead chậm có Prepared Baseline Questions; Mất mạng có Idempotent Replay. Nhờ đó, InterV đạt độ ổn định và khả năng phục hồi cực cao.\""
+    },
+    {
+      "index": 59,
+      "text": "❓ Câu 1: Tại sao nhóm không để Trình duyệt gọi trực tiếp Python Backend hay các dịch vụ AI như DeepSeek, AssemblyAI mà phải đi qua Next.js BFF và gRPC?"
+    },
+    {
+      "index": 60,
+      "text": "Trả lời: Kính thưa Thầy Cô, đây là quyết định kiến trúc nhằm đảm bảo 3 nguyên tắc sống còn:\n1. Bảo mật Credential: Nếu Frontend gọi trực tiếp DeepSeek hay AssemblyAI, API Key sẽ bị lộ trên client. Next.js BFF đóng vai trò bảo vệ bí mật, chỉ cấp temporary token ngắn hạn cho WebSocket audio.\n2. Xác thực và Phân quyền (RBAC): Next.js kiểm tra session, quyền hạn (user/recruiter/admin), số dư credit và rate-limit trước khi ủy quyền cho Python backend xử lý.\n3. Hiệu năng & Type Safety: Giao tiếp giữa Next.js và Python sử dụng gRPC (HTTP/2 binary Protobuf), cho tốc độ truyền tải cực nhanh, độ trễ thấp hơn nhiều so với REST JSON nội bộ, và ép buộc tính toàn vẹn kiểu dữ liệu giữa TypeScript và Python."
+    },
+    {
+      "index": 63,
+      "text": "❓ Câu 3: Làm sao đảm bảo SenseVoice không đưa ra các nhận xét mang tính kỳ thị hoặc sai lệch tâm lý của ứng viên?"
+    },
+    {
+      "index": 64,
+      "text": "Trả lời: Kính thưa Thầy Cô, hệ thống cài đặt Bất biến an toàn (Safety Invariant) ở mức mã nguồn:\n1. Nguyên tắc Observation-only: SenseVoice chỉ đo lường các thuộc tính vật lý âm thanh (Tốc độ nói WPM, độ biến thiên âm lượng dB, tỷ lệ ngập ngừng, từ đệm) và cảm xúc bề mặt (SER), hoàn toàn KHÔNG đưa ra kết luận về tính cách, sự trung thực hay bệnh lý tâm thần.\n2. Giá trị mặc định trung tính (Neutral Default = 50): Nếu audio nhiễu, đứt quãng hoặc không đủ thời lượng để phân tích, hệ thống tự động gán điểm trung tính 50, không bao giờ trừ điểm hay đánh trượt ứng viên dựa trên tín hiệu âm thanh."
+    }
+  ],
+  "tables": [
+    {
+      "table_idx": 0,
+      "row": 2,
+      "col": 1,
+      "text": "1. Luồng tổng thể End-to-End\n2. Lookahead Adaptive Question Engine (0ms latency, next.js after())\n3. Pipeline Giọng nói Đa tầng (AssemblyAI, Faster-Whisper, Vbee TTS)\n4. RAG Hybrid & Grounding 3 Cổng (Allow-list, 1-shot repair)\n5. SenseVoice Behavioral Analysis (LID/SER/AED, Observation only)\n6. Grounded Evaluation (Exact Answer Excerpt Check >40đ)"
+    },
+    {
+      "table_idx": 6,
+      "row": 0,
+      "col": 0,
+      "text": "📌 Ghi chú trình bày & Cử chỉ: Nhấn mạnh cơ chế Fallback Faster-Whisper và Thư viện phiên âm thuật ngữ IT trong TTS."
+    },
+    {
+      "table_idx": 15,
+      "row": 2,
+      "col": 1,
+      "text": "• Browser AudioWorklet (16kHz PCM)\n• AssemblyAI Streaming WebSocket\n• Faster-Whisper Cuda/CPU Fallback\n• Edge/Vbee TTS + Pronunciation Lib"
+    },
+    {
+      "table_idx": 15,
+      "row": 2,
+      "col": 2,
+      "text": "• Cấp temporary token ngắn hạn cho browser (bảo mật tuyệt đối).\n• Tự động kích hoạt Faster-Whisper cục bộ khi streaming lỗi/rỗng.\n• Bộ từ điển phiên âm thuật ngữ IT (React, Figma, K8s, CI/CD) giúp TTS tự nhiên."
+    },
+    {
+      "table_idx": 15,
+      "row": 4,
+      "col": 0,
+      "text": "SenseVoice Behavioral Analysis"
+    },
+    {
+      "table_idx": 15,
+      "row": 4,
+      "col": 1,
+      "text": "• SenseVoice Small ONNX/PyTorch\n• SER (Emotion), LID (Language), AED (Events)\n• Signal Processing (RMS, dB stddev, Pause)"
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+[
+  {
+    "idx": 0,
+    "text": "TRƯỜNG ĐẠI HỌC VĂN HIẾN\nKHOA CÔNG NGHỆ THÔNG TIN\n"
+  },
+  {
+    "idx": 1,
+    "text": "KỊCH BẢN THUYẾT TRÌNH BẢO VỆ KHÓA LUẬN TỐT NGHIỆP (15 PHÚT)\nĐỀ TÀI: XÂY DỰNG HỆ THỐNG PHỎNG VẤN VÀ LUYỆN TẬP PHỎNG VẤN TÍCH HỢP TRÍ TUỆ NHÂN TẠO (INTERV)"
+  },
+  {
+    "idx": 2,
+    "text": "Sinh viên thực hiện: Lê Minh Duy — MSSV: 221A011220\nGVHD: ThS. Đặng Văn Lực\nNăm học: 2026"
+  },
+  {
+    "idx": 3,
+    "text": ""
+  },
+  {
+    "idx": 4,
+    "text": "PHẦN I. DÀN Ý & CHIẾN LƯỢC PHÂN BỔ THỜI GIAN 15 PHÚT"
+  },
+  {
+    "idx": 5,
+    "text": "Chiến lược cốt lõi: Hội đồng đánh giá cao nhất khả năng làm chủ kiến trúc kỹ thuật và giải quyết các bài toán phức tạp của hệ thống. Do đó, thời gian 15 phút (900 giây) được phân bổ nghiêm ngặt theo tỉ lệ vàng: 5 phút cho Tổng quan, Bối cảnh, Ranh giới, FE/BE và Kết luận; 10 phút trọn vẹn dành cho Pipeline Cốt Lõi (Lookahead Engine, Multimodal Speech, Hybrid RAG Grounding, SenseVoice Analysis, Grounded Evaluation)."
+  },
+  {
+    "idx": 6,
+    "text": ""
+  },
+  {
+    "idx": 7,
+    "text": "PHẦN II. KỊCH BẢN NÓI CHI TIẾT TỪNG SLIDE (CHÍNH XÁC 15 PHÚT)"
+  },
+  {
+    "idx": 8,
+    "text": "Kịch bản dưới đây được thiết kế thành từng chặng thời gian cụ thể. Sinh viên đọc đúng khẩu khí, tự tin, phát âm rõ ràng, không đọc lại nguyên văn slide mà diễn giải cơ chế và quyết định kỹ thuật đằng sau."
+  },
+  {
+    "idx": 9,
+    "text": "CHẶNG 1: MỞ ĐẦU, BỐI CẢNH & KIẾN TRÚC TỔNG QUAN (2.5 PHÚT)"
+  },
+  {
+    "idx": 10,
+    "text": "▶ Slide 1: Trang bìa - Giới thiệu đề tài [00:00 - 00:30 (30 giây)]"
+  },
+  {
+    "idx": 11,
+    "text": "Lời nói: \"Kính thưa quý Thầy Cô trong Hội đồng chấm khóa luận tốt nghiệp. Em tên là Lê Minh Duy, sinh viên lớp Công nghệ Thông tin. Hôm nay, em xin phép được đại diện nhóm nghiên cứu trình bày đề tài khóa luận tốt nghiệp: 'Xây dựng hệ thống phỏng vấn và luyện tập phỏng vấn tích hợp Trí tuệ Nhân tạo - InterV', dưới sự hướng dẫn của Thầy ThS. Đặng Văn Lực.\n\nInterV là một nền tảng phỏng vấn giọng nói hai chế độ: Luyện tập cá nhân và Phỏng vấn tuyển dụng thực tế, kết hợp mô hình ngôn ngữ lớn DeepSeek, hệ thống truy hồi tri thức chuẩn hóa Qdrant RAG, cùng mô hình nhận diện giọng nói và phân tích hành vi đa phương thức SenseVoice.\""
+  },
+  {
+    "idx": 12,
+    "text": ""
+  },
+  {
+    "idx": 13,
+    "text": "▶ Slide 2 - 3: Lộ trình & Bài toán thực tế [00:30 - 01:15 (45 giây)]"
+  },
+  {
+    "idx": 14,
+    "text": "Lời nói: \"Kính thưa Hội đồng, khi ứng dụng AI vào quy trình phỏng vấn, các giải pháp hiện nay thường mắc phải ba cạm bẫy lớn:\n1. LLM thiếu căn cứ (Hallucination): Câu hỏi và lời nhận xét có vẻ trôi chảy nhưng bịa đặt hoặc lệch khỏi Mô tả công việc (JD).\n2. Thiếu tính nhất quán: Phỏng vấn tự do khiến tiêu chí đánh giá giữa các ứng viên bị xê dịch.\n3. Suy diễn quá mức từ giọng nói: Biến các tín hiệu âm thanh đơn thuần thành kết luận tâm lý thiếu cơ sở.\n\nVì vậy, mục tiêu tối thượng của InterV là xây dựng một hệ thống phỏng vấn 'Grounded' - mọi câu hỏi, mọi tiêu chuẩn đánh giá đều phải truy nguyên được nguồn gốc từ JD và bộ quy tắc chuẩn hóa, đồng thời giữ vững nguyên tắc: AI là công cụ hỗ trợ bằng chứng, con người là người ra quyết định cuối cùng.\""
+  },
+  {
+    "idx": 15,
+    "text": ""
+  },
+  {
+    "idx": 16,
+    "text": "▶ Slide 4 - 6: Ranh giới trách nhiệm & Phạm vi nghiên cứu [01:15 - 01:45 (30 giây)]"
+  },
+  {
+    "idx": 17,
+    "text": "Lời nói: \"Hệ thống phân tách rạch ròi ba nhóm người dùng với ranh giới quyền hạn tuyệt đối:\n• Ứng viên sở hữu dữ liệu cá nhân, luyện tập hoặc tham gia theo thư mời.\n• Recruiter sở hữu quyết định tuyển dụng: thiết lập JD, xem bằng chứng và đưa ra quyết định cuối.\n• Admin chỉ vận hành hạ tầng kỹ thuật và theo dõi tài chính, không can thiệp vào kết quả tuyển dụng.\n\nĐặc biệt, hệ thống tuyên bố rõ: InterV KHÔNG tự động tuyển/loại (No auto-hire/reject) và KHÔNG chẩn đoán tâm lý, đảm bảo tuyệt đối tính minh bạch và an toàn AI.\""
+  },
+  {
+    "idx": 18,
+    "text": ""
+  },
+  {
+    "idx": 19,
+    "text": "▶ Slide 7 - 11: Kiến trúc tổng thể 2 tầng (BFF & gRPC AI Boundary) [01:45 - 02:30 (45 giây)]"
+  },
+  {
+    "idx": 20,
+    "text": "Lời nói: \"Về mặt kiến trúc, InterV được chia thành 2 tầng tách biệt với hợp đồng giao tiếp rõ ràng:\n• Tầng Web/BFF (Next.js App Router): Quản lý phiên, xác thực RBAC, WebSocket audio streaming, và giao dịch cơ sở dữ liệu MongoDB ReplicaSet.\n• Tầng AI Backend (Python gRPC Service): Đóng gói toàn bộ logic tính toán AI, bao gồm DeepSeek LLM, Qdrant Vector Database, FastEmbed Dense & BM25 Sparse, SenseVoice và Edge/Vbee TTS.\n\nGiao tiếp giữa Next.js và Python được ràng buộc nghiêm ngặt bằng giao thức gRPC với 16 RPCs typed có xác thực API key nội bộ. Không có bất kỳ logic AI nào bị lộ trực tiếp ra Client, và không có dữ liệu giả lập (mock) trong quá trình vận hành.\""
+  },
+  {
+    "idx": 21,
+    "text": ""
+  },
+  {
+    "idx": 22,
+    "text": "CHẶNG 2: PIPELINE CỐT LÕI CỦA HỆ THỐNG (~10 PHÚT - TRỌNG TÂM THUYẾT TRÌNH)"
+  },
+  {
+    "idx": 23,
+    "text": "▶ Slide 12: Cơ chế Lookahead Adaptive Question Engine (Trái tim của độ mượt phỏng vấn) [02:30 - 04:30 (2 phút - 120 giây)]"
+  },
+  {
+    "idx": 24,
+    "text": "Lời nói: \"Kính thưa Hội đồng, thách thức lớn nhất của một cuộc phỏng vấn AI đàm thoại là ĐỘ TRỄ. Nếu sau mỗi câu trả lời của ứng viên, hệ thống mới bắt đầu gọi DeepSeek để sinh câu hỏi tiếp theo, ứng viên sẽ phải chờ từ 3 đến 5 giây trong im lặng - điều này phá vỡ hoàn toàn trải nghiệm tương tác tự nhiên.\n\nInterV giải quyết triệt để bài toán này bằng Kiến trúc Lookahead Adaptive Question Engine gồm 3 bước độc đáo:\n\n1. Bước Khởi tạo (Preparation Phase): Khi người dùng bấm bắt đầu, Backend sinh ngay một bộ câu hỏi baseline chuẩn mực dựa trên JD và nạp sẵn âm thanh (warm TTS). Câu hỏi số 1 được trả về tức thì.\n\n2. Bước Phản hồi thời gian thực (0ms Latency): Khi ứng viên trả lời xong câu Q_i và nhấn nộp, Next.js BFF ngay lập tức trả về câu hỏi Q_(i+1) đã có sẵn trong bộ nhớ đệm. Ứng viên không phải chờ một mili-giây nào!\n\n3. Bước Thích ứng nền (Background Lookahead): Cùng lúc đó, Next.js kích hoạt hàm after() chạy bất đồng bộ trong nền, gửi toàn bộ lịch sử QA qua gRPC SubmitAnswer tới Python backend. DeepSeek kết hợp với RAG sẽ phân tích câu trả lời vừa rồi để 'bắt bài' (probe gap/khoảng trống năng lực), từ đó sinh ra một câu hỏi thích ứng chuyên sâu Q_(i+2) kèm lời chuyển ý tự nhiên (transition), đồng thời kích hoạt warm TTS ngay trong nền.\n\nKhi câu Q_(i+2) sinh xong, nó được ghi đè vào vị trí câu hỏi kế tiếp trong MongoDB. Nếu vì sự cố mạng mà Lookahead chưa kịp xong, hệ thống sẽ tự động dùng câu hỏi baseline đã warm sẵn làm fallback an toàn. Nhờ cơ chế này, cuộc phỏng vấn luôn thích ứng linh hoạt theo câu trả lời của ứng viên mà độ trễ tương tác bằng 0.\""
+  },
+  {
+    "idx": 25,
+    "text": ""
+  },
+  {
+    "idx": 26,
+    "text": "▶ Slide 15: Pipeline Xử lý Giọng nói Đa tầng (Multimodal Speech Pipeline) [04:30 - 06:30 (2 phút - 120 giây)]"
+  },
+  {
+    "idx": 27,
+    "text": "Lời nói: \"Tiếp theo, em xin trình bày về Pipeline Giọng nói Đa tầng của InterV. Hệ thống xây dựng một chu trình khép kín từ Micro ứng viên đến Loa của AI:\n\n1. Thu âm & Realtime Streaming: Trình duyệt mở AudioWorklet, thu âm PCM 16kHz và mở kết nối WebSocket trực tiếp tới AssemblyAI. Để bảo mật tuyệt đối, Next.js cấp một Temporary Streaming Token có thời hạn ngắn (ngăn lộ API key gốc). Chữ chạy hiển thị realtime trên màn hình giúp ứng viên theo dõi câu trả lời của mình.\n\n2. STT Fallback Cục bộ (Local Resilient STT): Nếu mạng chập chờn, kết nối WebSocket bị đứt hoặc transcript rỗng, file audio gốc (được nén và gửi về server) sẽ được chuyển giao cho model Faster-Whisper chạy trực tiếp trên Python Backend. Điều này đảm bảo phiên phỏng vấn không bao giờ bị gián đoạn vì lỗi STT từ bên thứ ba.\n\n3. TTS Phát âm Chuẩn Kỹ thuật (Edge/Vbee TTS): Một bài toán rất thực tế trong phỏng vấn IT là việc phát âm các thuật ngữ tiếng Anh như 'React', 'Figma', 'Kubernetes', 'CI/CD', 'Microservices' khi AI nói tiếng Việt. InterV đã tích hợp bộ thư viện phiên âm ngữ âm (Phonetic Pronunciation Library), tự động chuẩn hóa các thuật ngữ chuyên ngành trước khi đưa vào bộ tổng hợp giọng nói, giúp giọng đọc của AI tự nhiên, chuyên nghiệp và chuẩn xác như một chuyên gia công nghệ.\""
+  },
+  {
+    "idx": 28,
+    "text": ""
+  },
+  {
+    "idx": 29,
+    "text": "▶ Slide 13 - 14, 26: Cơ chế RAG Hybrid & Grounding Allow-List (Chống ảo giác LLM) [06:30 - 08:30 (2 phút - 120 giây)]"
+  },
+  {
+    "idx": 30,
+    "text": "Lời nói: \"Trọng tâm tiếp theo là Cơ chế Kiểm soát Tri thức RAG Hybrid và Grounding Allow-list nhằm loại bỏ hoàn toàn ảo giác của DeepSeek.\n\n1. Kho tri thức chuẩn mực (Corpus Provenance): Hệ thống nạp 86 tệp quy tắc chuẩn hóa Markdown, bao gồm 5 core framework, 15 ngành nghề, 4 cấp bậc (Junior/Middle/Senior/Lead) và 60 hồ sơ năng lực chuyên sâu (Profile specs) dựa trên tiêu chuẩn STAR và thang đo BARS.\n\n2. Truy hồi đa phương thức (Hybrid Retrieval): Sử dụng cơ sở dữ liệu vector Qdrant kết hợp song song:\n   • Dense Vector: FastEmbed đa ngôn ngữ (paraphrase-multilingual-mpnet) nắm bắt ngữ nghĩa sâu.\n   • Sparse Lexical: Thuật toán BM25 nắm bắt chính xác các từ khóa chuyên ngành.\n   • Hai luồng kết quả được hợp nhất bằng thuật toán Reciprocal Rank Fusion (RRF).\n\n3. Cơ chế Grounding 3 Cổng (Tri-Gate Control):\n   • Cổng trước khi sinh (Pre-generation): Chuẩn hóa context và cấp phát danh sách Evidence IDs hợp lệ.\n   • Cổng trong khi sinh (In-generation): Ép buộc DeepSeek trả về JSON có cấu trúc nghiêm ngặt và phải trích dẫn Evidence ID làm căn cứ.\n   • Cổng sau khi sinh (Post-generation Validation Gate): Backend hậu kiểm toàn bộ citation. Bất biến an toàn: Nếu DeepSeek trích dẫn bất kỳ ID nào không nằm trong Evidence Allow-list, câu trả lời sẽ bị từ chối ngay lập tức. Backend tự động kích hoạt duy nhất 1 lượt Repair Request kèm allow-list chuẩn để DeepSeek tự sửa sai. Nhờ vậy, mọi câu hỏi và nhận xét xuất xưởng đều có căn cứ pháp lý và chuyên môn xác thực 100%.\""
+  },
+  {
+    "idx": 31,
+    "text": ""
+  },
+  {
+    "idx": 32,
+    "text": "▶ Slide 15, 27: Phân tích Hành vi Giọng nói Đa phương thức (SenseVoice Speech Analysis) [08:30 - 10:00 (1.5 phút - 90 giây)]"
+  },
+  {
+    "idx": 33,
+    "text": "Lời nói: \"Sau khi ứng viên hoàn thành các câu hỏi, toàn bộ audio gốc được stream qua gRPC tới module SenseVoice để phân tích tín hiệu phi ngôn ngữ:\n\n1. Bóc tách tín hiệu chuyên sâu:\n   • SER (Speech Emotion Recognition): Cảm xúc giọng nói (Tự tin, Trung tính, Căng thẳng, v.v.).\n   • LID (Language Identification): Nhận diện ngôn ngữ phát âm.\n   • AED (Audio Event Detection): Bắt các sự kiện âm thanh như tiếng cười, tiếng ho, thở dài.\n   • Signal Metrics: Đo lường khách quan tốc độ nói (Words Per Minute), tỷ lệ khoảng lặng (Pause ratio), độ ổn định âm lượng (Volume stability qua độ lệch chuẩn dB) và đếm số lượng từ đệm (Filler words bilingual: 'à, ừm, like, you know').\n\n2. Bất biến An toàn Tuyệt đối (Safety Invariants):\n   • Observation Only: Tín hiệu âm thanh chỉ dùng làm bằng chứng mô tả hỗ trợ luyện tập, TUYỆT ĐỐI không chẩn đoán tâm lý hay tính cách.\n   • Neutral Default: Nếu tín hiệu âm thanh không rõ ràng hoặc lỗi, điểm Composure/Confidence mặc định trả về 50 (trung tính), không bao giờ tự ý trừ điểm vô căn cứ của ứng viên.\""
+  },
+  {
+    "idx": 34,
+    "text": ""
+  },
+  {
+    "idx": 35,
+    "text": "▶ Slide 13, 20, 24: Cơ chế Chấm điểm & Đánh giá Căn cứ (Grounded Evaluation Engine) [10:00 - 11:30 (1.5 phút - 90 giây)]"
+  },
+  {
+    "idx": 36,
+    "text": "Lời nói: \"Khâu cuối cùng của pipeline là Chấm điểm và Tổng hợp báo cáo phỏng vấn:\n\n1. Đánh giá đa chiều 7 tiêu chí: DeepSeek tổng hợp transcript và kết quả SenseVoice để chấm 7 thang điểm độc lập: Communication, Knowledge, Problem Solving, Confidence, JD Fit, Composure, Vocal Delivery.\n\n2. Ràng buộc bằng chứng thực tế (Exact Answer Excerpt Rule): Để ngăn chặn tình trạng AI nhận xét chung chung hoặc tự bịa ra lỗi, Backend áp dụng quy tắc bất biến: Mọi câu hỏi được chấm trên 40 điểm BẮT BUỘC phải trích xuất chính xác một đoạn văn bản (exact substring) từ câu trả lời thật của ứng viên làm minh chứng.\n\n3. Khóa phiên nguyên tử & Chống Race Condition: Sử dụng cơ chế Evaluation Lease (thời hạn 370s) và MongoDB Transaction, đảm bảo mỗi lượt phỏng vấn chỉ được chấm đúng một lần duy nhất, ngăn ngừa hoàn toàn việc trừ credit kép hoặc ghi đè kết quả.\""
+  },
+  {
+    "idx": 37,
+    "text": ""
+  },
+  {
+    "idx": 38,
+    "text": "▶ Slide 16 - 17: Hợp đồng Typed gRPC & Khả năng Phục hồi Hệ thống [11:30 - 12:30 (1 phút - 60 giây)]"
+  },
+  {
+    "idx": 39,
+    "text": "Lời nói: \"Để kết thúc phần Pipeline cốt lõi, em xin nhấn mạnh tính toàn vẹn của Hợp đồng Typed:\nToàn bộ dữ liệu trao đổi giữa TypeScript (Next.js) và Python đều thông qua Protobuf v3. Mọi payload trước khi lưu vào MongoDB hay render lên UI đều phải vượt qua Schema Validation của Zod và Pydantic.\n\nHệ thống được thiết kế với cơ chế Graceful Fallback ở mọi tầng: RAG lỗi có Baseline rules; Streaming STT lỗi có Faster-Whisper; Lookahead chậm có Prepared Baseline Questions; Mất mạng có Idempotent Replay. Nhờ đó, InterV đạt độ ổn định và khả năng phục hồi cực cao.\""
+  },
+  {
+    "idx": 40,
+    "text": ""
+  },
+  {
+    "idx": 41,
+    "text": "CHẶNG 3: TÍNH NĂNG MỞ RỘNG, HIỆN VẬT & KIỂM THỬ (1.5 PHÚT)"
+  },
+  {
+    "idx": 42,
+    "text": "▶ Slide 18 - 23: Hệ sinh thái mở rộng: Recruiter Workspace & Admin Dashboard [12:30 - 13:15 (45 giây)]"
+  },
+  {
+    "idx": 43,
+    "text": "Lời nói: \"Bên cạnh pipeline luyện tập cá nhân, InterV cung cấp hai không gian làm việc chuyên nghiệp:\n• Recruiter Workspace: Cho phép nhà tuyển dụng tạo chiến dịch, nhập JD chuẩn hóa, gửi thư mời phỏng vấn tự động qua email queue, khóa phiên phỏng vấn, xem báo cáo tổng hợp kèm trích dẫn và tự tay đưa ra quyết định tuyển dụng.\n• Admin Dashboard: Giám sát toàn diện hệ thống với tính năng theo dõi số dư DeepSeek Balance trực tiếp qua gRPC, đối soát chi phí token theo từng request, quản trị dòng tiền với cổng thanh toán PayOS qua Credit Ledger nguyên tử, và hệ thống ApiRequestLog theo dõi latency p95 với cơ chế tự động xóa sau 7 ngày (TTL index).\""
+  },
+  {
+    "idx": 44,
+    "text": ""
+  },
+  {
+    "idx": 45,
+    "text": "▶ Slide 24 - 25: Hiện vật triển khai & Kết quả Xác minh Kỹ thuật [13:15 - 14:00 (45 giây)]"
+  },
+  {
+    "idx": 46,
+    "text": "Lời nói: \"Kính thưa Hội đồng, toàn bộ hệ thống đã được triển khai hoàn chỉnh với quy mô hiện vật ấn tượng:\n• Hơn 60.000 dòng mã nguồn logic (TypeScript, TSX, Python, Protobuf).\n• 61 Route Files với 74 HTTP Method Handlers trên Next.js BFF.\n• 19 Mongoose Data Models quản lý toàn diện vòng đời dữ liệu.\n• 16 gRPC RPCs đóng gói trọn vẹn các dịch vụ AI.\n• 86 Rule Markdown Files bao phủ 15 ngành nghề và 60 hồ sơ vị trí.\n\nVề mặt chất lượng kiểm thử: Toàn bộ 51/51 Backend Unit & Contract Tests đạt 100% trong 3.28 giây, vượt qua Type Check TypeScript nghiêm ngặt, cùng các bài kiểm thử E2E tích hợp từ đăng ký, thanh toán đến hoàn thành buổi phỏng vấn.\""
+  },
+  {
+    "idx": 47,
+    "text": ""
+  },
+  {
+    "idx": 48,
+    "text": "CHẶNG 4: ĐÓNG GÓP, GIỚI HẠN & KẾT LUẬN (1.0 PHÚT)"
+  },
+  {
+    "idx": 49,
+    "text": "▶ Slide 28 - 30: Đóng góp & Giới hạn nghiên cứu [14:00 - 14:30 (30 giây)]"
+  },
+  {
+    "idx": 50,
+    "text": "Lời nói: \"Đề tài mang lại 4 đóng góp kỹ thuật then chốt:\n1. Kiến trúc Lookahead thời gian thực loại bỏ độ trễ tương tác.\n2. Cơ chế Grounded RAG 3 cổng triệt tiêu hoàn toàn ảo giác của LLM.\n3. Pipeline Giọng nói đa tầng an toàn, đa phương thức với cơ chế Fallback bền vững.\n4. Hệ thống Quản trị tri thức Provenance chuẩn hóa theo STAR/BARS.\n\nVề mặt giới hạn: Đề tài trung thực thừa nhận hệ thống hiện mới chứng minh được tính nhất quán và vững chắc về mặt kỹ thuật, chưa khẳng định hiệu lực đo lường tuyển dụng (Validity/Fairness) trên quy mô xã hội rộng lớn, và cần thêm sự thẩm định của các chuyên gia đầu ngành (SMEs) trước khi triển khai đại trà.\""
+  },
+  {
+    "idx": 51,
+    "text": ""
+  },
+  {
+    "idx": 52,
+    "text": "▶ Slide 31 - 32: Kết luận & Lời cảm ơn [14:30 - 15:00 (30 giây)]"
+  },
+  {
+    "idx": 53,
+    "text": "Lời nói: \"Tóm lại, InterV đã hiện thực hóa thành công một giải pháp công nghệ toàn diện, tin cậy và có khả năng ứng dụng thực tiễn cao cho bài toán phỏng vấn tự động hóa có kiểm soát.\n\nEm xin chân thành cảm ơn Thầy ThS. Đặng Văn Lực đã tận tình hướng dẫn, và xin trân trọng cảm ơn quý Thầy Cô trong Hội đồng đã chú ý lắng nghe.\n\nEm xin phép được tiếp nhận các câu hỏi nhận xét và đóng góp quý báu từ Hội đồng!\""
+  },
+  {
+    "idx": 54,
+    "text": ""
+  },
+  {
+    "idx": 55,
+    "text": "PHẦN III. BẢNG TỔNG HỢP KIẾN TRÚC & PIPELINE CỐT LÕI ĐỂ PHẢN BIỆN"
+  },
+  {
+    "idx": 56,
+    "text": "Phần này tổng hợp chi tiết các tham số kỹ thuật, công nghệ và cơ chế phòng vệ của InterV để sinh viên nắm chắc và trả lời xuất sắc mọi câu hỏi đào sâu từ Hội đồng:"
+  },
+  {
+    "idx": 57,
+    "text": ""
+  },
+  {
+    "idx": 58,
+    "text": "PHẦN IV. BỘ CÂU HỎI PHẢN BIỆN DỰ PHÒNG CỦA HỘI ĐỒNG (Q&A CHEAT SHEET)"
+  },
+  {
+    "idx": 59,
+    "text": "❓ Câu 1: Tại sao nhóm không để Trình duyệt gọi trực tiếp Python Backend hay các dịch vụ AI như DeepSeek, AssemblyAI mà phải đi qua Next.js BFF và gRPC?"
+  },
+  {
+    "idx": 60,
+    "text": "Trả lời: Kính thưa Thầy Cô, đây là quyết định kiến trúc nhằm đảm bảo 3 nguyên tắc sống còn:\n1. Bảo mật Credential: Nếu Frontend gọi trực tiếp DeepSeek hay AssemblyAI, API Key sẽ bị lộ trên client. Next.js BFF đóng vai trò bảo vệ bí mật, chỉ cấp temporary token ngắn hạn cho WebSocket audio.\n2. Xác thực và Phân quyền (RBAC): Next.js kiểm tra session, quyền hạn (user/recruiter/admin), số dư credit và rate-limit trước khi ủy quyền cho Python backend xử lý.\n3. Hiệu năng & Type Safety: Giao tiếp giữa Next.js và Python sử dụng gRPC (HTTP/2 binary Protobuf), cho tốc độ truyền tải cực nhanh, độ trễ thấp hơn nhiều so với REST JSON nội bộ, và ép buộc tính toàn vẹn kiểu dữ liệu giữa TypeScript và Python."
+  },
+  {
+    "idx": 61,
+    "text": "❓ Câu 2: Nếu ứng viên cố tình trả lời lạc đề hoặc trả lời quá ngắn (chỉ 1-2 từ), hệ thống xử lý như thế nào?"
+  },
+  {
+    "idx": 62,
+    "text": "Trả lời: Kính thưa Thầy Cô, InterV xử lý tình huống này ở cả 2 tầng:\n1. Trong lúc phỏng vấn (Lookahead Probing): DeepSeek nhận toàn bộ lịch sử QA. Khi phát hiện câu trả lời thiếu thông tin (gap), DeepSeek sẽ sinh câu hỏi thích ứng tiếp theo để đào sâu (follow-up probe) nhằm yêu cầu ứng viên làm rõ hoặc đưa ra ví dụ cụ thể.\n2. Trong lúc chấm điểm (Exact Answer Excerpt Check): Hệ thống áp dụng quy tắc bắt buộc: Điểm số trên 40 phải có đoạn trích dẫn chứng minh từ transcript. Nếu câu trả lời quá ngắn hoặc lạc đề, không trích xuất được evidence hợp lệ, DeepSeek sẽ chấm điểm thấp và chỉ ra lỗi cụ thể trong phần 'mistakes' và 'feedback'."
+  },
+  {
+    "idx": 63,
+    "text": "❓ Câu 3: Làm sao đảm bảo SenseVoice không đưa ra các nhận xét mang tính kỳ thị hoặc sai lệch tâm lý của ứng viên?"
+  },
+  {
+    "idx": 64,
+    "text": "Trả lời: Kính thưa Thầy Cô, hệ thống cài đặt Bất biến an toàn (Safety Invariant) ở mức mã nguồn:\n1. Nguyên tắc Observation-only: SenseVoice chỉ đo lường các thuộc tính vật lý âm thanh (Tốc độ nói WPM, độ biến thiên âm lượng dB, tỷ lệ ngập ngừng, từ đệm) và cảm xúc bề mặt (SER), hoàn toàn KHÔNG đưa ra kết luận về tính cách, sự trung thực hay bệnh lý tâm thần.\n2. Giá trị mặc định trung tính (Neutral Default = 50): Nếu audio nhiễu, đứt quãng hoặc không đủ thời lượng để phân tích, hệ thống tự động gán điểm trung tính 50, không bao giờ trừ điểm hay đánh trượt ứng viên dựa trên tín hiệu âm thanh."
+  },
+  {
+    "idx": 65,
+    "text": "❓ Câu 4: Cơ chế Grounding Allow-list hoạt động thế nào khi DeepSeek bị 'ảo giác' sinh ra một trích dẫn không có thật?"
+  },
+  {
+    "idx": 66,
+    "text": "Trả lời: Kính thưa Thầy Cô, khi Python backend chuẩn bị ngữ cảnh cho DeepSeek, nó đóng gói một tập hợp Evidence IDs hợp lệ (Grounding Package). Khi DeepSeek trả về JSON kết quả, hàm `validate_grounding_ids()` sẽ đối chiếu từng ID trong citation với Allow-list. Nếu xuất hiện ID không hợp lệ, hệ thống sẽ chặn đứng dữ liệu tại Citation Gate, đồng thời kích hoạt cơ chế 1-shot repair: Gửi lại prompt nhắc nhở kèm đúng danh sách Allow-list để DeepSeek tự động sửa và trả về kết quả chuẩn xác."
+  }
+]

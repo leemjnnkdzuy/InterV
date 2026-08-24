@@ -1,0 +1,157 @@
+[
+  {
+    "idx": 0,
+    "slide_num": 1,
+    "title": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐ"
+  },
+  {
+    "idx": 1,
+    "slide_num": 2,
+    "title": "Lộ trình trình bày"
+  },
+  {
+    "idx": 2,
+    "slide_num": 3,
+    "title": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con"
+  },
+  {
+    "idx": 3,
+    "slide_num": 4,
+    "title": "Ba nhóm người dùng, ba ranh giới trách nhiệm"
+  },
+  {
+    "idx": 4,
+    "slide_num": 5,
+    "title": "Mục tiêu và câu hỏi nghiên cứu"
+  },
+  {
+    "idx": 5,
+    "slide_num": 6,
+    "title": "Phạm vi đề tài được khóa bằng bốn nguyên tắc"
+  },
+  {
+    "idx": 6,
+    "slide_num": 7,
+    "title": "Phương pháp tách rõ “chạy đúng” và “đo lường có hi"
+  },
+  {
+    "idx": 7,
+    "slide_num": 8,
+    "title": "Lý thuyết được chuyển thành cơ chế phần mềm"
+  },
+  {
+    "idx": 8,
+    "slide_num": 9,
+    "title": "AI + tri thức"
+  },
+  {
+    "idx": 9,
+    "slide_num": 10,
+    "title": "Mô hình dữ liệu giữ ownership và provenance"
+  },
+  {
+    "idx": 10,
+    "slide_num": 11,
+    "title": "Ba actor dùng chung nền tảng nhưng không chia sẻ q"
+  },
+  {
+    "idx": 11,
+    "slide_num": 12,
+    "title": "Lookahead thích ứng câu hỏi mà không ngắt phiên"
+  },
+  {
+    "idx": 12,
+    "slide_num": 13,
+    "title": "Grounded generation"
+  },
+  {
+    "idx": 13,
+    "slide_num": 14,
+    "title": "Vòng đời tài liệu RAG có provenance"
+  },
+  {
+    "idx": 14,
+    "slide_num": 15,
+    "title": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ p"
+  },
+  {
+    "idx": 15,
+    "slide_num": 16,
+    "title": "An toàn, quan sát và khả năng phục hồi"
+  },
+  {
+    "idx": 16,
+    "slide_num": 17,
+    "title": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán"
+  },
+  {
+    "idx": 17,
+    "slide_num": 18,
+    "title": "RBAC giữ quyền quyết định ở đúng actor"
+  },
+  {
+    "idx": 18,
+    "slide_num": 19,
+    "title": "State machine giữ phiên luyện tập nhất quán"
+  },
+  {
+    "idx": 19,
+    "slide_num": 20,
+    "title": "Vòng đời tuyển dụng tách mời, phiên và đánh giá"
+  },
+  {
+    "idx": 20,
+    "slide_num": 21,
+    "title": "Fallback giữ phiên tiếp tục khi provider lỗi"
+  },
+  {
+    "idx": 21,
+    "slide_num": 22,
+    "title": "Stack công nghệ theo ranh giới trách nhiệm"
+  },
+  {
+    "idx": 22,
+    "slide_num": 23,
+    "title": "Quy mô hiện vật triển khai"
+  },
+  {
+    "idx": 23,
+    "slide_num": 24,
+    "title": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa đư"
+  },
+  {
+    "idx": 24,
+    "slide_num": 25,
+    "title": "DeepSeek/RAG được kiểm soát ở ba điểm"
+  },
+  {
+    "idx": 25,
+    "slide_num": 26,
+    "title": "Bất biến an toàn của SenseVoice"
+  },
+  {
+    "idx": 26,
+    "slide_num": 27,
+    "title": "Bốn đóng góp chính"
+  },
+  {
+    "idx": 27,
+    "slide_num": 28,
+    "title": "Giới hạn cần được đọc cùng kết quả"
+  },
+  {
+    "idx": 28,
+    "slide_num": 29,
+    "title": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa"
+  },
+  {
+    "idx": 29,
+    "slide_num": 30,
+    "title": "InterV đã đạt nền tảng kỹ thuật khả thi"
+  },
+  {
+    "idx": 30,
+    "slide_num": 31,
+    "title": "Cảm ơn Hội đồng"
+  }
+]

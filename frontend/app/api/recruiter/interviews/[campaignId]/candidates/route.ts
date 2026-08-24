@@ -94,6 +94,18 @@ async function POSTHandler(
           { status: 422 }
         );
       }
+      if (result.code === "INSUFFICIENT_CREDITS") {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "INSUFFICIENT_CREDITS",
+            message: `Không đủ Credits. Bạn cần ${result.requiredCredits} Credits để thêm ứng viên, nhưng số dư hiện tại là ${result.balanceCredits} Credits.`,
+            requiredCredits: result.requiredCredits,
+            balanceCredits: result.balanceCredits,
+          },
+          { status: 402 }
+        );
+      }
       return NextResponse.json(
         {
           success: false,
@@ -110,8 +122,12 @@ async function POSTHandler(
       action: "RECRUITMENT_CANDIDATES_ADDED",
       targetType: "RecruitmentCampaign",
       targetId: campaignId,
-      summary: `Thêm ${result.invitationIds.length} ứng viên vào chiến dịch`,
-      changes: { candidateCount: result.invitationIds.length },
+      summary: `Thêm ${result.invitationIds.length} ứng viên vào chiến dịch (-${result.chargedCredits} Credits)`,
+      changes: {
+        candidateCount: result.invitationIds.length,
+        chargedCredits: result.chargedCredits,
+        remainingCredits: result.remainingCredits,
+      },
     });
     after(async () => {
       await dispatchRecruitmentInvitationBatch(result.invitationIds);
@@ -121,6 +137,8 @@ async function POSTHandler(
         success: true,
         message: "Đã thêm ứng viên và xếp hàng gửi thư mời",
         invitationCount: result.invitationIds.length,
+        chargedCredits: result.chargedCredits,
+        remainingCredits: result.remainingCredits,
       },
       { status: 201 }
     );

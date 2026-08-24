@@ -44,6 +44,7 @@ import {
 import { SiLeetcode } from "react-icons/si";
 import { SOCIAL_PLATFORMS } from "@/app/contants";
 import { getErrorMessage } from "@/app/lib/Utils";
+import { roleHomePath } from "@/app/lib/RoleRouting";
 import type { ProfilePageProps, ProfileUser, SocialLink, ProfileStats } from "@/app/types";
 
 const getPlatformIcon = (platform: string) => {
@@ -231,7 +232,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
     return (
       <div className="min-h-screen bg-background text-foreground pb-12 flex flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">{error || t("profile.userNotFound")}</p>
-        <Button onClick={() => router.push("/")} variant="outline" className="rounded-full cursor-pointer">
+        <Button onClick={() => router.push(roleHomePath(user?.role))} variant="outline" className="rounded-full cursor-pointer">
           {t("profile.backToHome")}
         </Button>
       </div>
@@ -255,7 +256,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
       <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-8 pb-6 flex items-center justify-between">
         <Button
           variant="outline"
-          onClick={() => router.push("/")}
+          onClick={() => router.push(roleHomePath(user?.role))}
           className="rounded-full flex items-center gap-2 border-border/40 hover:bg-muted/50 cursor-pointer"
         >
           <AltArrowLeft className="w-5 h-5" />

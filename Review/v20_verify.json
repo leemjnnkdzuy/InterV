@@ -1,0 +1,188 @@
+[
+  {
+    "slide_index": 0,
+    "slide_number": 1,
+    "title": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG TÍCH HỢP XỬ LÝ GIỌNG NÓI ĐA TẦNG, TRUY XUẤT TRI THỨC TĂNG CƯỜNG (RAG) VÀ MÔ HÌNH NGÔN NGỮ LỚN",
+    "note_header": "[00:00 - 00:30] SLIDE 1: GIỚI THIỆU ĐỀ TÀI"
+  },
+  {
+    "slide_index": 1,
+    "slide_number": 2,
+    "title": "Lộ trình trình bày",
+    "note_header": "[00:30 - 00:50] SLIDE 2: LỘ TRÌNH BÀI TRÌNH BÀY"
+  },
+  {
+    "slide_index": 2,
+    "slide_number": 3,
+    "title": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người",
+    "note_header": "[00:50 - 01:15] SLIDE 3: BÀI TOÁN & THỰC TRẠNG"
+  },
+  {
+    "slide_index": 3,
+    "slide_number": 4,
+    "title": "Ba nhóm người dùng, ba ranh giới trách nhiệm",
+    "note_header": "[01:15 - 01:30] SLIDE 4: BA NHÓM NGƯỜI DÙNG & RANH GIỚI TRÁCH NHIỆM"
+  },
+  {
+    "slide_index": 4,
+    "slide_number": 5,
+    "title": "Mục tiêu và câu hỏi nghiên cứu",
+    "note_header": "[01:30 - 01:45] SLIDE 5: MỤC TIÊU NGHIÊN CỨU"
+  },
+  {
+    "slide_index": 5,
+    "slide_number": 6,
+    "title": "Phạm vi đề tài được khóa bằng bốn nguyên tắc",
+    "note_header": "[01:45 - 02:00] SLIDE 6: BỐN NGUYÊN TẮC KHÓA PHẠM VI"
+  },
+  {
+    "slide_index": 6,
+    "slide_number": 7,
+    "title": "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”",
+    "note_header": "[02:00 - 02:15] SLIDE 7: PHƯƠNG PHÁP NGHIÊN CỨU"
+  },
+  {
+    "slide_index": 7,
+    "slide_number": 8,
+    "title": "Lý thuyết được chuyển thành cơ chế phần mềm",
+    "note_header": "[02:15 - 02:30] SLIDE 8: ÁNH XẠ LÝ THUYẾT VÀO HỆ THỐNG"
+  },
+  {
+    "slide_index": 8,
+    "slide_number": 9,
+    "title": "AI + tri thức",
+    "note_header": "[02:30 - 03:00] SLIDE 9: KIẾN TRÚC TỔNG THỂ 2 TẦNG"
+  },
+  {
+    "slide_index": 9,
+    "slide_number": 10,
+    "title": "Mô hình dữ liệu giữ ownership và provenance",
+    "note_header": "[03:00 - 03:15] SLIDE 10: MÔ HÌNH DỮ LIỆU & PROVENANCE"
+  },
+  {
+    "slide_index": 10,
+    "slide_number": 11,
+    "title": "Ba actor dùng chung nền tảng nhưng không chia sẻ quyền quyết định; AI nằm ngoài biên tuyển dụng.",
+    "note_header": "[03:15 - 03:30] SLIDE 11: USE CASE THEO QUYỀN SỞ HỮU"
+  },
+  {
+    "slide_index": 11,
+    "slide_number": 12,
+    "title": "Lookahead thích ứng câu hỏi mà không ngắt phiên",
+    "note_header": "[03:30 - 05:30] SLIDE 12: LOOKAHEAD ADAPTIVE QUESTION ENGINE (TRỌNG TÂM)"
+  },
+  {
+    "slide_index": 12,
+    "slide_number": 13,
+    "title": "Grounded generation",
+    "note_header": "[05:30 - 07:00] SLIDE 13: GROUNDED GENERATION & CƠ CHẾ KIỂM SOÁT"
+  },
+  {
+    "slide_index": 13,
+    "slide_number": 14,
+    "title": "Vòng đời tài liệu RAG có provenance",
+    "note_header": "[07:00 - 08:00] SLIDE 14: VÒNG ĐỜI TÀI LIỆU RAG & HYBRID RETRIEVAL"
+  },
+  {
+    "slide_index": 14,
+    "slide_number": 15,
+    "title": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn",
+    "note_header": "[08:00 - 09:30] SLIDE 15: PIPELINE TIẾNG NÓI ĐA TẦNG (REALTIME & HẬU KỲ)"
+  },
+  {
+    "slide_index": 15,
+    "slide_number": 16,
+    "title": "An toàn, quan sát và khả năng phục hồi",
+    "note_header": "[09:30 - 10:15] SLIDE 16: AN TOÀN, QUAN SÁT & KHẢ NĂNG PHỤC HỒI"
+  },
+  {
+    "slide_index": 16,
+    "slide_number": 17,
+    "title": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán",
+    "note_header": "[10:15 - 10:45] SLIDE 17: HỢP ĐỒNG TYPED gRPC"
+  },
+  {
+    "slide_index": 17,
+    "slide_number": 18,
+    "title": "RBAC giữ quyền quyết định ở đúng actor",
+    "note_header": "[10:45 - 11:05] SLIDE 18: MA TRẬN PHÂN QUYỀN RBAC"
+  },
+  {
+    "slide_index": 18,
+    "slide_number": 19,
+    "title": "State machine giữ phiên luyện tập nhất quán",
+    "note_header": "[11:05 - 11:25] SLIDE 19: STATE MACHINE PHIÊN LUYỆN TẬP"
+  },
+  {
+    "slide_index": 19,
+    "slide_number": 20,
+    "title": "Vòng đời tuyển dụng tách mời, phiên và đánh giá",
+    "note_header": "[11:25 - 11:45] SLIDE 20: VÒNG ĐỜI TUYỂN DỤNG RECRUITER"
+  },
+  {
+    "slide_index": 20,
+    "slide_number": 21,
+    "title": "Fallback giữ phiên tiếp tục khi provider lỗi",
+    "note_header": "[11:45 - 12:00] SLIDE 21: CƠ CHẾ FALLBACK TOÀN DIỆN"
+  },
+  {
+    "slide_index": 21,
+    "slide_number": 22,
+    "title": "Stack công nghệ theo ranh giới trách nhiệm",
+    "note_header": "[12:00 - 12:25] SLIDE 22: STACK CÔNG NGHỆ"
+  },
+  {
+    "slide_index": 22,
+    "slide_number": 23,
+    "title": "Quy mô hiện vật triển khai",
+    "note_header": "[12:25 - 13:10] SLIDE 23: QUY MÔ HIỆN VẬT TRIỂN KHAI"
+  },
+  {
+    "slide_index": 23,
+    "slide_number": 24,
+    "title": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh",
+    "note_header": "[13:10 - 13:40] SLIDE 24: XÁC MINH KỸ THUẬT ĐẠT 100%"
+  },
+  {
+    "slide_index": 24,
+    "slide_number": 25,
+    "title": "DeepSeek/RAG được kiểm soát ở ba điểm",
+    "note_header": "[13:40 - 13:55] SLIDE 25: BA ĐIỂM KIỂM SOÁT DEEPSEEK"
+  },
+  {
+    "slide_index": 25,
+    "slide_number": 26,
+    "title": "Bất biến an toàn của SenseVoice",
+    "note_header": "[13:55 - 14:15] SLIDE 26: BẤT BIẾN AN TOÀN SENSEVOICE"
+  },
+  {
+    "slide_index": 26,
+    "slide_number": 27,
+    "title": "Bốn đóng góp chính",
+    "note_header": "[14:15 - 14:30] SLIDE 27: BỐN ĐÓNG GÓP CHÍNH"
+  },
+  {
+    "slide_index": 27,
+    "slide_number": 28,
+    "title": "Giới hạn cần được đọc cùng kết quả",
+    "note_header": "[14:30 - 14:45] SLIDE 28: GIỚI HẠN NGHIÊN CỨU"
+  },
+  {
+    "slide_index": 28,
+    "slide_number": 29,
+    "title": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa",
+    "note_header": "[14:45 - 14:50] SLIDE 29: BỐN CỔNG KIỂM SOÁT TRIỂN KHAI"
+  },
+  {
+    "slide_index": 29,
+    "slide_number": 30,
+    "title": "InterV đã đạt nền tảng kỹ thuật khả thi",
+    "note_header": "[14:50 - 14:55] SLIDE 30: KẾT LUẬN"
+  },
+  {
+    "slide_index": 30,
+    "slide_number": 31,
+    "title": "Cảm ơn Hội đồng",
+    "note_header": "[14:55 - 15:00] SLIDE 31: CẢM ƠN & TIẾP NHẬN PHẢN BIỆN"
+  }
+]

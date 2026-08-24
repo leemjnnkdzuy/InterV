@@ -74,6 +74,10 @@ export function getActionName(action: string): string {
       return "Trích xuất JD";
     case "ADMIN_ADJUST":
       return "Điều chỉnh bởi Admin";
+    case "RECRUITMENT_CAMPAIGN":
+      return "Chiến dịch tuyển dụng";
+    case "RECRUITMENT_REFUND":
+      return "Hoàn Credits tuyển dụng";
     default:
       return action;
   }

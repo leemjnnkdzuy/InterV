@@ -23,6 +23,8 @@ const creditLogSchema = new Schema<ICreditLog>(
         "AI_JD_EXTRACT",
         "REGISTER_BONUS",
         "ADMIN_ADJUST",
+        "RECRUITMENT_CAMPAIGN",
+        "RECRUITMENT_REFUND",
       ],
       index: true,
     },

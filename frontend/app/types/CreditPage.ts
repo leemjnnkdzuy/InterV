@@ -4,7 +4,9 @@ export type CreditLogAction =
   | "AI_INTERVIEW_REFUND"
   | "AI_JD_EXTRACT"
   | "REGISTER_BONUS"
-  | "ADMIN_ADJUST";
+  | "ADMIN_ADJUST"
+  | "RECRUITMENT_CAMPAIGN"
+  | "RECRUITMENT_REFUND";
 
 export type CreditTransactionStatus =
   | "PENDING"

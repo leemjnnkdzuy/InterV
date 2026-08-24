@@ -88,7 +88,6 @@ const recruitmentCampaignSchema = new Schema<IRecruitmentCampaign>(
     maxAttempts: {
       type: Number,
       min: 1,
-      max: 3,
       default: 1,
     },
     startsAt: {

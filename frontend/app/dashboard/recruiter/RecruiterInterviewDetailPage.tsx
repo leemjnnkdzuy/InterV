@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
+import { useAuthContext } from "@/app/contexts/AuthContext";
+import { QUESTION_CREDIT_COST } from "@/app/lib/PracticeBilling";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/components/ui/dialog";
-import { Input } from "@/app/components/ui/input";
+import { DateTimePickerInput } from "@/app/components/ui/date-picker";
 import { Textarea } from "@/app/components/ui/textarea";
 import {
   DashboardError,
@@ -143,6 +145,7 @@ export default function RecruiterInterviewDetailPage({
 }: {
   campaignId: string;
 }) {
+  const { user } = useAuthContext();
   const [data, setData] = useState<CampaignDetailResponse | null>(null);
   const [error, setError] = useState("");
   const [mutating, setMutating] = useState(false);
@@ -152,6 +155,27 @@ export default function RecruiterInterviewDetailPage({
   const [showDeadline, setShowDeadline] = useState(false);
   const [deadline, setDeadline] = useState("");
   const [selectedResult, setSelectedResult] = useState<Invitation | null>(null);
+
+  const addCandidateEmailsList = useMemo(() => {
+    return Array.from(
+      new Set(
+        candidateEmails
+          .split(/[\s,;]+/)
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean)
+      )
+    );
+  }, [candidateEmails]);
+
+  const addCandidateCost = useMemo(() => {
+    const costPerCandidate =
+      (data?.campaign.questionCount || 5) * QUESTION_CREDIT_COST;
+    return addCandidateEmailsList.length * costPerCandidate;
+  }, [addCandidateEmailsList.length, data?.campaign.questionCount]);
+
+  const userCredits = user?.credits || 0;
+  const hasSufficientCreditsForAdd =
+    addCandidateEmailsList.length === 0 || userCredits >= addCandidateCost;
 
   const load = useCallback(async () => {
     setError("");
@@ -221,16 +245,15 @@ export default function RecruiterInterviewDetailPage({
   };
 
   const addCandidates = async () => {
-    const emails = Array.from(
-      new Set(
-        candidateEmails
-          .split(/[\s,;]+/)
-          .map((email) => email.trim().toLowerCase())
-          .filter(Boolean)
-      )
-    );
+    const emails = addCandidateEmailsList;
     if (emails.length === 0) {
       toast.error("Nhập ít nhất một email");
+      return;
+    }
+    if (!hasSufficientCreditsForAdd) {
+      toast.error(
+        `Không đủ Credits. Bạn cần ${addCandidateCost.toLocaleString("vi-VN")} Credits để thêm ${emails.length} ứng viên.`
+      );
       return;
     }
     setMutating(true);
@@ -597,7 +620,21 @@ export default function RecruiterInterviewDetailPage({
               </div>
               <div className="flex justify-between gap-3 px-4 py-3">
                 <dt className="text-muted-foreground">Ngôn ngữ</dt>
-                <dd className="font-bold">{campaign.language}</dd>
+                <dd className="font-bold">
+                  {campaign.language === "vi-VN"
+                    ? "Tiếng Việt"
+                    : campaign.language === "en-US"
+                    ? "English"
+                    : campaign.language === "zh-CN"
+                    ? "中文"
+                    : campaign.language}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3 px-4 py-3">
+                <dt className="text-muted-foreground">Giọng đọc</dt>
+                <dd className="font-bold truncate max-w-[170px]" title={campaign.voiceId}>
+                  {campaign.voiceId}
+                </dd>
               </div>
               <div className="flex justify-between gap-3 px-4 py-3">
                 <dt className="text-muted-foreground">Bắt đầu</dt>
@@ -652,12 +689,37 @@ export default function RecruiterInterviewDetailPage({
               dòng.
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            value={candidateEmails}
-            onChange={(event) => setCandidateEmails(event.target.value)}
-            placeholder={"candidate1@example.com\ncandidate2@example.com"}
-            className="min-h-36 resize-y"
-          />
+          <div className="space-y-3">
+            <Textarea
+              value={candidateEmails}
+              onChange={(event) => setCandidateEmails(event.target.value)}
+              placeholder={"candidate1@example.com\ncandidate2@example.com"}
+              className="min-h-32 resize-y"
+            />
+            {addCandidateEmailsList.length > 0 && (
+              <div className="rounded-lg border border-border/70 bg-muted/25 p-3 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Số ứng viên thêm:</span>
+                  <span className="font-bold">{addCandidateEmailsList.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Chi phí:</span>
+                  <span className="font-bold text-amber-500">
+                    {addCandidateCost.toLocaleString("vi-VN")} Credits
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-border/40 pt-1.5">
+                  <span className="text-muted-foreground">Số dư hiện tại:</span>
+                  <span className="font-bold">{userCredits.toLocaleString("vi-VN")} Credits</span>
+                </div>
+                {!hasSufficientCreditsForAdd && (
+                  <p className="text-[11px] font-bold text-destructive pt-1">
+                    Số dư không đủ. Bạn cần nạp thêm {(addCandidateCost - userCredits).toLocaleString("vi-VN")} Credits.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           <DialogFooter>
             <Button
               type="button"
@@ -669,10 +731,18 @@ export default function RecruiterInterviewDetailPage({
             </Button>
             <Button
               type="button"
-              disabled={mutating}
+              disabled={
+                mutating ||
+                !hasSufficientCreditsForAdd ||
+                addCandidateEmailsList.length === 0
+              }
               onClick={() => void addCandidates()}
             >
-              {mutating ? "Đang thêm..." : "Thêm và gửi email"}
+              {mutating
+                ? "Đang thêm..."
+                : !hasSufficientCreditsForAdd
+                ? "Không đủ Credits"
+                : "Thêm và gửi email"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -691,10 +761,11 @@ export default function RecruiterInterviewDetailPage({
               Hạn mới áp dụng cho các ứng viên chưa bắt đầu.
             </DialogDescription>
           </DialogHeader>
-          <Input
-            type="datetime-local"
+          <DateTimePickerInput
             value={deadline}
-            onChange={(event) => setDeadline(event.target.value)}
+            min={new Date()}
+            onChange={(val) => setDeadline(val)}
+            placeholder="Chọn hạn mới..."
           />
           <DialogFooter>
             <Button

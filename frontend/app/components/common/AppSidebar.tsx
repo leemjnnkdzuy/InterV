@@ -47,6 +47,7 @@ import {
   CardRecive,
 } from "@solar-icons/react";
 import { cn } from "@/app/lib/Utils";
+import { roleHomePath } from "@/app/lib/RoleRouting";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import type { AppSidebarProps } from "@/app/types";
 
@@ -83,6 +84,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const menuItems = (() => {
+    const homeUrl = roleHomePath(user?.role);
     switch (variant) {
       case "settings":
         return [
@@ -91,7 +93,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
             title: t("common.home"),
             subtitle: t("profile.backToHome"),
             icon: HomeAngle,
-            url: "/",
+            url: homeUrl,
           },
           {
             id: "account",
@@ -119,7 +121,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
             title: t("common.home"),
             subtitle: t("profile.backToHome"),
             icon: HomeAngle,
-            url: "/",
+            url: homeUrl,
           },
           {
             id: "balance",
@@ -148,7 +150,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
             title: t("common.home"),
             subtitle: t("profile.backToHome"),
             icon: HomeAngle,
-            url: "/",
+            url: homeUrl,
           },
           {
             id: "interviews",
@@ -195,7 +197,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
         {isCollapsed ? (
           <>
             <div 
-              onClick={() => router.push("/")}
+              onClick={() => router.push(roleHomePath(user?.role))}
               className="relative w-9 h-9 flex items-center justify-center cursor-pointer"
             >
               <Image
@@ -212,7 +214,7 @@ export default function AppSidebar({ variant = "home", activeTab, setActiveTab }
         ) : (
           <>
             <div 
-              onClick={() => router.push("/")} 
+              onClick={() => router.push(roleHomePath(user?.role))} 
               className="flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer"
             >
               <div className="relative w-9 h-9 flex items-center justify-center">

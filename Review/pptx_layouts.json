@@ -1,0 +1,369 @@
+{
+  "layouts": [
+    {
+      "index": 0,
+      "name": "TITLE"
+    },
+    {
+      "index": 1,
+      "name": "SECTION_HEADER"
+    },
+    {
+      "index": 2,
+      "name": "TITLE_AND_BODY"
+    },
+    {
+      "index": 3,
+      "name": "TITLE_AND_TWO_COLUMNS"
+    },
+    {
+      "index": 4,
+      "name": "TITLE_ONLY"
+    },
+    {
+      "index": 5,
+      "name": "ONE_COLUMN_TEXT"
+    },
+    {
+      "index": 6,
+      "name": "MAIN_POINT"
+    },
+    {
+      "index": 7,
+      "name": "SECTION_TITLE_AND_DESCRIPTION"
+    },
+    {
+      "index": 8,
+      "name": "CAPTION_ONLY"
+    },
+    {
+      "index": 9,
+      "name": "BIG_NUMBER"
+    },
+    {
+      "index": 10,
+      "name": "BLANK"
+    },
+    {
+      "index": 11,
+      "name": "CUSTOM"
+    },
+    {
+      "index": 12,
+      "name": "CUSTOM_11"
+    },
+    {
+      "index": 13,
+      "name": "CUSTOM_2"
+    },
+    {
+      "index": 14,
+      "name": "CUSTOM_12"
+    },
+    {
+      "index": 15,
+      "name": "CUSTOM_13"
+    },
+    {
+      "index": 16,
+      "name": "CUSTOM_3"
+    },
+    {
+      "index": 17,
+      "name": "CUSTOM_14"
+    },
+    {
+      "index": 18,
+      "name": "CUSTOM_15"
+    },
+    {
+      "index": 19,
+      "name": "TITLE_ONLY_1"
+    },
+    {
+      "index": 20,
+      "name": "CUSTOM_16"
+    },
+    {
+      "index": 21,
+      "name": "CUSTOM_17"
+    },
+    {
+      "index": 22,
+      "name": "CUSTOM_18"
+    },
+    {
+      "index": 23,
+      "name": "CUSTOM_19"
+    },
+    {
+      "index": 24,
+      "name": "SECTION_HEADER_1"
+    },
+    {
+      "index": 25,
+      "name": "CUSTOM_20"
+    },
+    {
+      "index": 26,
+      "name": "CUSTOM_3_1"
+    },
+    {
+      "index": 27,
+      "name": "CUSTOM_21"
+    },
+    {
+      "index": 28,
+      "name": "CUSTOM_4"
+    },
+    {
+      "index": 29,
+      "name": "CUSTOM_22"
+    },
+    {
+      "index": 30,
+      "name": "CUSTOM_32"
+    },
+    {
+      "index": 31,
+      "name": "CUSTOM_33"
+    },
+    {
+      "index": 32,
+      "name": "CUSTOM_34"
+    },
+    {
+      "index": 33,
+      "name": "CUSTOM_35"
+    },
+    {
+      "index": 34,
+      "name": "CUSTOM_36"
+    },
+    {
+      "index": 35,
+      "name": "CUSTOM_23"
+    },
+    {
+      "index": 36,
+      "name": "CUSTOM_4_2_1"
+    },
+    {
+      "index": 37,
+      "name": "CUSTOM_5"
+    },
+    {
+      "index": 38,
+      "name": "CUSTOM_26"
+    },
+    {
+      "index": 39,
+      "name": "CUSTOM_6"
+    },
+    {
+      "index": 40,
+      "name": "CUSTOM_28"
+    },
+    {
+      "index": 41,
+      "name": "CUSTOM_7_1"
+    },
+    {
+      "index": 42,
+      "name": "CUSTOM_7_2"
+    },
+    {
+      "index": 43,
+      "name": "CUSTOM_8"
+    },
+    {
+      "index": 44,
+      "name": "CUSTOM_29"
+    },
+    {
+      "index": 45,
+      "name": "CUSTOM_9"
+    },
+    {
+      "index": 46,
+      "name": "CUSTOM_31"
+    },
+    {
+      "index": 47,
+      "name": "CUSTOM_1"
+    },
+    {
+      "index": 48,
+      "name": "CUSTOM_10"
+    },
+    {
+      "index": 49,
+      "name": "CUSTOM_10_1"
+    },
+    {
+      "index": 50,
+      "name": "CUSTOM_10_1_1"
+    },
+    {
+      "index": 51,
+      "name": "CUSTOM_30"
+    }
+  ],
+  "slide_bgs": [
+    {
+      "slide_index": 0,
+      "layout": "TITLE",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 1,
+      "layout": "CUSTOM_11",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 2,
+      "layout": "CUSTOM_4",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 3,
+      "layout": "CUSTOM_4",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 4,
+      "layout": "CUSTOM_11",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 5,
+      "layout": "CUSTOM_5",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 6,
+      "layout": "TITLE_ONLY_1",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 7,
+      "layout": "CUSTOM_4",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 8,
+      "layout": "CUSTOM_26",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 9,
+      "layout": "CUSTOM_3_1",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 10,
+      "layout": "CUSTOM_21",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 11,
+      "layout": "SECTION_HEADER_1",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 12,
+      "layout": "CUSTOM_20",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 13,
+      "layout": "TITLE_ONLY",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 14,
+      "layout": "CUSTOM_15",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 15,
+      "layout": "CUSTOM_14",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 16,
+      "layout": "SECTION_TITLE_AND_DESCRIPTION",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 17,
+      "layout": "CUSTOM_7_2",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 18,
+      "layout": "CUSTOM_7_2",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 19,
+      "layout": "CUSTOM_7_1",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 20,
+      "layout": "CUSTOM_17",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 21,
+      "layout": "CUSTOM_11",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 22,
+      "layout": "CUSTOM_28",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 23,
+      "layout": "CUSTOM_36",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 24,
+      "layout": "CUSTOM_4",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 25,
+      "layout": "CUSTOM_5",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 26,
+      "layout": "CUSTOM_5",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 27,
+      "layout": "CUSTOM_4",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 28,
+      "layout": "TITLE_ONLY",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 29,
+      "layout": "MAIN_POINT",
+      "bg_type": "SOLID (1)"
+    },
+    {
+      "slide_index": 30,
+      "layout": "CUSTOM_1",
+      "bg_type": "SOLID (1)"
+    }
+  ]
+}

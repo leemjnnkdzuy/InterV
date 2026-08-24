@@ -1,0 +1,262 @@
+[
+  {
+    "slide_num": 4,
+    "layout": "CUSTOM_4",
+    "title_name": "Google Shape;878;p89",
+    "left": 713225,
+    "top": 445025,
+    "width": 6655500,
+    "height": 572700,
+    "text": "Bài toán: chuẩn hóa mà không loại bỏ phá"
+  },
+  {
+    "slide_num": 5,
+    "layout": "CUSTOM_4",
+    "title_name": "Google Shape;878;p89",
+    "left": 713225,
+    "top": 445025,
+    "width": 6655500,
+    "height": 572700,
+    "text": "Ba nhóm người dùng, ba ranh giới trách n"
+  },
+  {
+    "slide_num": 6,
+    "layout": "CUSTOM_11",
+    "title_name": "Google Shape;529;p62",
+    "left": 2332400,
+    "top": 445025,
+    "width": 4479300,
+    "height": 572700,
+    "text": "Mục tiêu và câu hỏi nghiên cứu"
+  },
+  {
+    "slide_num": 7,
+    "layout": "CUSTOM_5",
+    "title_name": "Google Shape;1400;p109",
+    "left": 714375,
+    "top": 444818,
+    "width": 7715250,
+    "height": 573405,
+    "text": "Phạm vi đề tài được khóa bằng bốn nguyên"
+  },
+  {
+    "slide_num": 9,
+    "layout": "TITLE_ONLY_1",
+    "title_name": "Google Shape;1293;p105",
+    "left": 713225,
+    "top": 445025,
+    "width": 7717500,
+    "height": 572700,
+    "text": "Phương pháp tách rõ “chạy đúng” và “đo l"
+  },
+  {
+    "slide_num": 10,
+    "layout": "CUSTOM_4",
+    "title_name": "Google Shape;878;p89",
+    "left": 713225,
+    "top": 445025,
+    "width": 6655500,
+    "height": 572700,
+    "text": "Lý thuyết được chuyển thành cơ chế phần "
+  },
+  {
+    "slide_num": 12,
+    "layout": "CUSTOM_26",
+    "title_name": "Google Shape;1440;p110",
+    "left": 1531650,
+    "top": 445025,
+    "width": 6080700,
+    "height": 572700,
+    "text": "Kiến trúc InterV: các biên trách nhiệm c"
+  },
+  {
+    "slide_num": 13,
+    "layout": "CUSTOM_3_1",
+    "title_name": "Rectangle: Rounded Corners 865",
+    "left": 4857750,
+    "top": 1044241,
+    "width": 1095375,
+    "height": 590550,
+    "text": "User"
+  },
+  {
+    "slide_num": 14,
+    "layout": "CUSTOM_21",
+    "title_name": "Rectangle 881",
+    "left": 785812,
+    "top": 872502,
+    "width": 1285875,
+    "height": 247650,
+    "text": "Luyện tập / tham gia"
+  },
+  {
+    "slide_num": 15,
+    "layout": "SECTION_HEADER_1",
+    "title_name": "Rectangle 10",
+    "left": 714375,
+    "top": 476250,
+    "width": 7000875,
+    "height": 438150,
+    "text": "Lookahead thích ứng câu hỏi mà không ngắ"
+  },
+  {
+    "slide_num": 16,
+    "layout": "CUSTOM_20",
+    "title_name": "Rectangle 30",
+    "left": 714375,
+    "top": 457200,
+    "width": 5905500,
+    "height": 552450,
+    "text": "Grounded generation"
+  },
+  {
+    "slide_num": 17,
+    "layout": "TITLE_ONLY",
+    "title_name": "Google Shape;587;p71",
+    "left": 781050,
+    "top": 590550,
+    "width": 7620000,
+    "height": 495300,
+    "text": "Vòng đời tài liệu RAG có provenance"
+  },
+  {
+    "slide_num": 18,
+    "layout": "CUSTOM_15",
+    "title_name": "Google Shape;579;p70",
+    "left": 819150,
+    "top": 527670,
+    "width": 6381750,
+    "height": 571500,
+    "text": "Pipeline tiếng nói nhiều tầng: Realtime "
+  },
+  {
+    "slide_num": 20,
+    "layout": "SECTION_TITLE_AND_DESCRIPTION",
+    "title_name": "Google Shape;547;p65",
+    "left": 723900,
+    "top": 470168,
+    "width": 7620000,
+    "height": 552450,
+    "text": "Hợp đồng typed giữ TypeScript ↔ Python n"
+  },
+  {
+    "slide_num": 22,
+    "layout": "CUSTOM_7_2",
+    "title_name": "Google Shape;1518;p118",
+    "left": 714375,
+    "top": 457200,
+    "width": 7715250,
+    "height": 552450,
+    "text": "RBAC giữ quyền quyết định ở đúng actor"
+  },
+  {
+    "slide_num": 23,
+    "layout": "CUSTOM_7_2",
+    "title_name": "Google Shape;1493;p116",
+    "left": 714375,
+    "top": 457200,
+    "width": 7715250,
+    "height": 552450,
+    "text": "State machine giữ phiên luyện tập nhất q"
+  },
+  {
+    "slide_num": 24,
+    "layout": "CUSTOM_7_1",
+    "title_name": "Google Shape;1506;p117",
+    "left": 714375,
+    "top": 773459,
+    "width": 7715250,
+    "height": 552450,
+    "text": "Vòng đời tuyển dụng tách mời, phiên và đ"
+  },
+  {
+    "slide_num": 25,
+    "layout": "CUSTOM_17",
+    "title_name": "Google Shape;637;p74",
+    "left": 714375,
+    "top": 457200,
+    "width": 7715250,
+    "height": 552450,
+    "text": "Fallback giữ phiên tiếp tục khi provider"
+  },
+  {
+    "slide_num": 26,
+    "layout": "CUSTOM_11",
+    "title_name": "Google Shape;529;p62",
+    "left": 800100,
+    "top": 552450,
+    "width": 7620000,
+    "height": 533400,
+    "text": "Stack công nghệ theo ranh giới trách nhi"
+  },
+  {
+    "slide_num": 28,
+    "layout": "CUSTOM_28",
+    "title_name": "Rectangle 15",
+    "left": 714375,
+    "top": 447675,
+    "width": 7715250,
+    "height": 552450,
+    "text": "Quy mô hiện vật triển khai"
+  },
+  {
+    "slide_num": 29,
+    "layout": "CUSTOM_36",
+    "title_name": "Google Shape;1378;p107",
+    "left": 713225,
+    "top": 445025,
+    "width": 5517600,
+    "height": 572700,
+    "text": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụ"
+  },
+  {
+    "slide_num": 30,
+    "layout": "CUSTOM_4",
+    "title_name": "Google Shape;878;p89",
+    "left": 713225,
+    "top": 445025,
+    "width": 6655500,
+    "height": 572700,
+    "text": "DeepSeek/RAG được kiểm soát ở ba điểm"
+  },
+  {
+    "slide_num": 31,
+    "layout": "CUSTOM_5",
+    "title_name": "Google Shape;1400;p109",
+    "left": 714375,
+    "top": 444818,
+    "width": 7715250,
+    "height": 573405,
+    "text": "Bất biến an toàn của SenseVoice"
+  },
+  {
+    "slide_num": 33,
+    "layout": "CUSTOM_5",
+    "title_name": "Google Shape;1400;p109",
+    "left": 714375,
+    "top": 444818,
+    "width": 7715250,
+    "height": 573405,
+    "text": "Bốn đóng góp chính"
+  },
+  {
+    "slide_num": 34,
+    "layout": "CUSTOM_4",
+    "title_name": "Google Shape;878;p89",
+    "left": 713225,
+    "top": 445025,
+    "width": 6655500,
+    "height": 572700,
+    "text": "Giới hạn cần được đọc cùng kết quả"
+  },
+  {
+    "slide_num": 35,
+    "layout": "TITLE_ONLY",
+    "title_name": "Google Shape;948;p91",
+    "left": 713225,
+    "top": 445025,
+    "width": 7717500,
+    "height": 572700,
+    "text": "Bốn cổng kiểm soát trước khi mở rộng tự "
+  }
+]

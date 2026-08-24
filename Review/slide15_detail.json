@@ -1,0 +1,313 @@
+{
+  "shapes": [
+    {
+      "index": 0,
+      "name": "Google Shape;579;p70",
+      "shape_type": "PLACEHOLDER (14)",
+      "left": 819150,
+      "top": 657299,
+      "width": 6381750,
+      "height": 571500,
+      "text": "Pipeline tiếng nói nhiều tầng",
+      "paragraphs": [
+        {
+          "text": "Pipeline tiếng nói nhiều tầng",
+          "runs": [
+            "Pipeline tiếng nói nhiều tầng"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "name": "Google Shape;580;p70",
+      "shape_type": "PLACEHOLDER (14)",
+      "left": 7524750,
+      "top": 695399,
+      "width": 781050,
+      "height": 438150,
+      "text": "03",
+      "paragraphs": [
+        {
+          "text": "03",
+          "runs": [
+            "03"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "Google Shape;581;p70",
+      "shape_type": "PLACEHOLDER (14)",
+      "left": 852022,
+      "top": 1154388,
+      "width": 7429500,
+      "height": 342900,
+      "text": "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED",
+      "paragraphs": [
+        {
+          "text": "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED",
+          "runs": [
+            "AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "Rectangle 581",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 1000125,
+      "top": 1485116,
+      "width": 2000250,
+      "height": 266700,
+      "text": "LUỒNG PHIÊN ÂM",
+      "paragraphs": [
+        {
+          "text": "LUỒNG PHIÊN ÂM",
+          "runs": [
+            "LUỒNG PHIÊN ÂM"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Rectangle 582",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 3381375,
+      "top": 3009116,
+      "width": 2524125,
+      "height": 266700,
+      "text": "FALLBACK KHI STREAMING LỖI",
+      "paragraphs": [
+        {
+          "text": "FALLBACK KHI STREAMING LỖI",
+          "runs": [
+            "FALLBACK KHI STREAMING LỖI"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "name": "Rectangle 583",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 1000125,
+      "top": 3009116,
+      "width": 2000250,
+      "height": 266700,
+      "text": "LUỒNG QUAN SÁT",
+      "paragraphs": [
+        {
+          "text": "LUỒNG QUAN SÁT",
+          "runs": [
+            "LUỒNG QUAN SÁT"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "name": "Rectangle: Rounded Corners 584",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 1000125,
+      "top": 1866116,
+      "width": 1809750,
+      "height": 857250,
+      "text": "Microphone\nAudio đầu vào",
+      "paragraphs": [
+        {
+          "text": "Microphone",
+          "runs": [
+            "Microphone"
+          ]
+        },
+        {
+          "text": "Audio đầu vào",
+          "runs": [
+            "Audio đầu vào"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "name": "Rectangle: Rounded Corners 585",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 3667125,
+      "top": 1866116,
+      "width": 1952625,
+      "height": 857250,
+      "text": "AssemblyAI\nStreaming transcript",
+      "paragraphs": [
+        {
+          "text": "AssemblyAI",
+          "runs": [
+            "AssemblyAI"
+          ]
+        },
+        {
+          "text": "Streaming transcript",
+          "runs": [
+            "Streaming transcript"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "name": "Rectangle: Rounded Corners 586",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 6477000,
+      "top": 1866116,
+      "width": 1809750,
+      "height": 857250,
+      "text": "Transcript\nTheo thời gian thực",
+      "paragraphs": [
+        {
+          "text": "Transcript",
+          "runs": [
+            "Transcript"
+          ]
+        },
+        {
+          "text": "Theo thời gian thực",
+          "runs": [
+            "Theo thời gian thực"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "name": "Rectangle: Rounded Corners 587",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 1000125,
+      "top": 3390116,
+      "width": 1809750,
+      "height": 819150,
+      "text": "SenseVoice\nLID / SER / AED\nObservation only",
+      "paragraphs": [
+        {
+          "text": "SenseVoice",
+          "runs": [
+            "SenseVoice"
+          ]
+        },
+        {
+          "text": "LID / SER / AED",
+          "runs": [
+            "LID / SER / AED"
+          ]
+        },
+        {
+          "text": "Observation only",
+          "runs": [
+            "Observation only"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "name": "Rectangle: Rounded Corners 588",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 3667125,
+      "top": 3390116,
+      "width": 1952625,
+      "height": 819150,
+      "text": "Faster-Whisper\nFallback cục bộ",
+      "paragraphs": [
+        {
+          "text": "Faster-Whisper",
+          "runs": [
+            "Faster-Whisper"
+          ]
+        },
+        {
+          "text": "Fallback cục bộ",
+          "runs": [
+            "Fallback cục bộ"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "name": "Rectangle: Rounded Corners 589",
+      "shape_type": "AUTO_SHAPE (1)",
+      "left": 6477000,
+      "top": 3390116,
+      "width": 1809750,
+      "height": 819150,
+      "text": "Transcript fallback\nTiếp tục phiên",
+      "paragraphs": [
+        {
+          "text": "Transcript fallback",
+          "runs": [
+            "Transcript fallback"
+          ]
+        },
+        {
+          "text": "Tiếp tục phiên",
+          "runs": [
+            "Tiếp tục phiên"
+          ]
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "name": "Straight Arrow Connector 624",
+      "shape_type": "LINE (9)",
+      "left": 2809875,
+      "top": 2294741,
+      "width": 857250,
+      "height": 0,
+      "text": ""
+    },
+    {
+      "index": 13,
+      "name": "Straight Arrow Connector 625",
+      "shape_type": "LINE (9)",
+      "left": 5619750,
+      "top": 2294741,
+      "width": 857250,
+      "height": 0,
+      "text": ""
+    },
+    {
+      "index": 14,
+      "name": "Straight Arrow Connector 626",
+      "shape_type": "LINE (9)",
+      "left": 1905000,
+      "top": 2723366,
+      "width": 0,
+      "height": 666750,
+      "text": ""
+    },
+    {
+      "index": 15,
+      "name": "Straight Arrow Connector 627",
+      "shape_type": "LINE (9)",
+      "left": 4643438,
+      "top": 2723366,
+      "width": 0,
+      "height": 666750,
+      "text": ""
+    },
+    {
+      "index": 16,
+      "name": "Straight Arrow Connector 628",
+      "shape_type": "LINE (9)",
+      "left": 5619750,
+      "top": 3799691,
+      "width": 857250,
+      "height": 0,
+      "text": ""
+    }
+  ],
+  "notes": "[08:00 - 09:30] SLIDE 15: PIPELINE TIẾNG NÓI ĐA TẦNG & FALLBACK\n\nLời nói:\n\"★ PIPELINE SPEECH TOÀN DIỆN:\n1. Streaming STT: AudioWorklet PCM 16kHz -> AssemblyAI WebSocket qua temporary token ngắn hạn.\n2. Local STT Fallback: Khi mạng lỗi hoặc transcript rỗng -> Faster-Whisper cục bộ trên Python tự động kích hoạt.\n3. Multi-task Audio Analysis: SenseVoice bóc tách LID (ngôn ngữ), SER (cảm xúc), AED (sự kiện âm thanh).\n4. Edge/Vbee TTS: Tích hợp Pronunciation Library tự động phiên âm thuật ngữ IT (React, Figma, K8s, CI/CD) giúp phát âm tiếng Việt tự nhiên và chuẩn xác.\""
+}

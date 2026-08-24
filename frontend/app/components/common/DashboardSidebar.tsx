@@ -16,6 +16,7 @@ import {
   MenuDots,
   Playlist,
   RoundGraph,
+  Settings,
   ShieldCheck,
   User,
   UsersGroupRounded,
@@ -52,6 +53,7 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import { useAuthContext } from "@/app/contexts/AuthContext";
+import { useLanguage } from "@/app/hooks/useLanguage";
 import { cn } from "@/app/lib/Utils";
 
 export type DashboardScope = "admin" | "recruiter";
@@ -178,6 +180,7 @@ export default function DashboardSidebar({
   const router = useRouter();
   const { state, setOpenMobile } = useSidebar();
   const { user, logout } = useAuthContext();
+  const { t } = useLanguage();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const collapsed = state === "collapsed";
@@ -218,7 +221,7 @@ export default function DashboardSidebar({
             <button
               type="button"
               onClick={() => navigate(scope === "admin" ? "/admin" : "/recruiter")}
-              className="relative flex size-9 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="relative flex size-9 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
               aria-label={`Mở ${roleLabel}`}
             >
               <Image
@@ -237,7 +240,7 @@ export default function DashboardSidebar({
           <button
             type="button"
             onClick={() => navigate(scope === "admin" ? "/admin" : "/recruiter")}
-            className="flex min-w-0 items-center gap-2.5 rounded-md p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-w-0 items-center gap-2.5 rounded-md p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
             aria-label={`Mở ${roleLabel}`}
           >
             <Image
@@ -355,34 +358,91 @@ export default function DashboardSidebar({
               collapsed && "justify-center border-transparent bg-transparent p-0"
             )}
           >
-            <div className={cn(
-              "relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 p-0.5 shadow-inner",
-              collapsed ? "size-12" : "size-10"
-            )}>
-              <div className="relative flex size-full items-center justify-center overflow-hidden rounded-[10px] border border-border/20 bg-sidebar-accent text-sm font-extrabold text-sidebar-accent-foreground shadow-inner">
-              {user.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt=""
-                  fill
-                  sizes="40px"
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                user.username.slice(0, 1).toUpperCase()
-              )}
-              </div>
-              {!collapsed && (
-                <span className="absolute bottom-[-1px] right-[-1px] size-3 rounded-full border-2 border-background bg-emerald-500" />
-              )}
-            </div>
-            {!collapsed && (
+            {collapsed ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    title={t("sidebar.accountOptions")}
+                    aria-label={t("sidebar.accountOptions")}
+                    className="cursor-pointer border-0 bg-transparent p-0 focus:outline-none"
+                  >
+                    <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 p-0.5 shadow-inner size-12">
+                      <div className="relative flex size-full items-center justify-center overflow-hidden rounded-[10px] border border-border/20 bg-sidebar-accent text-sm font-extrabold text-sidebar-accent-foreground shadow-inner">
+                        {user.avatar ? (
+                          <Image
+                            src={user.avatar}
+                            alt=""
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          user.username.slice(0, 1).toUpperCase()
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  side="right"
+                  className="w-48 rounded-3xl border border-border/10 bg-card p-1.5 shadow-lg"
+                >
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="cursor-pointer"
+                  >
+                    <User weight="BoldDuotone" className="mr-2 size-4" />
+                    <span>{t("sidebar.account")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigate("/credit")}
+                    className="cursor-pointer"
+                  >
+                    <WalletMoney weight="BoldDuotone" className="mr-2 size-4" />
+                    <span>{t("sidebar.balance")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigate("/settings")}
+                    className="cursor-pointer"
+                  >
+                    <Settings weight="BoldDuotone" className="mr-2 size-4" />
+                    <span>{t("sidebar.settings")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={openLogoutConfirm}
+                    className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+                  >
+                    <LogOut weight="BoldDuotone" className="mr-2 size-4 text-destructive" />
+                    <span>{t("sidebar.logout")}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
               <>
+                <div className="relative shrink-0 rounded-xl bg-gradient-to-tr from-primary/30 to-primary-foreground/30 p-0.5 shadow-inner size-10">
+                  <div className="relative flex size-full items-center justify-center overflow-hidden rounded-[10px] border border-border/20 bg-sidebar-accent text-sm font-extrabold text-sidebar-accent-foreground shadow-inner">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt=""
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      user.username.slice(0, 1).toUpperCase()
+                    )}
+                  </div>
+                  <span className="absolute bottom-[-1px] right-[-1px] size-3 rounded-full border-2 border-background bg-emerald-500" />
+                </div>
                 <button
                   type="button"
                   onClick={() => navigate("/profile")}
-                  className="min-w-0 flex-1 text-left"
+                  className="min-w-0 flex-1 text-left cursor-pointer"
                 >
                   <span className="block truncate text-sm font-bold text-foreground">
                     {user.username}
@@ -395,8 +455,8 @@ export default function DashboardSidebar({
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      title="Tùy chọn tài khoản"
-                      aria-label="Tùy chọn tài khoản"
+                      title={t("sidebar.accountOptions")}
+                      aria-label={t("sidebar.accountOptions")}
                       className="cursor-pointer rounded-xl border border-transparent p-2 text-muted-foreground transition-all duration-300 hover:border-border/20 hover:bg-sidebar-accent hover:text-foreground"
                     >
                       <MenuDots className="size-5 rotate-90" />
@@ -411,14 +471,28 @@ export default function DashboardSidebar({
                       className="cursor-pointer"
                     >
                       <User weight="BoldDuotone" className="mr-2 size-4" />
-                      <span>Tài khoản</span>
+                      <span>{t("sidebar.account")}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/credit")}
+                      className="cursor-pointer"
+                    >
+                      <WalletMoney weight="BoldDuotone" className="mr-2 size-4" />
+                      <span>{t("sidebar.balance")}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/settings")}
+                      className="cursor-pointer"
+                    >
+                      <Settings weight="BoldDuotone" className="mr-2 size-4" />
+                      <span>{t("sidebar.settings")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={openLogoutConfirm}
                       className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
                     >
                       <LogOut weight="BoldDuotone" className="mr-2 size-4 text-destructive" />
-                      <span>Đăng xuất</span>
+                      <span>{t("sidebar.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -439,10 +513,10 @@ export default function DashboardSidebar({
         <DialogContent className="rounded-lg border-border/20 bg-card/95 sm:max-w-[380px]" showCloseButton={false}>
           <DialogHeader className="space-y-2 text-center">
             <DialogTitle className="text-lg font-extrabold tracking-normal text-foreground">
-              Xác nhận đăng xuất
+              {t("sidebar.logoutConfirmTitle")}
             </DialogTitle>
             <DialogDescription className="text-sm leading-6 text-muted-foreground">
-              Bạn có chắc muốn đăng xuất khỏi phiên hiện tại không?
+              {t("sidebar.logoutConfirmDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-1 flex-row gap-3 sm:justify-center">
@@ -451,18 +525,18 @@ export default function DashboardSidebar({
               variant="outline"
               disabled={isLoggingOut}
               onClick={() => setShowLogoutConfirm(false)}
-              className="flex-1 rounded-lg"
+              className="flex-1 rounded-lg cursor-pointer"
             >
-              Hủy
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
               variant="destructive"
               disabled={isLoggingOut}
               onClick={() => void confirmLogout()}
-              className="flex-1 rounded-lg font-bold"
+              className="flex-1 rounded-lg font-bold cursor-pointer"
             >
-              {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+              {isLoggingOut ? (t("auth.loggingOut") || "Đang đăng xuất...") : t("sidebar.logout")}
             </Button>
           </DialogFooter>
         </DialogContent>

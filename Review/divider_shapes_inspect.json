@@ -1,0 +1,378 @@
+{
+  "slide_width": 9144000,
+  "slide_height": 5143500,
+  "divider_slides": [
+    {
+      "slide_num": 3,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 2714550,
+          "top": 2162550,
+          "width": 3714900,
+          "height": 818400,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "BÀI TOÁN",
+          "paragraphs": [
+            {
+              "text": "BÀI TOÁN",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "01",
+          "paragraphs": [
+            {
+              "text": "01",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 2373106,
+          "top": 3140850,
+          "width": 4397788,
+          "height": 623128,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "BỐI CẢNH, ĐỐI TƯỢNG, MỤC TIÊU VÀ 4 NGUYÊN TẮC KHÓA PHẠM VI",
+          "paragraphs": [
+            {
+              "text": "BỐI CẢNH, ĐỐI TƯỢNG, MỤC TIÊU VÀ 4 NGUYÊN TẮC KHÓA PHẠM VI",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_num": 8,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 1996667,
+          "top": 2162550,
+          "width": 5150665,
+          "height": 818400,
+          "center_x": 4571999.5,
+          "center_offset_from_slide_center": -0.5,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "PHƯƠNG PHÁP",
+          "paragraphs": [
+            {
+              "text": "PHƯƠNG PHÁP",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "02",
+          "paragraphs": [
+            {
+              "text": "02",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 2291400,
+          "top": 3076674,
+          "width": 4561200,
+          "height": 629051,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "NỀN TẢNG LÝ THUYẾT, XÁC MINH KỸ THUẬT VÀ ÁNH XẠ VÀO HỆ THỐNG",
+          "paragraphs": [
+            {
+              "text": "NỀN TẢNG LÝ THUYẾT, XÁC MINH KỸ THUẬT VÀ ÁNH XẠ VÀO HỆ THỐNG",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_num": 11,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 2714550,
+          "top": 2162550,
+          "width": 3714900,
+          "height": 818400,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "THIẾT KẾ",
+          "paragraphs": [
+            {
+              "text": "THIẾT KẾ",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "03",
+          "paragraphs": [
+            {
+              "text": "03",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 1963847,
+          "top": 3140850,
+          "width": 5216305,
+          "height": 585502,
+          "center_x": 4571999.5,
+          "center_offset_from_slide_center": -0.5,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "KIẾN TRÚC 2 TẦNG, LOOKAHEAD 0MS, RAG HYBRID GROUNDING, PIPELINE TIẾNG NÓI 2 PHA & TYPED GRPC",
+          "paragraphs": [
+            {
+              "text": "KIẾN TRÚC 2 TẦNG, LOOKAHEAD 0MS, RAG HYBRID GROUNDING, PIPELINE TIẾNG NÓI 2 PHA & TYPED GRPC",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_num": 21,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 2714550,
+          "top": 2162550,
+          "width": 3714900,
+          "height": 818400,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "SẢN PHẨM",
+          "paragraphs": [
+            {
+              "text": "SẢN PHẨM",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "04",
+          "paragraphs": [
+            {
+              "text": "04",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 2001661,
+          "top": 3221718,
+          "width": 5140678,
+          "height": 560883,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "MA TRẬN RBAC, STATE MACHINE LUYỆN TẬP, VÒNG ĐỜI TUYỂN DỤNG RECRUITER & GRACEFUL FALLBACK",
+          "paragraphs": [
+            {
+              "text": "MA TRẬN RBAC, STATE MACHINE LUYỆN TẬP, VÒNG ĐỜI TUYỂN DỤNG RECRUITER & GRACEFUL FALLBACK",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_num": 27,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 2291400,
+          "top": 2162550,
+          "width": 4561200,
+          "height": 818400,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "BẰNG CHỨNG",
+          "paragraphs": [
+            {
+              "text": "BẰNG CHỨNG",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "05",
+          "paragraphs": [
+            {
+              "text": "05",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 1861947,
+          "top": 3140850,
+          "width": 5420105,
+          "height": 606127,
+          "center_x": 4571999.5,
+          "center_offset_from_slide_center": -0.5,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "QUY MÔ HIỆN VẬT 72.000+ LOC, 51/51 BACKEND TESTS ĐẠT 100%, 3 ĐIỂM KIỂM SOÁT LLM & BẤT BIẾN SENSEVOICE",
+          "paragraphs": [
+            {
+              "text": "QUY MÔ HIỆN VẬT 72.000+ LOC, 51/51 BACKEND TESTS ĐẠT 100%, 3 ĐIỂM KIỂM SOÁT LLM & BẤT BIẾN SENSEVOICE",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_num": 32,
+      "shapes": [
+        {
+          "name": "Title 1",
+          "left": 2714550,
+          "top": 2162550,
+          "width": 3714900,
+          "height": 818400,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 0,
+          "text": "KẾT LUẬN",
+          "paragraphs": [
+            {
+              "text": "KẾT LUẬN",
+              "alignment": "CENTER (2)",
+              "font_size": 26.0
+            }
+          ]
+        },
+        {
+          "name": "Title 2",
+          "left": 3746550,
+          "top": 1339163,
+          "width": 1650900,
+          "height": 978300,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 2,
+          "text": "06",
+          "paragraphs": [
+            {
+              "text": "06",
+              "alignment": "CENTER (2)",
+              "font_size": 44.0
+            }
+          ]
+        },
+        {
+          "name": "Subtitle 3",
+          "left": 2291400,
+          "top": 3140849,
+          "width": 4561200,
+          "height": 663487,
+          "center_x": 4572000.0,
+          "center_offset_from_slide_center": 0.0,
+          "is_placeholder": true,
+          "ph_idx": 1,
+          "text": "4 ĐÓNG GÓP THEN CHỐT, GIỚI HẠN NGHIÊN CỨU, 4 CỔNG KIỂM SOÁT TRIỂN KHAI & LỜI CẢM ƠN",
+          "paragraphs": [
+            {
+              "text": "4 ĐÓNG GÓP THEN CHỐT, GIỚI HẠN NGHIÊN CỨU, 4 CỔNG KIỂM SOÁT TRIỂN KHAI & LỜI CẢM ƠN",
+              "alignment": "CENTER (2)",
+              "font_size": 13.0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

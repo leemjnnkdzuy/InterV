@@ -4,6 +4,9 @@ import mongoose, { type ClientSession, type Types } from "mongoose";
 
 import connectDB from "@/app/lib/ConnectDB";
 import { normalizeEmail } from "@/app/lib/ServerSecurity";
+import { QUESTION_CREDIT_COST } from "@/app/lib/PracticeBilling";
+import { publishCreditUpdated } from "@/app/lib/CreditEvents";
+import CreditLog from "@/app/models/CreditLog";
 import PracticeSession from "@/app/models/PracticeSession";
 import RecruitmentCampaign from "@/app/models/RecruitmentCampaign";
 import RecruitmentInvitation from "@/app/models/RecruitmentInvitation";
@@ -121,12 +124,11 @@ export function validateRecruitmentCampaignInput(
     questionCount < 5 ||
     questionCount > 25 ||
     !Number.isInteger(maxAttempts) ||
-    maxAttempts < 1 ||
-    maxAttempts > 3
+    maxAttempts < 1
   ) {
     return {
       valid: false,
-      message: "Số câu hỏi hoặc số lượt làm không hợp lệ",
+      message: "Số câu hỏi hoặc số lượt làm không hợp lệ (tối thiểu 1 lượt)",
     };
   }
   if (!endsAt) {
@@ -288,22 +290,69 @@ async function insertInvitationDocuments(
   );
 }
 
+export type CreateCampaignResult =
+  | {
+      ok: true;
+      campaignId: string;
+      invitationIds: string[];
+      chargedCredits: number;
+      remainingCredits: number;
+    }
+  | {
+      ok: false;
+      code: "INSUFFICIENT_CREDITS";
+      requiredCredits: number;
+      balanceCredits: number;
+    };
+
 export async function createRecruitmentCampaign(input: {
   recruiterId: string;
   campaign: RecruitmentCampaignInput;
   candidates: EligibleCandidate[];
-}) {
+}): Promise<CreateCampaignResult> {
   await connectDB();
   const campaignId = new mongoose.Types.ObjectId();
+  const costPerCandidate = input.campaign.questionCount * QUESTION_CREDIT_COST;
+  const requiredCredits = input.candidates.length * costPerCandidate;
+
   const documents = invitationDocuments({
     recruiterId: input.recruiterId,
     campaignId,
     campaign: input.campaign,
     candidates: input.candidates,
   });
+
+  let result: CreateCampaignResult | undefined;
+
   const dbSession = await mongoose.startSession();
   try {
     await dbSession.withTransaction(async () => {
+      // 1. Check and deduct credits from recruiter atomically
+      const recruiter = await User.findOneAndUpdate(
+        {
+          _id: input.recruiterId,
+          isActive: true,
+          credits: { $gte: requiredCredits },
+        },
+        { $inc: { credits: -requiredCredits } },
+        { returnDocument: "after", session: dbSession }
+      ).select("credits");
+
+      if (!recruiter) {
+        const currentRecruiter = await User.findById(input.recruiterId)
+          .select("credits")
+          .session(dbSession)
+          .lean();
+        result = {
+          ok: false,
+          code: "INSUFFICIENT_CREDITS",
+          requiredCredits,
+          balanceCredits: currentRecruiter?.credits || 0,
+        };
+        return;
+      }
+
+      // 2. Create campaign
       await RecruitmentCampaign.create(
         [
           {
@@ -331,39 +380,94 @@ export async function createRecruitmentCampaign(input: {
         ],
         { session: dbSession }
       );
+
+      // 3. Insert invitations & practice sessions
       await insertInvitationDocuments(documents, dbSession);
+
+      // 4. Log credit transaction
+      await CreditLog.create(
+        [
+          {
+            userId: input.recruiterId,
+            credits: -requiredCredits,
+            action: "RECRUITMENT_CAMPAIGN",
+            referenceId: campaignId.toString(),
+            description: `Tạo chiến dịch phỏng vấn "${input.campaign.title}" (${input.candidates.length} ứng viên × ${costPerCandidate} Credits)`,
+            metadata: {
+              campaignId: campaignId.toString(),
+              candidateCount: input.candidates.length,
+              questionCount: input.campaign.questionCount,
+              costPerCandidate,
+              totalCredits: requiredCredits,
+            },
+          },
+        ],
+        { session: dbSession }
+      );
+
+      result = {
+        ok: true,
+        campaignId: campaignId.toString(),
+        invitationIds: documents.map((document) =>
+          document.invitation._id.toString()
+        ),
+        chargedCredits: requiredCredits,
+        remainingCredits: recruiter.credits,
+      };
     });
   } finally {
     await dbSession.endSession();
   }
-  return {
-    campaignId: campaignId.toString(),
-    invitationIds: documents.map((document) =>
-      document.invitation._id.toString()
-    ),
-  };
+
+  if (!result) {
+    throw new Error("Recruitment campaign transaction returned no result");
+  }
+
+  if (result.ok) {
+    publishCreditUpdated({
+      userId: input.recruiterId,
+      balance: result.remainingCredits,
+      delta: -result.chargedCredits,
+      reason: "RECRUITMENT_CAMPAIGN",
+      referenceId: result.campaignId,
+    });
+  }
+
+  return result;
 }
+
+export type AddCandidatesResult =
+  | { ok: false; code: "CAMPAIGN_NOT_FOUND" }
+  | {
+      ok: false;
+      code: "INVALID_CANDIDATES";
+      invalidEmails: string[];
+    }
+  | {
+      ok: false;
+      code: "DUPLICATE_CANDIDATES";
+      duplicateEmails: string[];
+    }
+  | {
+      ok: false;
+      code: "INSUFFICIENT_CREDITS";
+      requiredCredits: number;
+      balanceCredits: number;
+    }
+  | {
+      ok: true;
+      invitationIds: string[];
+      chargedCredits: number;
+      remainingCredits: number;
+    };
 
 export async function addCandidatesToCampaign(input: {
   recruiterId: string;
   campaignId: string;
   candidateEmails: string[];
-}) {
+}): Promise<AddCandidatesResult> {
   await connectDB();
-  let result:
-    | { ok: false; code: "CAMPAIGN_NOT_FOUND" }
-    | {
-        ok: false;
-        code: "INVALID_CANDIDATES";
-        invalidEmails: string[];
-      }
-    | {
-        ok: false;
-        code: "DUPLICATE_CANDIDATES";
-        duplicateEmails: string[];
-      }
-    | { ok: true; invitationIds: string[] }
-    | undefined;
+  let result: AddCandidatesResult | undefined;
   const dbSession = await mongoose.startSession();
   try {
     await dbSession.withTransaction(async () => {
@@ -374,19 +478,21 @@ export async function addCandidatesToCampaign(input: {
       })
         .session(dbSession)
         .lean();
-      const candidates = await User.find({
-          email: { $in: input.candidateEmails },
-          role: "user",
-          isActive: true,
-          isVerified: true,
-        })
-          .select("_id username email")
-          .session(dbSession)
-          .lean<EligibleCandidate[]>();
       if (!campaign) {
         result = { ok: false, code: "CAMPAIGN_NOT_FOUND" };
         return;
       }
+
+      const candidates = await User.find({
+        email: { $in: input.candidateEmails },
+        role: "user",
+        isActive: true,
+        isVerified: true,
+      })
+        .select("_id username email")
+        .session(dbSession)
+        .lean<EligibleCandidate[]>();
+
       const candidateMap = new Map(
         candidates.map((candidate) => [candidate.email, candidate])
       );
@@ -429,6 +535,35 @@ export async function addCandidatesToCampaign(input: {
         };
         return;
       }
+
+      // Check and deduct credits for additional candidates
+      const costPerCandidate = campaign.questionCount * QUESTION_CREDIT_COST;
+      const requiredCredits = orderedCandidates.length * costPerCandidate;
+
+      const recruiter = await User.findOneAndUpdate(
+        {
+          _id: input.recruiterId,
+          isActive: true,
+          credits: { $gte: requiredCredits },
+        },
+        { $inc: { credits: -requiredCredits } },
+        { returnDocument: "after", session: dbSession }
+      ).select("credits");
+
+      if (!recruiter) {
+        const currentRecruiter = await User.findById(input.recruiterId)
+          .select("credits")
+          .session(dbSession)
+          .lean();
+        result = {
+          ok: false,
+          code: "INSUFFICIENT_CREDITS",
+          requiredCredits,
+          balanceCredits: currentRecruiter?.credits || 0,
+        };
+        return;
+      }
+
       const campaignInput: RecruitmentCampaignInput = {
         title: campaign.title,
         jobTitle: campaign.jobTitle,
@@ -456,11 +591,34 @@ export async function addCandidatesToCampaign(input: {
         candidates: orderedCandidates,
       });
       await insertInvitationDocuments(documents, dbSession);
+
+      await CreditLog.create(
+        [
+          {
+            userId: input.recruiterId,
+            credits: -requiredCredits,
+            action: "RECRUITMENT_CAMPAIGN",
+            referenceId: campaign._id.toString(),
+            description: `Thêm ${orderedCandidates.length} ứng viên vào chiến dịch "${campaign.title}" (${orderedCandidates.length} ứng viên × ${costPerCandidate} Credits)`,
+            metadata: {
+              campaignId: campaign._id.toString(),
+              candidateCount: orderedCandidates.length,
+              questionCount: campaign.questionCount,
+              costPerCandidate,
+              totalCredits: requiredCredits,
+            },
+          },
+        ],
+        { session: dbSession }
+      );
+
       result = {
         ok: true,
         invitationIds: documents.map((document) =>
           document.invitation._id.toString()
         ),
+        chargedCredits: requiredCredits,
+        remainingCredits: recruiter.credits,
       };
     });
   } catch (error: unknown) {
@@ -483,5 +641,16 @@ export async function addCandidatesToCampaign(input: {
   if (!result) {
     throw new Error("Recruitment candidate transaction returned no result");
   }
+
+  if (result.ok) {
+    publishCreditUpdated({
+      userId: input.recruiterId,
+      balance: result.remainingCredits,
+      delta: -result.chargedCredits,
+      reason: "RECRUITMENT_CAMPAIGN",
+      referenceId: input.campaignId,
+    });
+  }
+
   return result;
 }

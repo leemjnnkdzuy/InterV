@@ -1,9 +1,9 @@
-# PHÂN TÍCH VÀ NỘI DUNG TỪNG SLIDE (KLTN_InterV_LeMinhDuy_v18.pptx)
+# PHÂN TÍCH VÀ NỘI DUNG TỪNG SLIDE (KLTN_InterV_LeMinhDuy_v20.pptx - 37 Slides)
 
 ## Slide 1
 
-- XÂY DỰNG HỆ THỐNG PHỎNG VẤN VÀLUYỆN TẬP PHỎNG VẤN TÍCH HỢPTRÍ TUỆ NHÂN TẠO
-- Sinh viên: Lê Minh Duy — MSSV: 221A011220
+- NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG TÍCH HỢP XỬ LÝ GIỌNG NÓI ĐA TẦNG, TRUY XUẤT TRI THỨC TĂNG CƯỜNG (RAG) VÀ MÔ HÌNH NGÔN NGỮ LỚN
+- Sinh viên: Lê Minh Duy - MSSV: 221A011220
 - GVHD: ThS. Đặng Văn Lực • Trường Đại học Văn Hiến • 2026
 
 ---
@@ -34,6 +34,14 @@
 
 ## Slide 3
 
+- BÀI TOÁN
+- 01
+- Bối cảnh, đối tượng, mục tiêu và 4 nguyên tắc khóa phạm vi
+
+---
+
+## Slide 4
+
 - Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người
 - LLM thiếu căn cứ
 - Câu hỏi có thể trôi chảy nhưng lệch JD hoặc không truy nguyên.
@@ -42,10 +50,11 @@
 - Suy diễn quá mức
 - Tín hiệu giọng nói dễ bị biến thành kết luận tâm lý thiếu bằng chứng.
 - Yêu cầu thiết kế: cùng tiêu chí • output có căn cứ • AI không thay quyết định con người.
+- #01
 
 ---
 
-## Slide 4
+## Slide 5
 
 - Ba nhóm người dùng, ba ranh giới trách nhiệm
 - Recruiter
@@ -55,10 +64,11 @@
 - Admin
 - Vận hành hệ thống; không thay recruiter ra quyết định.
 - Ownership xuyên suốt: ứng viên sở hữu dữ liệu cá nhân • recruiter sở hữu quyết định • admin chỉ vận hành.
+- #01
 
 ---
 
-## Slide 5
+## Slide 6
 
 - Mục tiêu và câu hỏi nghiên cứu
 - 01
@@ -67,7 +77,6 @@
 - 02
 - Grounded LLM
 - JD/rule giới hạn output
-- 03
 - Speech an toàn
 - Coaching, không chẩn đoán
 - 04
@@ -79,10 +88,11 @@
 - 06
 - Ranh giới
 - Không auto-hire/auto-reject
+- #01
 
 ---
 
-## Slide 6
+## Slide 7
 
 - Phạm vi đề tài được khóa bằng bốn nguyên tắc
 - Ngoài phạm vi: chẩn đoán tâm lý • auto-hire/auto-reject • tuyên bố validity/fairness.
@@ -98,10 +108,19 @@
 - 04
 - Đúng mức bằng chứng
 - Kỹ thuật không đồng nghĩa validity/fairness.
+- #01
 
 ---
 
-## Slide 7
+## Slide 8
+
+- PHƯƠNG PHÁP
+- 02
+- Nền tảng lý thuyết, xác minh kỹ thuật và ánh xạ vào hệ thống
+
+---
+
+## Slide 9
 
 - Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”
 - Thiết kế hệ thống
@@ -116,10 +135,11 @@
 - 02
 - 03
 - 04
+- #02
 
 ---
 
-## Slide 8
+## Slide 10
 
 - Lý thuyết được chuyển thành cơ chế phần mềm
 - STAR + BARS
@@ -129,13 +149,22 @@
 - Responsible AI
 - Grounding, audit, fallback và người chịu trách nhiệm cuối.
 - Ánh xạ vào hệ thống: Structured interview → schema • STAR/BARS → rule • Responsible AI → grounding + audit.
+- #02
 
 ---
 
-## Slide 9
+## Slide 11
+
+- THIẾT KẾ
+- 03
+- Kiến trúc 2 tầng, Lookahead 0ms, RAG Hybrid Grounding, Pipeline tiếng nói 2 pha & Typed gRPC
+
+---
+
+## Slide 12
 
 - AI + tri thức
-- Python/gRPC, DeepSeek, Qdrant, speech
+- Python/gRPC (16 RPCs), DeepSeek, Qdrant, speech
 - Web + BFF
 - Next.js kiểm soát quyền và điều phối
 - Dữ liệu
@@ -153,10 +182,11 @@
 - state + audit
 - Qdrant
 - Dense + BM25
+- #03
 
 ---
 
-## Slide 10
+## Slide 13
 
 - Mô hình dữ liệu giữ ownership và provenance
 - User, job, invitation, interview, answer, evaluation và audit liên kết theo vòng đời.
@@ -166,12 +196,12 @@
 - Interview
 - Answer
 - Evaluation
+- #03
 
 ---
 
-## Slide 11
+## Slide 14
 
-- Use case phản ánh đúng quyền sở hữu
 - Ba actor dùng chung nền tảng nhưng không chia sẻ quyền quyết định; AI nằm ngoài biên tuyển dụng.
 - InterV
 - application core
@@ -182,14 +212,15 @@
 - Luyện tập / tham gia
 - JD / chiến dịch / đánh giá
 - AI không giữ quyền tuyển dụng
+- Use case phản ánh đúng quyền sở hữu
+- #03
 
 ---
 
-## Slide 12
+## Slide 15
 
 - Lookahead thích ứng câu hỏi mà không ngắt phiên
 - Qᵢ₊₁ được trả ngay; after() sinh Qᵢ₊₂ từ QA vừa commit.
-- 01
 - LUỒNG NGƯỜI DÙNG
 - Qᵢ
 - ghi âm +
@@ -222,14 +253,14 @@
 - chưa phục vụ
 - DÙNG Ở LƯỢT SAU
 - Đủ số câu → Finish → SenseVoice → EvaluateInterview → COMPLETED
+- #03
 
 ---
 
-## Slide 13
+## Slide 16
 
 - Grounded generation
 - Chuẩn hóa context → truy hồi evidence → sinh JSON → hậu kiểm schema và citation.
-- 02
 - CƠ CHẾ KIỂM SOÁT
 - 01
 - Chuẩn hóa
@@ -253,10 +284,11 @@
 - Citation gate
 - Evidence IDs   →   JSON có cấu trúc   →   Output hợp lệ
 - Bất biến: citation chỉ hợp lệ khi thuộc evidence đã được truy hồi.
+- #03
 
 ---
 
-## Slide 14
+## Slide 17
 
 - Vòng đời tài liệu RAG có provenance
 - Mỗi evidence ID truy ngược được về nguồn, phiên bản và trạng thái lưu giữ.
@@ -289,34 +321,33 @@
 - nguồn • ngành • profile
 - Retention & audit
 - xóa khi quá hạn • ghi vết
+- #03
 
 ---
 
-## Slide 15
+## Slide 18
 
-- Pipeline tiếng nói nhiều tầng
-- 03
-- AssemblyAI streaming • Faster-Whisper fallback • SenseVoice LID/SER/AED
-- LUỒNG PHIÊN ÂM
-- FALLBACK KHI STREAMING LỖI
-- LUỒNG QUAN SÁT
+- Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn
+- AssemblyAI streaming • Faster-Whisper fallback & batch • SenseVoice LID/SER/AED
+- 1. LUỒNG REALTIME TRONG PHỎNG VẤN (TƯƠNG TÁC LIỀN MẠCH)
+- 2. LUỒNG XỬ LÝ HẬU KỲ SAU PHỎNG VẤN (ĐÁNH GIÁ CHUYÊN SÂU)
 - Microphone
-- Audio đầu vào
-- AssemblyAI
-- Streaming transcript
-- Transcript
-- Theo thời gian thực
-- SenseVoice
-- LID / SER / AED
-- Observation only
-- Faster-Whisper
-- Fallback cục bộ
-- Transcript fallback
-- Tiếp tục phiên
+- Thu âm AudioWorklet (16kHz PCM)
+- AssemblyAI Streaming
+- STT thời gian thực (WebSocket)[Lỗi → Faster-Whisper fallback]
+- AI Provider (DeepSeek)
+- Có text tức thời → Sinh câu hỏi thích ứng & TTS mượt mà, không rời rạc
+- Faster-Whisper tuần tự
+- STT chính xác cao + Thuật toán: nhịp độ, tốc độ (WPM), khoảng lặng
+- SenseVoice (Observation only)
+- LID/SER/AED
+- Đánh giá phong thái
+- Mức độ tự tin, lưu loát, nhịp điệu diễn đạt hỗ trợ coaching
+- #03
 
 ---
 
-## Slide 16
+## Slide 19
 
 - An toàn, quan sát và khả năng phục hồi
 - Auth/RBAC • schema • timeout/retry • audit/usage • health • graceful fallback
@@ -328,10 +359,11 @@
 - Đúng quyền
 - Có đường phục hồi
 - Đủ dấu vết audit
+- #03
 
 ---
 
-## Slide 17
+## Slide 20
 
 - Hợp đồng typed giữ TypeScript ↔ Python nhất quán
 - BFF xác thực và chuẩn hóa request; dữ liệu chỉ được lưu hoặc hiển thị sau khi qua schema validation.
@@ -356,23 +388,19 @@
 - JSON + evidence
 - Structured response
 - Typed contract chặn lỗi cấu trúc trước khi dữ liệu đi vào state của hệ thống.
+- #03
 
 ---
 
-## Slide 18
+## Slide 21
 
-- Phân rã module theo ranh giới nghiệp vụ
-- InterV core
-- Practice
-- Recruitment
-- RAG
-- Speech
-- Ranh giới module: route • dữ liệu • quyền • audit
-- Mỗi module sở hữu route, dữ liệu và quyền riêng.
+- SẢN PHẨM
+- 04
+- Ma trận RBAC, State Machine luyện tập, Vòng đời tuyển dụng Recruiter & Graceful Fallback
 
 ---
 
-## Slide 19
+## Slide 22
 
 - RBAC giữ quyền quyết định ở đúng actor
 - Ứng viên
@@ -389,10 +417,11 @@
 - Audit
 - AI provider: không có quyền hire / reject
 - Quyền tăng theo trách nhiệm; AI không có quyền tuyển dụng.
+- #04
 
 ---
 
-## Slide 20
+## Slide 23
 
 - State machine giữ phiên luyện tập nhất quán
 - DRAFT
@@ -403,10 +432,11 @@
 - COMPLETED
 - ERROR → retry / resume
 - Mỗi chuyển trạng thái có điều kiện và đường fallback.
+- #04
 
 ---
 
-## Slide 21
+## Slide 24
 
 - Vòng đời tuyển dụng tách mời, phiên và đánh giá
 - Job + JD
@@ -417,10 +447,11 @@
 - Final review
 - Recruiter quyết định
 - Tách ownership giúp audit và xóa dữ liệu đúng phạm vi.
+- #04
 
 ---
 
-## Slide 22
+## Slide 25
 
 - Fallback giữ phiên tiếp tục khi provider lỗi
 - Audio stream
@@ -431,10 +462,11 @@
 - Resume session
 - PRIMARY PATH
 - FALLBACK PATH
+- #04
 
 ---
 
-## Slide 23
+## Slide 26
 
 - Stack công nghệ theo ranh giới trách nhiệm
 - Mỗi nhóm công nghệ sở hữu một trách nhiệm; các lớp giao tiếp qua hợp đồng typed.
@@ -448,54 +480,65 @@
 - AI SERVICES
 - 03
 - AI boundary
-- Python • gRPC
+- Python • gRPC (16 RPCs)
 - 04
 - LLM/RAG
 - DeepSeek • Qdrant
 - BM25 + RRF
 - 05
 - Speech
-- AssemblyAI • Whisper
+- AssemblyAI • Faster-Whisper
 - SenseVoice
 - 06
 - Vận hành
 - PayOS • audit • health • usage
+- #04
 
 ---
 
-## Slide 24
+## Slide 27
+
+- BẰNG CHỨNG
+- 05
+- Quy mô hiện vật 72.000+ LOC, 51/51 Backend tests đạt 100%, 3 điểm kiểm soát LLM & Bất biến SenseVoice
+
+---
+
+## Slide 28
 
 - Quy mô hiện vật triển khai
 - Các con số được đối chiếu trực tiếp từ repository và hợp đồng dịch vụ.
 - 72.445
 - Dòng mã
-- 54 / 67
+- 61 / 74
 - Route files / HTTP methods
-- 18
+- 19
 - Mongoose models
-- 14
+- 16
 - gRPC RPCs
-- 468 tệp văn bản • 39 trang frontend • 86 rule files
+- 468 tệp văn bản • 38 trang frontend • 86 rule files
+- #05
 
 ---
 
-## Slide 25
+## Slide 29
 
 - Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh
-- Kiểm tra bổ sung: TypeScript ✓ • corpus provenance ✓ • backend 38/38 ✓
-- 38/38
+- Kiểm tra bổ sung: TypeScript ✓ • corpus provenance ✓ • backend 51/51 ✓
+- 51/51
 - Backend tests
-- Đạt trong 4,106 giây
+- Đạt 100% trong 3,28 giây
 - 86
 - Rule files
 - 15 ngành • 60 profile
-- 14
+- 16
 - gRPC RPCs
 - Biên typed TS ↔ Python
+- #05
 
 ---
 
-## Slide 26
+## Slide 30
 
 - DeepSeek/RAG được kiểm soát ở ba điểm
 - Trong khi sinh
@@ -505,10 +548,11 @@
 - Sau khi sinh
 - Schema validation, repair và grounding allow-list.
 - Grounding là chuỗi kiểm soát trước – trong – sau khi sinh, không chỉ là một prompt.
+- #05
 
 ---
 
-## Slide 27
+## Slide 31
 
 - Bất biến an toàn của SenseVoice
 - Mặc định an toàn: confidence/composure = 50 (trung tính); tín hiệu giọng nói chỉ dùng để mô tả.
@@ -524,10 +568,19 @@
 - 04
 - No auto-decision
 - Không auto-hire/auto-reject.
+- #05
 
 ---
 
-## Slide 28
+## Slide 32
+
+- KẾT LUẬN
+- 06
+- 4 đóng góp then chốt, giới hạn nghiên cứu, 4 cổng kiểm soát triển khai & Lời cảm ơn
+
+---
+
+## Slide 33
 
 - Bốn đóng góp chính
 - Mỗi đóng góp đều có thể truy ngược về code, proto, rule và kiểm thử.
@@ -543,10 +596,11 @@
 - 04
 - Corpus provenance
 - 86 rule: evidence khác blueprint.
+- #06
 
 ---
 
-## Slide 29
+## Slide 34
 
 - Giới hạn cần được đọc cùng kết quả
 - Blueprint cần SME
@@ -556,10 +610,11 @@
 - Speech cần benchmark
 - Chưa có mẫu tiếng Việt đại diện.
 - Kết quả hiện tại chứng minh tính nhất quán kỹ thuật — chưa chứng minh hiệu lực tuyển dụng.
+- #06
 
 ---
 
-## Slide 30
+## Slide 35
 
 - Bốn cổng kiểm soát trước khi mở rộng tự động hóa
 - Validity, fairness, legal review
@@ -575,10 +630,11 @@
 - Profile pilot
 - Controlled scale
 - Mỗi giai đoạn có một gate bắt buộc trước khi tăng mức tự động hóa.
+- #06
 
 ---
 
-## Slide 31
+## Slide 36
 
 - InterV đã đạt nền tảng kỹ thuật khả thi
 - cho nghiên cứu và triển khai có kiểm soát
@@ -598,15 +654,17 @@
 - AI hỗ trợ bằng chứng;
 - con người quyết định
 - Bước tiếp theo: kiểm thử với SME và triển khai theo các gate kiểm soát.
+- #06
 
 ---
 
-## Slide 32
+## Slide 37
 
 - Cảm ơn Hội đồng
 - Em xin tiếp nhận câu hỏi và góp ý.
 - Q&A
 - InterV • Lê Minh Duy • @leemjnnkdzuy
+- #06
 
 ---
 

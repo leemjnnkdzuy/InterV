@@ -1,0 +1,643 @@
+[
+  {
+    "slide_num": 1,
+    "top_shapes": []
+  },
+  {
+    "slide_num": 2,
+    "top_shapes": [
+      {
+        "name": "Google Shape;529;p62",
+        "left": 2332400,
+        "top": 445025,
+        "width": 4479300,
+        "height": 572700,
+        "text": "Lộ trình trình bày"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 529",
+        "left": 523875,
+        "top": 1066800,
+        "width": 8096250,
+        "height": 1581150,
+        "text": ""
+      },
+      {
+        "name": "Rectangle 535",
+        "left": 762000,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "01"
+      },
+      {
+        "name": "Rectangle 538",
+        "left": 3457575,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "02"
+      },
+      {
+        "name": "Rectangle 541",
+        "left": 6153150,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "03"
+      }
+    ]
+  },
+  {
+    "slide_num": 3,
+    "top_shapes": [
+      {
+        "name": "Google Shape;878;p89",
+        "left": 713225,
+        "top": 445025,
+        "width": 6655500,
+        "height": 572700,
+        "text": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người"
+      }
+    ]
+  },
+  {
+    "slide_num": 4,
+    "top_shapes": [
+      {
+        "name": "Google Shape;878;p89",
+        "left": 713225,
+        "top": 445025,
+        "width": 6655500,
+        "height": 572700,
+        "text": "Ba nhóm người dùng, ba ranh giới trách nhiệm"
+      }
+    ]
+  },
+  {
+    "slide_num": 5,
+    "top_shapes": [
+      {
+        "name": "Google Shape;529;p62",
+        "left": 2332400,
+        "top": 445025,
+        "width": 4479300,
+        "height": 572700,
+        "text": "Mục tiêu và câu hỏi nghiên cứu"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 529",
+        "left": 523875,
+        "top": 1066800,
+        "width": 8096250,
+        "height": 1581150,
+        "text": ""
+      },
+      {
+        "name": "Rectangle 535",
+        "left": 762000,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "01"
+      },
+      {
+        "name": "Rectangle 538",
+        "left": 3457575,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "02"
+      },
+      {
+        "name": "Rectangle 541",
+        "left": 6153150,
+        "top": 1162050,
+        "width": 2238375,
+        "height": 361950,
+        "text": "03"
+      }
+    ]
+  },
+  {
+    "slide_num": 6,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1400;p109",
+        "left": 714375,
+        "top": 444818,
+        "width": 7715250,
+        "height": 573405,
+        "text": "Phạm vi đề tài được khóa bằng bốn nguyên tắc"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1430",
+        "left": 1333500,
+        "top": 1181750,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1431",
+        "left": 4667250,
+        "top": 1181750,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      }
+    ]
+  },
+  {
+    "slide_num": 7,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1293;p105",
+        "left": 713225,
+        "top": 445025,
+        "width": 7717500,
+        "height": 572700,
+        "text": "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”"
+      }
+    ]
+  },
+  {
+    "slide_num": 8,
+    "top_shapes": [
+      {
+        "name": "Google Shape;878;p89",
+        "left": 713225,
+        "top": 445025,
+        "width": 6655500,
+        "height": 572700,
+        "text": "Lý thuyết được chuyển thành cơ chế phần mềm"
+      }
+    ]
+  },
+  {
+    "slide_num": 9,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1436;p110",
+        "left": 1290029,
+        "top": 1131846,
+        "width": 2014800,
+        "height": 499800,
+        "text": "Web + BFF"
+      },
+      {
+        "name": "Google Shape;1440;p110",
+        "left": 1531650,
+        "top": 445025,
+        "width": 6080700,
+        "height": 572700,
+        "text": "Kiến trúc InterV: các biên trách nhiệm có hợp đồng"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1440",
+        "left": 3978872,
+        "top": 1154323,
+        "width": 4095750,
+        "height": 428625,
+        "text": "Web client Next.js"
+      }
+    ]
+  },
+  {
+    "slide_num": 10,
+    "top_shapes": [
+      {
+        "name": "Google Shape;864;p87",
+        "left": 1043725,
+        "top": 922567,
+        "width": 3123000,
+        "height": 2257500,
+        "text": "Mô hình dữ liệu giữ ownership và provenance"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 865",
+        "left": 4857750,
+        "top": 1044241,
+        "width": 1095375,
+        "height": 590550,
+        "text": "User"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 866",
+        "left": 6667500,
+        "top": 1044241,
+        "width": 1095375,
+        "height": 590550,
+        "text": "Job"
+      }
+    ]
+  },
+  {
+    "slide_num": 11,
+    "top_shapes": [
+      {
+        "name": "Rectangle: Rounded Corners 873",
+        "left": 857250,
+        "top": 1143000,
+        "width": 1143000,
+        "height": 571500,
+        "text": "Ứng viên"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 875",
+        "left": 4000500,
+        "top": 1143000,
+        "width": 1143000,
+        "height": 571500,
+        "text": "Admin"
+      },
+      {
+        "name": "Rectangle 881",
+        "left": 785812,
+        "top": 872502,
+        "width": 1285875,
+        "height": 247650,
+        "text": "Luyện tập / tham gia"
+      }
+    ]
+  },
+  {
+    "slide_num": 12,
+    "top_shapes": [
+      {
+        "name": "Rectangle 10",
+        "left": 714375,
+        "top": 476250,
+        "width": 7000875,
+        "height": 438150,
+        "text": "Lookahead thích ứng câu hỏi mà không ngắt phiên"
+      },
+      {
+        "name": "Rectangle 11",
+        "left": 714375,
+        "top": 981075,
+        "width": 7000875,
+        "height": 266700,
+        "text": "Qᵢ₊₁ được trả ngay; after() sinh Qᵢ₊₂ từ QA vừa commit."
+      },
+      {
+        "name": "Rectangle 12",
+        "left": 7810500,
+        "top": 476250,
+        "width": 666750,
+        "height": 400050,
+        "text": "01"
+      }
+    ]
+  },
+  {
+    "slide_num": 13,
+    "top_shapes": [
+      {
+        "name": "Rectangle 30",
+        "left": 714375,
+        "top": 457200,
+        "width": 5905500,
+        "height": 552450,
+        "text": "Grounded generation"
+      },
+      {
+        "name": "Rectangle 1",
+        "left": 714375,
+        "top": 1028700,
+        "width": 6572250,
+        "height": 342900,
+        "text": "Chuẩn hóa context → truy hồi evidence → sinh JSON → hậu kiểm schema và citation."
+      },
+      {
+        "name": "Rectangle 2",
+        "left": 7524750,
+        "top": 457200,
+        "width": 904875,
+        "height": 514350,
+        "text": "02"
+      }
+    ]
+  },
+  {
+    "slide_num": 14,
+    "top_shapes": [
+      {
+        "name": "Google Shape;587;p71",
+        "left": 781050,
+        "top": 590550,
+        "width": 7620000,
+        "height": 495300,
+        "text": "Vòng đời tài liệu RAG có provenance"
+      },
+      {
+        "name": "Rectangle 587",
+        "left": 800100,
+        "top": 1152525,
+        "width": 7524750,
+        "height": 323850,
+        "text": "Mỗi evidence ID truy ngược được về nguồn, phiên bản và trạng thái lưu giữ."
+      }
+    ]
+  },
+  {
+    "slide_num": 15,
+    "top_shapes": [
+      {
+        "name": "Google Shape;579;p70",
+        "left": 819150,
+        "top": 527670,
+        "width": 6381750,
+        "height": 571500,
+        "text": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn"
+      },
+      {
+        "name": "Google Shape;580;p70",
+        "left": 7524750,
+        "top": 565770,
+        "width": 781050,
+        "height": 438150,
+        "text": "03"
+      }
+    ]
+  },
+  {
+    "slide_num": 16,
+    "top_shapes": [
+      {
+        "name": "Rectangle: Rounded Corners 566",
+        "left": 857250,
+        "top": 1154244,
+        "width": 2381250,
+        "height": 457200,
+        "text": "Auth + RBAC"
+      }
+    ]
+  },
+  {
+    "slide_num": 17,
+    "top_shapes": [
+      {
+        "name": "Google Shape;547;p65",
+        "left": 723900,
+        "top": 470168,
+        "width": 7620000,
+        "height": 552450,
+        "text": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán"
+      },
+      {
+        "name": "Rectangle 547",
+        "left": 800100,
+        "top": 858471,
+        "width": 7524750,
+        "height": 342900,
+        "text": "BFF xác thực và chuẩn hóa request; dữ liệu chỉ được lưu hoặc hiển thị sau khi qu"
+      }
+    ]
+  },
+  {
+    "slide_num": 18,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1518;p118",
+        "left": 714375,
+        "top": 457200,
+        "width": 7715250,
+        "height": 552450,
+        "text": "RBAC giữ quyền quyết định ở đúng actor"
+      },
+      {
+        "name": "Rectangle 1532",
+        "left": 714375,
+        "top": 1028700,
+        "width": 7715250,
+        "height": 304800,
+        "text": "Quyền tăng theo trách nhiệm; AI không có quyền tuyển dụng."
+      }
+    ]
+  },
+  {
+    "slide_num": 19,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1493;p116",
+        "left": 714375,
+        "top": 457200,
+        "width": 7715250,
+        "height": 552450,
+        "text": "State machine giữ phiên luyện tập nhất quán"
+      },
+      {
+        "name": "Rectangle 1584",
+        "left": 714375,
+        "top": 1028700,
+        "width": 7715250,
+        "height": 304800,
+        "text": "Mỗi chuyển trạng thái có điều kiện và đường fallback."
+      }
+    ]
+  },
+  {
+    "slide_num": 20,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1506;p117",
+        "left": 714375,
+        "top": 773459,
+        "width": 7715250,
+        "height": 552450,
+        "text": "Vòng đời tuyển dụng tách mời, phiên và đánh giá"
+      }
+    ]
+  },
+  {
+    "slide_num": 21,
+    "top_shapes": [
+      {
+        "name": "Google Shape;637;p74",
+        "left": 714375,
+        "top": 457200,
+        "width": 7715250,
+        "height": 552450,
+        "text": "Fallback giữ phiên tiếp tục khi provider lỗi"
+      }
+    ]
+  },
+  {
+    "slide_num": 22,
+    "top_shapes": [
+      {
+        "name": "Google Shape;529;p62",
+        "left": 800100,
+        "top": 552450,
+        "width": 7620000,
+        "height": 533400,
+        "text": "Stack công nghệ theo ranh giới trách nhiệm"
+      },
+      {
+        "name": "Rectangle 529",
+        "left": 819150,
+        "top": 1133475,
+        "width": 7524750,
+        "height": 323850,
+        "text": "Mỗi nhóm công nghệ sở hữu một trách nhiệm; các lớp giao tiếp qua hợp đồng typed."
+      }
+    ]
+  },
+  {
+    "slide_num": 23,
+    "top_shapes": [
+      {
+        "name": "Rectangle 15",
+        "left": 714375,
+        "top": 447675,
+        "width": 7715250,
+        "height": 552450,
+        "text": "Quy mô hiện vật triển khai"
+      },
+      {
+        "name": "Rectangle 1",
+        "left": 714375,
+        "top": 1028700,
+        "width": 7715250,
+        "height": 266700,
+        "text": "Các con số được đối chiếu trực tiếp từ repository và hợp đồng dịch vụ."
+      }
+    ]
+  },
+  {
+    "slide_num": 24,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1378;p107",
+        "left": 713225,
+        "top": 445025,
+        "width": 5517600,
+        "height": 572700,
+        "text": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh"
+      }
+    ]
+  },
+  {
+    "slide_num": 25,
+    "top_shapes": [
+      {
+        "name": "Google Shape;878;p89",
+        "left": 713225,
+        "top": 445025,
+        "width": 6655500,
+        "height": 572700,
+        "text": "DeepSeek/RAG được kiểm soát ở ba điểm"
+      }
+    ]
+  },
+  {
+    "slide_num": 26,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1400;p109",
+        "left": 714375,
+        "top": 444818,
+        "width": 7715250,
+        "height": 573405,
+        "text": "Bất biến an toàn của SenseVoice"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1430",
+        "left": 1333500,
+        "top": 1154244,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1431",
+        "left": 4667250,
+        "top": 1154244,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      }
+    ]
+  },
+  {
+    "slide_num": 27,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1400;p109",
+        "left": 714375,
+        "top": 444818,
+        "width": 7715250,
+        "height": 573405,
+        "text": "Bốn đóng góp chính"
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1430",
+        "left": 1333500,
+        "top": 1161122,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      },
+      {
+        "name": "Rectangle: Rounded Corners 1431",
+        "left": 4667250,
+        "top": 1161122,
+        "width": 3143250,
+        "height": 1333500,
+        "text": ""
+      }
+    ]
+  },
+  {
+    "slide_num": 28,
+    "top_shapes": [
+      {
+        "name": "Google Shape;878;p89",
+        "left": 713225,
+        "top": 445025,
+        "width": 6655500,
+        "height": 572700,
+        "text": "Giới hạn cần được đọc cùng kết quả"
+      }
+    ]
+  },
+  {
+    "slide_num": 29,
+    "top_shapes": [
+      {
+        "name": "Google Shape;948;p91",
+        "left": 713225,
+        "top": 445025,
+        "width": 7717500,
+        "height": 572700,
+        "text": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa"
+      },
+      {
+        "name": "Rectangle 1004",
+        "left": 457200,
+        "top": 827950,
+        "width": 5334000,
+        "height": 266700,
+        "text": "Mỗi giai đoạn có một gate bắt buộc trước khi tăng mức tự động hóa."
+      }
+    ]
+  },
+  {
+    "slide_num": 30,
+    "top_shapes": [
+      {
+        "name": "Google Shape;1160;p99",
+        "left": 819150,
+        "top": 657225,
+        "width": 7524750,
+        "height": 1000125,
+        "text": "InterV đã đạt nền tảng kỹ thuật khả thi cho nghiên cứu và triển khai có kiểm soá"
+      }
+    ]
+  },
+  {
+    "slide_num": 31,
+    "top_shapes": []
+  }
+]

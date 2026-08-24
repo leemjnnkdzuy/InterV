@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Google Shape;482;p59",
+    "left": 1039950,
+    "top": 1431148,
+    "width": 7064100,
+    "height": 2052600,
+    "paragraphs": [
+      {
+        "text": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG TÍCH HỢP XỬ LÝ GIỌNG NÓI ĐA TẦNG, TRUY XUẤT TRI THỨC TĂNG CƯỜNG (RAG) VÀ MÔ HÌNH NGÔN NGỮ LỚN",
+        "font_name": "Cambria",
+        "font_size": 23.25,
+        "bold": true,
+        "color": "111410",
+        "align": "CENTER (2)"
+      }
+    ]
+  },
+  {
+    "name": "Google Shape;483;p59",
+    "left": 1039950,
+    "top": 3546852,
+    "width": 7064100,
+    "height": 702013,
+    "paragraphs": [
+      {
+        "text": "Sinh viên: Lê Minh Duy - MSSV: 221A011220",
+        "font_name": "Montserrat",
+        "font_size": 10.13,
+        "bold": false,
+        "color": "526052",
+        "align": "CENTER (2)"
+      },
+      {
+        "text": "GVHD: ThS. Đặng Văn Lực • Trường Đại học Văn Hiến • 2026",
+        "font_name": "Montserrat",
+        "font_size": 10.13,
+        "bold": false,
+        "color": "526052",
+        "align": "CENTER (2)"
+      }
+    ]
+  }
+]

@@ -1,0 +1,219 @@
+[
+  {
+    "slide_index": 0,
+    "slide_num": 1,
+    "badge": "",
+    "title": "NGHIÊN CỨU THIẾT KẾ VÀ PHÁT TRIỂN KIẾN TRÚC HỆ THỐNG PHỎNG VẤN NĂNG LỰC TỰ ĐỘNG ",
+    "shapes_count": 2
+  },
+  {
+    "slide_index": 1,
+    "slide_num": 2,
+    "badge": "03",
+    "title": "Lộ trình trình bày",
+    "shapes_count": 19
+  },
+  {
+    "slide_index": 2,
+    "slide_num": 3,
+    "badge": "",
+    "title": "Bài toán: chuẩn hóa mà không loại bỏ phán đoán con người",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 3,
+    "slide_num": 4,
+    "badge": "",
+    "title": "Ba nhóm người dùng, ba ranh giới trách nhiệm",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 4,
+    "slide_num": 5,
+    "badge": "03",
+    "title": "Mục tiêu và câu hỏi nghiên cứu",
+    "shapes_count": 19
+  },
+  {
+    "slide_index": 5,
+    "slide_num": 6,
+    "badge": "",
+    "title": "Phạm vi đề tài được khóa bằng bốn nguyên tắc",
+    "shapes_count": 14
+  },
+  {
+    "slide_index": 6,
+    "slide_num": 7,
+    "badge": "",
+    "title": "Phương pháp tách rõ “chạy đúng” và “đo lường có hiệu lực”",
+    "shapes_count": 13
+  },
+  {
+    "slide_index": 7,
+    "slide_num": 8,
+    "badge": "",
+    "title": "Lý thuyết được chuyển thành cơ chế phần mềm",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 8,
+    "slide_num": 9,
+    "badge": "",
+    "title": "Web + BFF",
+    "shapes_count": 13
+  },
+  {
+    "slide_index": 9,
+    "slide_num": 10,
+    "badge": "",
+    "title": "Mô hình dữ liệu giữ ownership và provenance",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 10,
+    "slide_num": 11,
+    "badge": "",
+    "title": "Ứng viên",
+    "shapes_count": 10
+  },
+  {
+    "slide_index": 11,
+    "slide_num": 12,
+    "badge": "01",
+    "title": "Lookahead thích ứng câu hỏi mà không ngắt phiên",
+    "shapes_count": 30
+  },
+  {
+    "slide_index": 12,
+    "slide_num": 13,
+    "badge": "02",
+    "title": "Grounded generation",
+    "shapes_count": 21
+  },
+  {
+    "slide_index": 13,
+    "slide_num": 14,
+    "badge": "",
+    "title": "Vòng đời tài liệu RAG có provenance",
+    "shapes_count": 24
+  },
+  {
+    "slide_index": 14,
+    "slide_num": 15,
+    "badge": "03",
+    "title": "Pipeline tiếng nói nhiều tầng: Realtime & Hậu kỳ phỏng vấn",
+    "shapes_count": 11
+  },
+  {
+    "slide_index": 15,
+    "slide_num": 16,
+    "badge": "",
+    "title": "Auth + RBAC",
+    "shapes_count": 10
+  },
+  {
+    "slide_index": 16,
+    "slide_num": 17,
+    "badge": "",
+    "title": "Hợp đồng typed giữ TypeScript ↔ Python nhất quán",
+    "shapes_count": 12
+  },
+  {
+    "slide_index": 17,
+    "slide_num": 18,
+    "badge": "",
+    "title": "RBAC giữ quyền quyết định ở đúng actor",
+    "shapes_count": 15
+  },
+  {
+    "slide_index": 18,
+    "slide_num": 19,
+    "badge": "",
+    "title": "State machine giữ phiên luyện tập nhất quán",
+    "shapes_count": 9
+  },
+  {
+    "slide_index": 19,
+    "slide_num": 20,
+    "badge": "",
+    "title": "Vòng đời tuyển dụng tách mời, phiên và đánh giá",
+    "shapes_count": 9
+  },
+  {
+    "slide_index": 20,
+    "slide_num": 21,
+    "badge": "",
+    "title": "Fallback giữ phiên tiếp tục khi provider lỗi",
+    "shapes_count": 9
+  },
+  {
+    "slide_index": 21,
+    "slide_num": 22,
+    "badge": "",
+    "title": "Stack công nghệ theo ranh giới trách nhiệm",
+    "shapes_count": 22
+  },
+  {
+    "slide_index": 22,
+    "slide_num": 23,
+    "badge": "",
+    "title": "Quy mô hiện vật triển khai",
+    "shapes_count": 11
+  },
+  {
+    "slide_index": 23,
+    "slide_num": 24,
+    "badge": "",
+    "title": "Xác minh kỹ thuật đạt; hiệu lực tuyển dụng chưa được chứng minh",
+    "shapes_count": 11
+  },
+  {
+    "slide_index": 24,
+    "slide_num": 25,
+    "badge": "",
+    "title": "DeepSeek/RAG được kiểm soát ở ba điểm",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 25,
+    "slide_num": 26,
+    "badge": "",
+    "title": "Bất biến an toàn của SenseVoice",
+    "shapes_count": 14
+  },
+  {
+    "slide_index": 26,
+    "slide_num": 27,
+    "badge": "",
+    "title": "Bốn đóng góp chính",
+    "shapes_count": 14
+  },
+  {
+    "slide_index": 27,
+    "slide_num": 28,
+    "badge": "",
+    "title": "Giới hạn cần được đọc cùng kết quả",
+    "shapes_count": 8
+  },
+  {
+    "slide_index": 28,
+    "slide_num": 29,
+    "badge": "",
+    "title": "Bốn cổng kiểm soát trước khi mở rộng tự động hóa",
+    "shapes_count": 14
+  },
+  {
+    "slide_index": 29,
+    "slide_num": 30,
+    "badge": "",
+    "title": "InterV đã đạt nền tảng kỹ thuật khả thi cho nghiên cứu và triển khai có kiểm soá",
+    "shapes_count": 12
+  },
+  {
+    "slide_index": 30,
+    "slide_num": 31,
+    "badge": "",
+    "title": "Cảm ơn Hội đồng",
+    "shapes_count": 4
+  }
+]
