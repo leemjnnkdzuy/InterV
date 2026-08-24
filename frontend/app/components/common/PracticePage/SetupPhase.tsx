@@ -552,6 +552,7 @@ export default function SetupPhase({
           </div>
         )}
         <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+          {/* Column 1: Job Description & Topic */}
           <div className="lg:col-span-5 flex flex-col h-full min-h-0">
             <Card className="flex-1 border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] overflow-hidden shadow-sm flex flex-col justify-between p-6">
               <div className="space-y-4 flex-1 flex flex-col min-h-0">
@@ -752,6 +753,7 @@ export default function SetupPhase({
             </Card>
           </div>
 
+          {/* Column 2: Interview Settings */}
           <div className="lg:col-span-3 flex flex-col h-full min-h-0">
             <Card className="flex-1 border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] p-6 shadow-sm flex flex-col gap-5 justify-between overflow-hidden">
               <div className="border-b border-border/10 pb-3 shrink-0">
@@ -814,11 +816,11 @@ export default function SetupPhase({
                     })}
                   </div>
                 </div>
-
               </div>
             </Card>
           </div>
 
+          {/* Column 3: Language & Voice, Interaction Modes, Cost & Start */}
           <div className="lg:col-span-4 flex flex-col h-full min-h-0 gap-4">
             <Card className="border border-border/10 bg-card/15 backdrop-blur-md rounded-[28px] p-6 shadow-sm flex flex-col gap-4 overflow-hidden">
               <div className="border-b border-border/10 pb-3 shrink-0">
@@ -854,7 +856,7 @@ export default function SetupPhase({
                       <Select value={voiceId} onValueChange={handleVoiceChange} disabled={isLoadingVoices || recruitmentMode}>
                         <SelectTrigger className="min-w-0 overflow-hidden rounded-2xl w-full border border-border/20 bg-card/20 text-xs font-bold text-foreground cursor-pointer h-[42px] px-4 [&_[data-slot=select-value]]:block [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:max-w-full [&_[data-slot=select-value]]:truncate">
                           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-                          {isLoadingVoices && <Spinner className="w-3.5 h-3.5 text-primary" />}
+                            {isLoadingVoices && <Spinner className="w-3.5 h-3.5 text-primary" />}
                             <SelectValue
                               placeholder={t("practiceSetup.voicePlaceholder")}
                               className="block min-w-0 max-w-full truncate"
@@ -876,7 +878,7 @@ export default function SetupPhase({
                       variant="outline"
                       onClick={() => void handlePreviewVoice()}
                       disabled={isLoadingVoices || !isCurrentVoicePreviewReady}
-                      className="!h-9 !w-9 !min-h-0 shrink-0 rounded-full p-0 cursor-pointer"
+                      className="!h-[42px] !w-[42px] !min-h-0 shrink-0 rounded-2xl p-0 cursor-pointer border border-border/20 bg-card/20 hover:bg-card/40 flex items-center justify-center"
                       title={
                         isVoicePreviewPlaying
                           ? t("practiceSetup.stopPreviewVoice")

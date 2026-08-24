@@ -182,7 +182,10 @@ function StatTile({
 function InterviewCard({ item }: { item: UserInterviewItem }) {
   const router = useRouter();
   const campaign = item.campaign;
-  const status = STATUS_META[item.status];
+  const status = STATUS_META[item.status] || {
+    label: item.status || "Chờ tham gia",
+    className: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+  };
   const canStart = canStartInterview(item);
   const hasResult = item.status === "COMPLETED" && Boolean(item.lastRunId);
   const attemptsLeft = Math.max(0, item.maxAttempts - item.attemptCount);

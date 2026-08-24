@@ -4,6 +4,7 @@ import * as React from "react";
 import { cn } from "@/app/lib/Utils";
 import { Button } from "@/app/components/ui/button";
 import { Pen2, AltArrowLeft, AltArrowRight } from "@solar-icons/react";
+import { ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,8 +19,10 @@ interface DatePickerProps {
   onConfirm: (date: Date) => Promise<void>;
 }
 
-function getDateValue(value: DatePickerProps["value"]): Date | null {
-  return value ? new Date(value) : null;
+function getDateValue(value?: Date | string | null): Date | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export function DatePicker({ value, onConfirm }: DatePickerProps) {
@@ -112,16 +115,13 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const days = [];
-  // Empty slots for previous month's days
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push(null);
   }
-  // Days of the month
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(i);
   }
 
-  // Generate Year & Month list for direct selectors
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
   const months = [
@@ -178,9 +178,10 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
             </Select>
           </div>
 
-           {/* Month Stepper Header */}
+          {/* Month Stepper Header */}
           <div className="flex items-center justify-between mb-4">
             <button
+              type="button"
               onClick={handlePrevMonth}
               className="p-1.5 rounded-lg hover:bg-muted/50 text-foreground/80 cursor-pointer flex items-center justify-center"
             >
@@ -190,6 +191,7 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
               {months[month]} {year}
             </span>
             <button
+              type="button"
               onClick={handleNextMonth}
               className="p-1.5 rounded-lg hover:bg-muted/50 text-foreground/80 cursor-pointer flex items-center justify-center"
             >
@@ -228,6 +230,7 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
 
               return (
                 <button
+                  type="button"
                   key={day}
                   onClick={() => handleSelectDay(day)}
                   className={cn(
@@ -248,6 +251,7 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
           {/* Footer Action Buttons */}
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/10">
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsOpen(false)}
@@ -256,6 +260,7 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
               Hủy
             </Button>
             <Button
+              type="button"
               size="sm"
               onClick={handleSave}
               disabled={!selectedDate || isSaving}
@@ -269,3 +274,296 @@ export function DatePicker({ value, onConfirm }: DatePickerProps) {
     </div>
   );
 }
+
+export interface DatePickerInputProps {
+  value?: Date | string | null;
+  onChange?: (date: Date | undefined) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+}
+
+export function DatePickerInput({
+  value,
+  onChange,
+  placeholder = "Chọn ngày sinh...",
+  className,
+  disabled = false,
+}: DatePickerInputProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const parsedDate = getDateValue(value);
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(() => parsedDate ?? new Date(2000, 0, 1));
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleToggleOpen = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      const nextDate = getDateValue(value);
+      if (nextDate) {
+        setCurrentMonth(nextDate);
+      }
+    }
+    setIsOpen((prev) => !prev);
+  };
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest('[data-slot="select-content"]') ||
+        target.closest('[data-slot="select-item"]') ||
+        target.closest('[data-radix-popper-content-wrapper]')
+      ) {
+        return;
+      }
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleYearChange = (year: number) => {
+    const nextMonth = new Date(currentMonth);
+    nextMonth.setFullYear(year);
+    setCurrentMonth(nextMonth);
+  };
+
+  const handleMonthChange = (month: number) => {
+    const nextMonth = new Date(currentMonth);
+    nextMonth.setMonth(month);
+    setCurrentMonth(nextMonth);
+  };
+
+  const handlePrevMonth = () => {
+    const prev = new Date(currentMonth);
+    prev.setMonth(prev.getMonth() - 1);
+    setCurrentMonth(prev);
+  };
+
+  const handleNextMonth = () => {
+    const next = new Date(currentMonth);
+    next.setMonth(next.getMonth() + 1);
+    setCurrentMonth(next);
+  };
+
+  const handleSelectDay = (day: number) => {
+    const selected = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    onChange?.(selected);
+    setIsOpen(false);
+  };
+
+  // Calendar calculations
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const days: (number | null)[] = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(null);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 80 }, (_, i) => currentYear - i);
+  const months = [
+    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+  ];
+
+  const formattedDate = parsedDate
+    ? `${String(parsedDate.getDate()).padStart(2, "0")}/${String(parsedDate.getMonth() + 1).padStart(2, "0")}/${parsedDate.getFullYear()}`
+    : null;
+
+  const age = parsedDate ? currentYear - parsedDate.getFullYear() : null;
+
+  return (
+    <div className={cn("relative w-full text-left", className)} ref={containerRef}>
+      {/* Trigger Input container */}
+      <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        onClick={handleToggleOpen}
+        onKeyDown={(e) => {
+          if (disabled) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleToggleOpen();
+          }
+        }}
+        className={cn(
+          "w-full h-12 rounded-2xl border border-border/50 bg-background/50 px-4 text-sm flex items-center justify-between transition-all cursor-pointer select-none",
+          "hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
+          isOpen && "border-primary ring-2 ring-primary/20 shadow-sm",
+          disabled && "opacity-50 cursor-not-allowed pointer-events-none"
+        )}
+      >
+        <div className="flex items-center gap-2 truncate">
+          {formattedDate ? (
+            <span className="text-foreground font-medium flex items-center gap-1.5 truncate">
+              {formattedDate}
+              {age !== null && age >= 0 && (
+                <span className="text-xs font-normal text-muted-foreground">({age} tuổi)</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
+        </div>
+
+        <ChevronDown
+          className={cn(
+            "w-4 h-4 text-muted-foreground transition-transform duration-200 shrink-0 ml-2",
+            isOpen && "rotate-180 text-primary"
+          )}
+        />
+      </div>
+
+      {/* Calendar Popover */}
+      {isOpen && (
+        <div className="absolute left-0 top-full mt-2 z-50 w-80 sm:w-84 rounded-3xl border border-border/50 bg-popover/95 p-4 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
+          {/* Quick Selectors for Month and Year */}
+          <div className="flex items-center gap-2 mb-3">
+            <Select
+              value={String(month)}
+              onValueChange={(val) => handleMonthChange(Number(val))}
+            >
+              <SelectTrigger className="flex-1 text-xs rounded-xl h-9 bg-background/60">
+                <SelectValue placeholder="Chọn tháng" />
+              </SelectTrigger>
+              <SelectContent position="popper" className="max-h-56">
+                {months.map((m, idx) => (
+                  <SelectItem key={idx} value={String(idx)} className="text-xs">
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={String(year)}
+              onValueChange={(val) => handleYearChange(Number(val))}
+            >
+              <SelectTrigger className="flex-1 text-xs rounded-xl h-9 bg-background/60">
+                <SelectValue placeholder="Chọn năm" />
+              </SelectTrigger>
+              <SelectContent position="popper" className="max-h-56">
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)} className="text-xs">
+                    Năm {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Month Stepper Header */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="p-1.5 rounded-xl hover:bg-muted/60 text-foreground/80 cursor-pointer flex items-center justify-center transition-colors"
+            >
+              <AltArrowLeft className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-bold text-foreground">
+              {months[month]}, {year}
+            </span>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="p-1.5 rounded-xl hover:bg-muted/60 text-foreground/80 cursor-pointer flex items-center justify-center transition-colors"
+            >
+              <AltArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Weekday Labels */}
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-muted-foreground mb-1.5">
+            <span>CN</span>
+            <span>T2</span>
+            <span>T3</span>
+            <span>T4</span>
+            <span>T5</span>
+            <span>T6</span>
+            <span>T7</span>
+          </div>
+
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {days.map((day, idx) => {
+              if (day === null) {
+                return <div key={`empty-${idx}`} />;
+              }
+
+              const isSelected =
+                parsedDate &&
+                parsedDate.getDate() === day &&
+                parsedDate.getMonth() === month &&
+                parsedDate.getFullYear() === year;
+
+              const isToday =
+                new Date().getDate() === day &&
+                new Date().getMonth() === month &&
+                new Date().getFullYear() === year;
+
+              return (
+                <button
+                  type="button"
+                  key={day}
+                  onClick={() => handleSelectDay(day)}
+                  className={cn(
+                    "h-8 w-full text-xs rounded-xl flex items-center justify-center transition-all cursor-pointer font-medium",
+                    isSelected
+                      ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                      : isToday
+                      ? "border border-primary/50 text-primary hover:bg-primary/10"
+                      : "text-foreground hover:bg-muted/60"
+                  )}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                const today = new Date();
+                onChange?.(today);
+                setIsOpen(false);
+              }}
+              className="text-primary font-semibold hover:underline cursor-pointer py-1 px-2 rounded-lg hover:bg-primary/10 transition-colors"
+            >
+              Hôm nay
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-muted-foreground hover:text-foreground cursor-pointer py-1 px-2 rounded-lg hover:bg-muted/60 transition-colors"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Alias for DatePickerSimple as requested
+export const DatePickerSimple = DatePickerInput;

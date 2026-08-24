@@ -121,7 +121,7 @@ export default function UsernameDialog({
 
         <div className="relative pt-2">
           <AnimatePresence mode="wait" custom={usernamePhase}>
-            {usernamePhase === 1 && (
+            {usernamePhase === 1 ? (
               <motion.div
                 key="phase1"
                 custom={usernamePhase}
@@ -143,25 +143,26 @@ export default function UsernameDialog({
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                       {isCheckingUsername && <Spinner className="text-muted-foreground" />}
                       {!isCheckingUsername && usernameStatus === "available" && (
-                        <Check className="w-5 h-5 text-green-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <Check className="size-4 text-emerald-500" />
                       )}
                       {!isCheckingUsername && usernameStatus === "unavailable" && (
-                        <X className="w-5 h-5 text-red-500 animate-in fade-in zoom-in-50 duration-200" />
+                        <X className="size-4 text-destructive" />
                       )}
                     </div>
                   </div>
+                  {usernameStatus === "unavailable" && (
+                    <p className="text-[10px] text-destructive pl-1">{t("dialogs.usernameTaken")}</p>
+                  )}
                 </div>
                 <Button
                   onClick={() => setUsernamePhase(2)}
-                  disabled={isCheckingUsername || usernameStatus !== "available"}
+                  disabled={usernameStatus !== "available" || isCheckingUsername}
                   className="w-full rounded-2xl cursor-pointer"
                 >
-                  {t("dialogs.continue")}
+                  {t("dialogs.next")}
                 </Button>
               </motion.div>
-            )}
-
-            {usernamePhase === 2 && (
+            ) : usernamePhase === 2 ? (
               <motion.div
                 key="phase2"
                 custom={usernamePhase}
@@ -171,11 +172,11 @@ export default function UsernameDialog({
                 exit="exit"
                 className="space-y-4 w-full"
               >
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.usernamePasswordLabel")}</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-muted-foreground">{t("dialogs.passwordConfirmLabel")}</label>
                   <Input
                     type="password"
-                    placeholder={t("dialogs.usernamePasswordPlaceholder")}
+                    placeholder="••••••••"
                     value={usernamePassword}
                     onChange={(e) => setUsernamePassword(e.target.value)}
                     className="rounded-2xl text-left"
@@ -198,9 +199,7 @@ export default function UsernameDialog({
                   </Button>
                 </div>
               </motion.div>
-            )}
-
-            {usernamePhase === 3 && (
+            ) : usernamePhase === 3 ? (
               <motion.div
                 key="phase3"
                 custom={usernamePhase}
@@ -221,7 +220,7 @@ export default function UsernameDialog({
                   {t("dialogs.close")}
                 </Button>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
       </DialogContent>

@@ -574,7 +574,7 @@ async def _json_completion(
         timeout=(
             settings.deepseek_eval_timeout_seconds
             if thinking
-            else settings.deepseek_timeout_seconds
+            else settings.deepseek_fast_timeout_seconds
         ),
         max_retries=0,
     )
@@ -597,6 +597,8 @@ async def _json_completion(
                 }
                 if thinking:
                     request["extra_body"] = {"thinking": {"type": "enabled"}}
+                else:
+                    request["extra_body"] = {"thinking": {"type": "disabled"}}
 
                 started_at = time.perf_counter()
                 try:

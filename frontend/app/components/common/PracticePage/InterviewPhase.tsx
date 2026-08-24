@@ -26,6 +26,7 @@ import {
   useRealtimeInterviewRecorder,
   type RealtimeRecordingResult,
 } from "@/app/hooks/useRealtimeInterviewRecorder";
+import { sanitizeSttTranscript } from "@/app/lib/RealtimeTranscript";
 import type {
   GeneratedInterviewQuestion,
   InterviewPhaseProps,
@@ -158,7 +159,7 @@ export default function InterviewPhase({
   } = useRealtimeInterviewRecorder(runId, {
     autoTurnTaking,
     languageCode: language,
-    persistentSession: autoTurnTaking,
+    persistentSession: true,
   });
 
   const currentQuestion = questions[currentStep];
@@ -196,7 +197,7 @@ export default function InterviewPhase({
     stage === "openingSubmitting"
       ? t("interview.openingSaving")
       : stage === "closingPreparing"
-        ? t("interview.closingPreparing") || "AI đang chuẩn bị lời cảm ơn..."
+        ? t("interview.closingPreparing") || "InterV đang xử lý câu trả lời của bạn..."
         : t("interview.savingAnswer");
   const isAutoReviewPending =
     autoTurnTaking &&
@@ -311,7 +312,6 @@ export default function InterviewPhase({
           return;
         }
 
-        setStage("openingConnecting");
         await recorderPreparation;
         if (preparationError) throw preparationError;
         if (
@@ -322,14 +322,6 @@ export default function InterviewPhase({
         }
         if (textOnlyMode) {
           setStage("openingReviewing");
-          return;
-        }
-        // Small cooldown so speaker sound clears from the microphone before recording
-        await new Promise((resolve) => setTimeout(resolve, 450));
-        if (
-          cancelled ||
-          transitionGeneration !== transitionGenerationRef.current
-        ) {
           return;
         }
         await startRecording();
@@ -426,7 +418,6 @@ export default function InterviewPhase({
       ) {
         return;
       }
-      setStage("connecting");
       try {
         await recorderPreparation;
         if (preparationError) {
@@ -440,14 +431,6 @@ export default function InterviewPhase({
         }
         if (textOnlyMode) {
           setStage("reviewing");
-          return;
-        }
-        // Small cooldown so speaker sound clears from the microphone before recording
-        await new Promise((resolve) => setTimeout(resolve, 450));
-        if (
-          cancelled ||
-          transitionGeneration !== transitionGenerationRef.current
-        ) {
           return;
         }
         await startRecording();
@@ -513,13 +496,10 @@ export default function InterviewPhase({
       console.warn("Could not prewarm the first answer recorder:", error);
     });
 
-    let transcript = result.transcript.trim();
+    let transcript = sanitizeSttTranscript(result.transcript);
     let provider = result.transcriptionProvider;
     const words = transcript.split(/\s+/).filter(Boolean);
-    const isSuspicious =
-      !transcript ||
-      words.length < 3 ||
-      /^(gracias|thank you|subtitles|music|applause)/i.test(transcript);
+    const isSuspicious = !transcript || words.length < 3;
 
     if (result.audio.size > 10_000 && isSuspicious) {
       try {
@@ -573,13 +553,10 @@ export default function InterviewPhase({
         return;
       }
 
-      let transcript = result.transcript.trim();
+      let transcript = sanitizeSttTranscript(result.transcript);
       let provider = result.transcriptionProvider;
       const words = transcript.split(/\s+/).filter(Boolean);
-      const isSuspicious =
-        !transcript ||
-        words.length < 3 ||
-        /^(gracias|thank you|subtitles|music|applause)/i.test(transcript);
+      const isSuspicious = !transcript || words.length < 3;
 
       if (result.audio.size > 10_000 && isSuspicious) {
         try {
@@ -640,12 +617,9 @@ export default function InterviewPhase({
       return;
     }
 
-    const trimmedTranscript = finalTurn.transcript?.trim() || "";
+    const trimmedTranscript = sanitizeSttTranscript(finalTurn.transcript);
     const words = trimmedTranscript.split(/\s+/).filter(Boolean);
-    if (
-      words.length < 3 ||
-      /^(gracias|thank you|subtitles|music|applause)\.?$/i.test(trimmedTranscript)
-    ) {
+    if (words.length < 3) {
       return;
     }
 
@@ -661,7 +635,7 @@ export default function InterviewPhase({
         : stopOpeningRecording()).finally(() => {
         autoStopInFlightRef.current = false;
       });
-    }, 1500);
+    }, 150);
     return () => window.clearTimeout(timeoutId);
   }, [
     autoTurnTaking,
@@ -808,7 +782,6 @@ export default function InterviewPhase({
         }
 
         if (data.cancelled) {
-          toast.info(t("interview.interviewEndedEarly"));
           router.push(`/practice/${encodeURIComponent(practiceId)}`);
           return;
         }
@@ -946,12 +919,9 @@ export default function InterviewPhase({
       return;
     }
 
-    const normalized = answer.trim();
+    const normalized = sanitizeSttTranscript(answer);
     const words = normalized.split(/\s+/).filter(Boolean);
-    if (
-      words.length < 3 ||
-      /^(gracias|thank you|subtitles|music|applause)\.?$/i.test(normalized)
-    ) {
+    if (words.length < 3) {
       return;
     }
 
@@ -966,7 +936,7 @@ export default function InterviewPhase({
 
     const timeoutId = window.setTimeout(() => {
       void (openingCompleted ? submitAnswer() : submitOpening());
-    }, 600);
+    }, 200);
     return () => window.clearTimeout(timeoutId);
   }, [
     answer,
@@ -1033,8 +1003,9 @@ export default function InterviewPhase({
   }
 
   return (
-    <AnimatePresence initial={false} mode="wait">
-      {stage === "finishing" ? (
+    <>
+      <AnimatePresence initial={false} mode="wait">
+        {stage === "finishing" ? (
         <motion.div
           key="finishing"
           className="h-full w-full"
@@ -1339,6 +1310,7 @@ export default function InterviewPhase({
           </div>
         </motion.div>
       )}
+      </AnimatePresence>
       <EarlyFinishConfirmDialog
         isOpen={showEarlyFinishConfirm}
         onOpenChange={setShowEarlyFinishConfirm}
@@ -1347,6 +1319,6 @@ export default function InterviewPhase({
         totalQuestions={questionCount}
         isFinishing={isEarlyFinishing}
       />
-    </AnimatePresence>
+    </>
   );
 }

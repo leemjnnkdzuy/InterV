@@ -144,11 +144,11 @@ export default function FogetPasswordPage() {
   };
 
   return (
-    <div className="dark min-h-screen relative bg-zinc-950 text-white flex items-center justify-center">
+    <div className="min-h-screen relative bg-background text-foreground flex items-center justify-center">
       {/* corner icons */}
       <button
         onClick={() => router.push("/")}
-        className="absolute left-6 top-6 z-20 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+        className="absolute left-6 top-6 z-20 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         aria-label="home"
       >
         <Home className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function FogetPasswordPage() {
 
       <SilkBackground />
 
-      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden">
+      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/85 dark:bg-[var(--sidebar)]/65 backdrop-blur-xl border border-border/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden">
         <h1 className="text-3xl font-extrabold text-center">{t("auth.forgotTitle")}</h1>
 
         <AnimatePresence mode="wait">
@@ -168,11 +168,11 @@ export default function FogetPasswordPage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              <p className="text-sm text-zinc-400 text-center mt-2">
+              <p className="text-sm text-muted-foreground text-center mt-2">
                 {t("auth.forgotDescription")}
               </p>
               <form onSubmit={handleSendPin} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400">{t("auth.registeredEmailLabel")}</label>
+                <label className="text-xs text-muted-foreground">{t("auth.registeredEmailLabel")}</label>
                 <Input
                   type="email"
                   placeholder={t("auth.registeredEmailPlaceholder")}
@@ -198,11 +198,11 @@ export default function FogetPasswordPage() {
                 </Button>
               </form>
 
-              <p className="text-sm text-zinc-400 text-center mt-6">
+              <p className="text-sm text-muted-foreground text-center mt-6">
                 {t("auth.backTo")}{" "}
                 <button
                   onClick={() => router.push("/login")}
-                  className="text-white font-bold cursor-pointer hover:underline"
+                  className="text-foreground dark:text-white font-bold cursor-pointer hover:underline"
                   disabled={isLoading}
                 >
                   {t("auth.loginButton")}
@@ -219,12 +219,12 @@ export default function FogetPasswordPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              <p className="text-sm text-zinc-400 text-center mt-2">
+              <p className="text-sm text-muted-foreground text-center mt-2">
                 {t("auth.pinSentTo")} <br />
-                <strong className="text-white">{email}</strong>
+                <strong className="text-foreground dark:text-white">{email}</strong>
               </p>
               <form onSubmit={handleVerifyPin} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400 text-center">{t("auth.pinLabel")}</label>
+                <label className="text-xs text-muted-foreground text-center">{t("auth.pinLabel")}</label>
                 <Input
                   type="text"
                   placeholder="------"
@@ -252,12 +252,12 @@ export default function FogetPasswordPage() {
               </form>
 
               <div className="flex items-center justify-center gap-2 mt-6">
-                <p className="text-sm text-zinc-400">{t("auth.noCode")}</p>
+                <p className="text-sm text-muted-foreground">{t("auth.noCode")}</p>
                 <button
                   type="button"
                   onClick={handleResendPin}
                   className={`text-sm font-bold hover:underline cursor-pointer ${
-                    countdown > 0 ? "text-zinc-500 cursor-not-allowed" : "text-amber-400"
+                    countdown > 0 ? "text-muted-foreground cursor-not-allowed" : "text-amber-500 dark:text-amber-400"
                   }`}
                   disabled={isLoading || countdown > 0}
                 >
@@ -265,11 +265,11 @@ export default function FogetPasswordPage() {
                 </button>
               </div>
 
-              <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
+              <div className="mt-6 flex justify-center border-t border-border/40 pt-4">
                 <button
                   type="button"
                   onClick={() => setPhase("email")}
-                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> {t("auth.back")}
                 </button>
@@ -285,11 +285,11 @@ export default function FogetPasswordPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              <p className="text-sm text-zinc-400 text-center mt-2">
+              <p className="text-sm text-muted-foreground text-center mt-2">
                 {t("auth.newPasswordDescription")}
               </p>
               <form onSubmit={handleResetPassword} className="flex flex-col gap-4 mt-6">
-                <label className="text-xs text-zinc-400">{t("auth.newPasswordLabel")}</label>
+                <label className="text-xs text-muted-foreground">{t("auth.newPasswordLabel")}</label>
                 <Input
                   type="password"
                   placeholder={t("auth.newPasswordPlaceholder")}
@@ -299,7 +299,7 @@ export default function FogetPasswordPage() {
                   disabled={isLoading}
                 />
 
-                <label className="text-xs text-zinc-400">{t("auth.confirmNewPasswordLabel")}</label>
+                <label className="text-xs text-muted-foreground">{t("auth.confirmNewPasswordLabel")}</label>
                 <Input
                   type="password"
                   placeholder={t("auth.confirmNewPasswordPlaceholder")}
@@ -325,11 +325,11 @@ export default function FogetPasswordPage() {
                 </Button>
               </form>
 
-              <div className="mt-6 flex justify-center border-t border-white/10 pt-4">
+              <div className="mt-6 flex justify-center border-t border-border/40 pt-4">
                 <button
                   type="button"
                   onClick={() => setPhase("pin")}
-                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> {t("auth.back")}
                 </button>

@@ -166,7 +166,7 @@ export default function EmailDialog({
             </div>
           ) : (
             <AnimatePresence mode="wait" custom={emailPhase}>
-              {emailPhase === 1 && (
+              {emailPhase === 1 ? (
                 <motion.div
                   key="email1"
                   custom={emailPhase}
@@ -196,9 +196,7 @@ export default function EmailDialog({
                     {isEmailSending ? t("common.loading") : t("dialogs.emailVerifyOtp")}
                   </Button>
                 </motion.div>
-              )}
-
-              {emailPhase === 2 && (
+              ) : emailPhase === 2 ? (
                 <motion.div
                   key="email2"
                   custom={emailPhase}
@@ -226,9 +224,7 @@ export default function EmailDialog({
                     {isEmailSending ? <Spinner className="size-4 text-background" /> : t("dialogs.emailSendOtp")}
                   </Button>
                 </motion.div>
-              )}
-
-              {emailPhase === 3 && (
+              ) : emailPhase === 3 ? (
                 <motion.div
                   key="email3"
                   custom={emailPhase}
@@ -258,7 +254,7 @@ export default function EmailDialog({
                     {isEmailSending ? <Spinner className="size-4 text-background" /> : t("common.confirm")}
                   </Button>
                 </motion.div>
-              )}
+              ) : null}
             </AnimatePresence>
           )}
         </div>

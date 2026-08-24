@@ -19,7 +19,7 @@ import {
 } from "@solar-icons/react";
 import { Plus, Check, X, GraduationCap, Briefcase, Sparkles, FileText, PenLine } from "lucide-react";
 import { toast } from "sonner";
-import { userService } from "@/app/services";
+import { userService, practiceService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import { AvatarCropDialog } from "@/app/components/common/Dialog";
@@ -44,7 +44,7 @@ import {
 import { SiLeetcode } from "react-icons/si";
 import { SOCIAL_PLATFORMS } from "@/app/contants";
 import { getErrorMessage } from "@/app/lib/Utils";
-import type { ProfilePageProps, ProfileUser, SocialLink } from "@/app/types";
+import type { ProfilePageProps, ProfileUser, SocialLink, ProfileStats } from "@/app/types";
 
 const getPlatformIcon = (platform: string) => {
   const className = "w-4 h-4 shrink-0";
@@ -74,6 +74,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
   const { language, t } = useLanguage();
 
   const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
+  const [stats, setStats] = React.useState<ProfileStats | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isAvatarCropOpen, setIsAvatarCropOpen] = React.useState(false);
@@ -138,6 +139,15 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
         if (user) {
           setLoading(false);
           setError(null);
+          // Fetch real practice stats for logged-in user
+          practiceService
+            .getDashboard()
+            .then((res) => {
+              if (res.success && res.stats) {
+                setStats(res.stats);
+              }
+            })
+            .catch(() => {});
         } else {
           setLoading(true);
         }
@@ -150,6 +160,9 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
           setError(null);
           const fetchedUser = await userService.getProfileByUsername(targetUsername!);
           setProfileUser(fetchedUser);
+          if (fetchedUser.stats) {
+            setStats(fetchedUser.stats);
+          }
         } catch (err) {
           setError(getErrorMessage(err, t("common.error")));
         } finally {
@@ -262,8 +275,8 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
               className={`relative ${isOwnProfile ? "group/avatar cursor-pointer" : ""}`} 
               onClick={isOwnProfile ? handleAvatarChange : undefined}
             >
-              <div className={`relative w-32 h-32 rounded-3xl p-1 bg-gradient-to-tr from-primary/40 via-violet-500/40 to-primary-foreground/40 shadow-xl transition-all duration-300 ${isOwnProfile ? "group-hover/avatar:scale-105" : ""}`}>
-                <div className="w-full h-full rounded-2xl bg-sidebar-accent text-sidebar-accent-foreground font-bold text-4xl flex items-center justify-center border border-border/20 overflow-hidden shadow-inner relative">
+              <div className={`relative w-32 h-32 rounded-3xl p-1 bg-gradient-to-tr from-primary/30 via-violet-500/30 to-primary/20 shadow-xl transition-all duration-300 ${isOwnProfile ? "group-hover/avatar:scale-105" : ""}`}>
+                <div className="w-full h-full rounded-2xl bg-muted/40 dark:bg-sidebar-accent text-sidebar-accent-foreground font-bold text-4xl flex items-center justify-center border border-border/20 overflow-hidden shadow-inner relative">
                   {displayedUser.avatar ? (
                     <Image
                       src={displayedUser.avatar}
@@ -271,7 +284,7 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                       fill
                       unoptimized
                       sizes="128px"
-                      className={`h-full w-full object-cover transition-transform duration-500 ${isOwnProfile ? "group-hover/avatar:scale-110" : ""}`}
+                      className={`h-full w-full object-cover transition-transform duration-500 ${isOwnProfile ? "group-hover/avatar:scale-105" : ""}`}
                     />
                   ) : (
                     <span className="bg-gradient-to-tr from-[var(--chart-1)] to-[var(--chart-2)] bg-clip-text text-transparent">
@@ -280,8 +293,11 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                   )}
                   {/* Photo Edit Overlay */}
                   {isOwnProfile && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
-                      <Camera className="w-8 h-8 text-white" />
+                    <div 
+                      className="absolute inset-0 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"
+                      style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
+                    >
+                      <Camera className="w-8 h-8 text-white drop-shadow-md" />
                     </div>
                   )}
                 </div>
@@ -509,15 +525,25 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
-                  <span className="text-3xl font-bold text-primary">12</span>
+                  <span className="text-3xl font-bold text-primary">
+                    {stats ? stats.totalInterviews : 0}
+                  </span>
                   <span className="block text-xs text-muted-foreground mt-1">{t("profile.interviews")}</span>
                 </div>
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
-                  <span className="text-3xl font-bold text-violet-400">85%</span>
+                  <span className="text-3xl font-bold text-violet-400">
+                    {stats && stats.totalInterviews > 0 ? `${stats.averageScore}%` : "--"}
+                  </span>
                   <span className="block text-xs text-muted-foreground mt-1">{t("profile.averageScore")}</span>
                 </div>
                 <div className="bg-muted/20 border border-border/10 rounded-3xl p-4 text-center">
-                  <span className="text-3xl font-bold text-[var(--chart-1)]">3.2h</span>
+                  <span className="text-3xl font-bold text-[var(--chart-1)]">
+                    {stats
+                      ? stats.totalDurationSec >= 3600
+                        ? `${(stats.totalDurationSec / 3600).toFixed(1)}h`
+                        : `${Math.round(stats.totalDurationSec / 60)}m`
+                      : "0m"}
+                  </span>
                   <span className="block text-xs text-muted-foreground mt-1">{t("profile.practiceDuration")}</span>
                 </div>
               </div>
@@ -526,37 +552,53 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
               <div className="space-y-5">
                 <h4 className="text-sm font-semibold border-b border-border/10 pb-2">{t("profile.aiSkillEval")}</h4>
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span>{t("profile.communication")}</span>
-                    <span className="text-primary font-bold">90%</span>
-                  </div>
-                  <Progress value={90} className="h-2" />
-                </div>
+                {stats && stats.totalInterviews > 0 ? (
+                  <>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span>{t("profile.communication")}</span>
+                        <span className="text-primary font-bold">
+                          {stats.ratings?.communication || 0}%
+                        </span>
+                      </div>
+                      <Progress value={stats.ratings?.communication || 0} className="h-2" />
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span>{t("profile.knowledge")}</span>
-                    <span className="text-violet-400 font-bold">82%</span>
-                  </div>
-                  <Progress value={82} className="h-2" />
-                </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span>{t("profile.knowledge")}</span>
+                        <span className="text-violet-400 font-bold">
+                          {stats.ratings?.knowledge || 0}%
+                        </span>
+                      </div>
+                      <Progress value={stats.ratings?.knowledge || 0} className="h-2" />
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span>{t("profile.problemSolving")}</span>
-                    <span className="text-orange-400 font-bold">78%</span>
-                  </div>
-                  <Progress value={78} className="h-2" />
-                </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span>{t("profile.problemSolving")}</span>
+                        <span className="text-orange-400 font-bold">
+                          {stats.ratings?.problemSolving || 0}%
+                        </span>
+                      </div>
+                      <Progress value={stats.ratings?.problemSolving || 0} className="h-2" />
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span>{t("profile.confidence")}</span>
-                    <span className="text-[var(--chart-1)] font-bold">88%</span>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span>{t("profile.confidence")}</span>
+                        <span className="text-[var(--chart-1)] font-bold">
+                          {stats.ratings?.confidence || 0}%
+                        </span>
+                      </div>
+                      <Progress value={stats.ratings?.confidence || 0} className="h-2" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-6 text-center text-xs text-muted-foreground italic border border-dashed border-border/20 rounded-2xl">
+                    Chưa có dữ liệu đánh giá từ phỏng vấn AI
                   </div>
-                  <Progress value={88} className="h-2" />
-                </div>
+                )}
               </div>
             </div>
           </Card>

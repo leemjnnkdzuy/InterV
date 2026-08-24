@@ -79,6 +79,20 @@ export function acceptRealtimeFinalTurn(
   };
 }
 
+const HALLUCINATION_STANDALONE =
+  /^(?:thank\s*you|thankyou|thanks|gracias|subtitles|subtitles\s+by|music|applause|you|bye|cảm\s+ơn(?:\s+các\s+bạn|\s+bạn)?\s+đã\s+(?:theo\s+dõi|xem|lắng\s+nghe))[.!?,\s]*$/i;
+const HALLUCINATION_TRAILING =
+  /\s*(?:thank\s*you(?:\s+very\s+much|\s+for\s+watching)?|thanks(?:\s+for\s+watching)?|thankyou|cảm\s+ơn(?:\s+các\s+bạn|\s+bạn)?\s+đã\s+(?:theo\s+dõi|xem|lắng\s+nghe)|subtitles\s+by|hẹn\s+gặp\s+lại)[.!?,\s]*$/gi;
+
+export function sanitizeSttTranscript(text: string): string {
+  if (!text) return "";
+  const clean = text.trim();
+  if (HALLUCINATION_STANDALONE.test(clean)) {
+    return "";
+  }
+  return clean.replace(HALLUCINATION_TRAILING, "").trim();
+}
+
 export function createRealtimeTranscriptState(): RealtimeTranscriptState {
   return {
     finalTurns: [],
@@ -94,17 +108,28 @@ export function consumeRealtimeTurn(
   state: RealtimeTranscriptState;
   finalTurn: RealtimeFinalTurn | null;
 } {
-  const transcript = message.transcript?.trim() || "";
-  if (!transcript) {
+  const rawTranscript = message.transcript?.trim() || "";
+  if (!rawTranscript) {
     return { state, finalTurn: null };
   }
+
+  const transcript = sanitizeSttTranscript(rawTranscript);
 
   if (message.end_of_turn !== true) {
     return {
       state: {
         ...state,
-        transcript: [...state.finalTurns, transcript].join(" ").trim(),
+        transcript: sanitizeSttTranscript(
+          [...state.finalTurns, transcript || rawTranscript].join(" ")
+        ),
       },
+      finalTurn: null,
+    };
+  }
+
+  if (!transcript) {
+    return {
+      state,
       finalTurn: null,
     };
   }

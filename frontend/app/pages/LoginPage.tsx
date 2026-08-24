@@ -59,7 +59,7 @@ export default function LoginPage() {
       {/* corner icons */}
       <button
         onClick={() => router.push("/")}
-        className="absolute left-6 top-6 z-20 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+        className="absolute left-6 top-6 z-20 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         aria-label="home"
       >
         <Home className="w-5 h-5" />
@@ -67,11 +67,11 @@ export default function LoginPage() {
 
       <SilkBackground />
 
-      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/65 backdrop-blur-xl border border-zinc-800/40 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+      <div className="relative z-10 w-full max-w-md px-8 py-10 rounded-2xl bg-[var(--sidebar)]/85 dark:bg-[var(--sidebar)]/65 backdrop-blur-xl border border-border/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
         <h1 className="text-3xl font-extrabold text-center">{t("auth.loginTitle")}</h1>
-        <p className="text-sm text-zinc-400 text-center mt-2">{t("auth.loginSubtitle")}</p>
+        <p className="text-sm text-muted-foreground text-center mt-2">{t("auth.loginSubtitle")}</p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-          <label className="text-xs text-zinc-400">{t("auth.identifierLabel")}</label>
+          <label className="text-xs text-muted-foreground">{t("auth.identifierLabel")}</label>
           <Input
             placeholder={t("auth.identifierPlaceholder")}
             aria-label="email-or-username"
@@ -81,7 +81,7 @@ export default function LoginPage() {
             disabled={isLoading}
           />
 
-          <label className="text-xs text-zinc-400">{t("auth.passwordLabel")}</label>
+          <label className="text-xs text-muted-foreground">{t("auth.passwordLabel")}</label>
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
@@ -96,7 +96,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               aria-pressed={showPassword}
               disabled={isLoading}
@@ -109,7 +109,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-sm text-zinc-400 mt-1">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={remember}
@@ -122,7 +122,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => router.push("/forget-password")}
-              className="text-amber-400 cursor-pointer hover:underline"
+              className="text-amber-500 dark:text-amber-400 font-medium cursor-pointer hover:underline"
               disabled={isLoading}
             >
               {t("auth.forgotPassword")}
@@ -146,18 +146,18 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 space-y-4">
-          <div className="flex items-center gap-3 text-xs text-zinc-400">
-            <span className="h-px flex-1 bg-white/10" />
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border/40" />
             <span>{t("auth.or")}</span>
-            <span className="h-px flex-1 bg-white/10" />
+            <span className="h-px flex-1 bg-border/40" />
           </div>
           <Button
             type="button"
             variant="outline"
-            className="w-full rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
+            className="w-full rounded-full border border-border/60 bg-muted/40 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center justify-center gap-2"
             disabled={isLoading}
           >
-            <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
+            <svg viewBox="0 0 48 48" className="h-4 w-4 shrink-0" aria-hidden="true">
               <path
                 fill="#EA4335"
                 d="M24 9.5c3.54 0 6.7 1.22 9.19 3.6l6.87-6.87C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.02 6.23C12.5 13.09 17.74 9.5 24 9.5z"
@@ -175,15 +175,15 @@ export default function LoginPage() {
                 d="M24 48c6.48 0 11.9-2.13 15.86-5.81l-7.62-5.93c-2.09 1.4-4.76 2.23-8.24 2.23-6.26 0-11.5-3.59-13.42-8.95l-8.02 6.23C6.51 42.62 14.62 48 24 48z"
               />
             </svg>
-            Google
+            <span>Google</span>
           </Button>
         </div>
 
-        <p className="text-sm text-zinc-400 text-center mt-6">
+        <p className="text-sm text-muted-foreground text-center mt-6">
           {t("auth.noAccount")}{" "}
           <button
             onClick={() => router.push("/register")}
-            className="text-white font-bold cursor-pointer hover:underline"
+            className="text-foreground dark:text-white font-bold cursor-pointer hover:underline"
             disabled={isLoading}
           >
             {t("auth.registerLink")}

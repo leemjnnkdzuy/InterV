@@ -5,6 +5,18 @@ export interface ProfilePageProps {
   targetUsername?: string;
 }
 
+export interface ProfileStats {
+  totalInterviews: number;
+  averageScore: number;
+  totalDurationSec: number;
+  ratings?: {
+    communication: number;
+    knowledge: number;
+    problemSolving: number;
+    confidence: number;
+  };
+}
+
 export interface ProfileUser {
   id: string;
   username: string;
@@ -24,6 +36,7 @@ export interface ProfileUser {
   workExperience?: UserExperience[];
   cvFile?: UserCvFile;
   isOnboarded?: boolean;
+  stats?: ProfileStats;
   createdAt: string;
 }
 

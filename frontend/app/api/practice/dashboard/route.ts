@@ -34,6 +34,10 @@ async function GETHandler(request: NextRequest) {
         totalInterviews: number;
         averageScore: number;
         totalDurationSec: number;
+        communication?: number;
+        knowledge?: number;
+        problemSolving?: number;
+        confidence?: number;
       }>([
         { $match: { userId, status: "COMPLETED" } },
         {
@@ -44,6 +48,10 @@ async function GETHandler(request: NextRequest) {
             totalDurationSec: {
               $sum: { $ifNull: ["$evaluation.durationSec", 0] },
             },
+            communication: { $avg: "$evaluation.ratings.communication" },
+            knowledge: { $avg: "$evaluation.ratings.knowledge" },
+            problemSolving: { $avg: "$evaluation.ratings.problemSolving" },
+            confidence: { $avg: "$evaluation.ratings.confidence" },
           },
         },
         { $project: { _id: 0 } },
@@ -69,6 +77,10 @@ async function GETHandler(request: NextRequest) {
       totalInterviews: 0,
       averageScore: 0,
       totalDurationSec: 0,
+      communication: 0,
+      knowledge: 0,
+      problemSolving: 0,
+      confidence: 0,
     };
 
     return NextResponse.json({
@@ -77,6 +89,12 @@ async function GETHandler(request: NextRequest) {
         totalInterviews: stats.totalInterviews,
         averageScore: Number((stats.averageScore || 0).toFixed(1)),
         totalDurationSec: Math.round(stats.totalDurationSec || 0),
+        ratings: {
+          communication: stats.communication ? Math.round(stats.communication) : 0,
+          knowledge: stats.knowledge ? Math.round(stats.knowledge) : 0,
+          problemSolving: stats.problemSolving ? Math.round(stats.problemSolving) : 0,
+          confidence: stats.confidence ? Math.round(stats.confidence) : 0,
+        },
       },
       recentSessions: recentRuns.map((run) => ({
         id: run._id.toString(),

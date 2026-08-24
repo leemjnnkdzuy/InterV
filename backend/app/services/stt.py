@@ -40,6 +40,27 @@ def _get_model():
     return _model
 
 
+import re
+
+_HALLUCINATION_STANDALONE = re.compile(
+    r"^(?:thank\s*you|thankyou|thanks|gracias|subtitles|subtitles\s+by|music|applause|you|bye|cảm\s+ơn(?:\s+các\s+bạn|\s+bạn)?\s+đã\s+(?:theo\s+dõi|xem|lắng\s+nghe))[.!?,\s]*$",
+    re.IGNORECASE,
+)
+_HALLUCINATION_TRAILING = re.compile(
+    r"\s*(?:thank\s*you(?:\s+very\s+much|\s+for\s+watching)?|thanks(?:\s+for\s+watching)?|thankyou|cảm\s+ơn(?:\s+các\s+bạn|\s+bạn)?\s+đã\s+(?:theo\s+dõi|xem|lắng\s+nghe)|subtitles\s+by|hẹn\s+gặp\s+lại)[.!?,\s]*$",
+    re.IGNORECASE,
+)
+
+
+def _sanitize_transcript(text: str) -> str:
+    if not text:
+        return ""
+    clean = text.strip()
+    if _HALLUCINATION_STANDALONE.match(clean):
+        return ""
+    return _HALLUCINATION_TRAILING.sub("", clean).strip()
+
+
 def _transcribe_path(path: Path, language: str | None) -> TranscribeResponse:
     model = _get_model()
     with _transcribe_lock:
@@ -51,9 +72,10 @@ def _transcribe_path(path: Path, language: str | None) -> TranscribeResponse:
             condition_on_previous_text=False,
             vad_filter=True,
         )
-        transcript = " ".join(
+        raw_transcript = " ".join(
             segment.text.strip() for segment in segments
         ).strip()
+        transcript = _sanitize_transcript(raw_transcript)
     return TranscribeResponse(
         transcript=transcript,
         language=getattr(info, "language", None),

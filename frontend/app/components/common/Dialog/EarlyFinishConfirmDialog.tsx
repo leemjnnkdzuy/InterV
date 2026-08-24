@@ -36,10 +36,6 @@ export default function EarlyFinishConfirmDialog({
 }: EarlyFinishConfirmDialogProps) {
   const { t } = useLanguage();
   const hasAnswers = answeredCount > 0;
-  const progressPercent = Math.min(
-    100,
-    Math.round((answeredCount / Math.max(1, totalQuestions)) * 100)
-  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -76,28 +72,6 @@ export default function EarlyFinishConfirmDialog({
                 : t("interview.finishEarlyConfirmDescNoAnswers")}
             </DialogDescription>
           </DialogHeader>
-
-          {/* Progress Overview Card */}
-          <div className="mt-5 w-full rounded-2xl border border-border/50 bg-muted/30 p-4 text-left">
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-muted-foreground">
-                {t("interview.progressCompleted")}
-              </span>
-              <span className="text-foreground">
-                {answeredCount} / {totalQuestions} ({progressPercent}%)
-              </span>
-            </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border/40">
-              <div
-                className={`h-full transition-all duration-500 ease-out ${
-                  hasAnswers
-                    ? "bg-gradient-to-r from-amber-500 to-primary"
-                    : "bg-muted-foreground/30"
-                }`}
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex w-full gap-3 pt-6">

@@ -6,7 +6,8 @@ export type PracticeHistoryStatus =
   | "EVALUATING"
   | "COMPLETED"
   | "FAILED"
-  | "REFUNDED";
+  | "REFUNDED"
+  | "CANCELLED";
 
 export interface PracticeHistoryItem {
   id: string;

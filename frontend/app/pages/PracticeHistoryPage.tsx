@@ -63,6 +63,15 @@ const STATUS_META: Record<
     label: "Đã hoàn tín dụng",
     className: "bg-zinc-500/10 text-zinc-400",
   },
+  CANCELLED: {
+    label: "Đã kết thúc sớm",
+    className: "bg-slate-500/10 text-slate-400",
+  },
+};
+
+const DEFAULT_STATUS_META = {
+  label: "Đang chuẩn bị",
+  className: "bg-blue-500/10 text-blue-400",
 };
 
 function formatDate(value: string) {
@@ -74,7 +83,7 @@ function formatDate(value: string) {
 
 function HistoryRow({ item }: { item: PracticeHistoryItem }) {
   const router = useRouter();
-  const status = STATUS_META[item.status];
+  const status = STATUS_META[item.status] || DEFAULT_STATUS_META;
   const completed = item.status === "COMPLETED";
 
   return (

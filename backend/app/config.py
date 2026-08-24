@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     deepseek_fast_timeout_seconds: float = Field(default=45.0, ge=5, le=300)
     deepseek_eval_timeout_seconds: float = Field(default=240.0, ge=30, le=900)
     deepseek_eval_max_tokens: int = Field(default=32_768, ge=1024, le=65_536)
+
+    @property
+    def deepseek_timeout_seconds(self) -> float:
+        return self.deepseek_fast_timeout_seconds
     redis_url: str = "redis://localhost:6379"
     kafka_brokers: str = "localhost:9092"
     whisper_model: str = "small"

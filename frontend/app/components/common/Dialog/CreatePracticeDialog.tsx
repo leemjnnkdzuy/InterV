@@ -59,7 +59,6 @@ export default function CreatePracticeDialog({
       })) as PracticeMutationResponse;
 
       if (data.success) {
-        toast.success(t("createPractice.success"));
         onSuccess(data.session);
         onOpenChange(false);
       } else {

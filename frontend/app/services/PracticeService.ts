@@ -196,6 +196,11 @@ export const practiceService = {
     return response.data;
   },
 
+  getDashboard: async () => {
+    const response = await api.get("/practice/dashboard");
+    return response.data;
+  },
+
   delete: async (id: string) => {
     const response = await api.delete(`/practice/${id}`);
     return response.data;

@@ -280,8 +280,8 @@ export function useRealtimeInterviewRecorder(
     url.searchParams.set("sample_rate", String(tokenResponse.sampleRate));
     url.searchParams.set("speech_model", speechModel);
     if (autoTurnTaking) {
-      url.searchParams.set("min_turn_silence", "2200");
-      url.searchParams.set("max_turn_silence", "4500");
+      url.searchParams.set("min_turn_silence", "1200");
+      url.searchParams.set("max_turn_silence", "3000");
     }
     if (effectiveLanguage) {
       url.searchParams.set("language_code", effectiveLanguage);
@@ -575,7 +575,7 @@ export function useRealtimeInterviewRecorder(
       // Give the final AssemblyAI Turn message a short window to arrive while
       // keeping the socket and microphone alive for the next question.
       await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, 250);
+        window.setTimeout(resolve, 100);
       });
     } else {
       socketRef.current = null;

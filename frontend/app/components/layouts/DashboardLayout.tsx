@@ -23,7 +23,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <TooltipProvider>
-      <SidebarProvider defaultOpen>
+      <SidebarProvider defaultOpen={false}>
         <div className="relative flex min-h-screen w-full overflow-hidden bg-background text-foreground">
           <div className="fixed inset-0 z-0 pointer-events-none">
             <SilkBackground />
