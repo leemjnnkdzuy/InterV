@@ -9,6 +9,12 @@ import type {
   UserSessionsResponse,
   UserServiceResponse,
   SocialLink,
+  OnboardingData,
+  OnboardingResponse,
+  UserEducation,
+  UserExperience,
+  UserCvFile,
+  UserGender,
 } from "@/app/types";
 
 export const userService = {
@@ -23,8 +29,21 @@ export const userService = {
     dob?: Date | string;
     avatar?: string;
     socialLinks?: SocialLink[];
+    fullName?: string;
+    gender?: UserGender;
+    headline?: string;
+    targetRole?: string;
+    targetIndustry?: string;
+    skills?: string[];
+    education?: UserEducation[];
+    workExperience?: UserExperience[];
+    cvFile?: UserCvFile;
   }): Promise<UserProfileUpdateResponse> => {
     const response = await api.put("/users/update", data);
+    return response.data;
+  },
+  completeOnboarding: async (data: OnboardingData): Promise<OnboardingResponse> => {
+    const response = await api.post("/users/onboarding", data);
     return response.data;
   },
   getSessions: async (): Promise<UserSessionsResponse> => {

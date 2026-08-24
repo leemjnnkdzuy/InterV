@@ -68,6 +68,76 @@ const userSchema = new Schema<IUser>(
       min: 0,
       max: Number.MAX_SAFE_INTEGER,
     },
+    fullName: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [100, "Full name cannot exceed 100 characters"],
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other", ""],
+      default: "",
+    },
+    headline: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [200, "Headline cannot exceed 200 characters"],
+    },
+    targetRole: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [100, "Target role cannot exceed 100 characters"],
+    },
+    targetIndustry: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [100, "Target industry cannot exceed 100 characters"],
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    education: {
+      type: [
+        {
+          school: { type: String, required: true, maxlength: 150 },
+          major: { type: String, default: "", maxlength: 150 },
+          degree: { type: String, default: "", maxlength: 100 },
+          startYear: { type: Number },
+          endYear: { type: Number },
+          _id: false,
+        },
+      ],
+      default: [],
+    },
+    workExperience: {
+      type: [
+        {
+          company: { type: String, required: true, maxlength: 150 },
+          role: { type: String, required: true, maxlength: 150 },
+          duration: { type: String, default: "", maxlength: 100 },
+          description: { type: String, default: "", maxlength: 1000 },
+          _id: false,
+        },
+      ],
+      default: [],
+    },
+    cvFile: {
+      name: { type: String, default: "" },
+      size: { type: Number, default: 0 },
+      data: { type: String, default: "" },
+      uploadedAt: { type: Date },
+      _id: false,
+    },
+    isOnboarded: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

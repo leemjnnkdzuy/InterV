@@ -1,0 +1,130 @@
+[
+  {
+    "slide_num": 1,
+    "notes": "Giới thiệu đề tài và định vị InterV là hệ thống có grounding, fallback và ranh giới sử dụng AI.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 2,
+    "notes": "Đi qua sáu phần, ưu tiên bằng chứng kỹ thuật và phạm vi kết luận.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 3,
+    "notes": "Ba rủi ro dẫn tới yêu cầu grounding, schema và human-in-the-loop.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 4,
+    "notes": "Làm rõ ownership trước khi đi vào kiến trúc.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 5,
+    "notes": "Sáu điểm là trục xuyên suốt phần trình bày.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 6,
+    "notes": "Đây là ranh giới diễn giải của khóa luận.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 7,
+    "notes": "Hai lớp bằng chứng: nhất quán kỹ thuật và hiệu lực đo lường.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 8,
+    "notes": "Lý thuyết được ánh xạ vào schema, rule và workflow.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 9,
+    "notes": "Sơ đồ native shape: biên web, nghiệp vụ, AI và provider được nối bằng hợp đồng; MongoDB và Qdrant tách vai trò.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 10,
+    "notes": "Mô hình dữ liệu được vẽ bằng shape và connector, thể hiện ownership từ user/job tới interview, answer và evaluation.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 11,
+    "notes": "Use case native shape đặt InterV ở trung tâm; AI provider nằm ngoài biên quyết định tuyển dụng.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 12,
+    "notes": "Lifecycle luyện tập được vẽ bằng sáu state native PowerPoint.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 13,
+    "notes": "Grounded generation dùng flow shape từ context đến hậu kiểm allow-list.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 14,
+    "notes": "Vòng đời RAG đi từ nguồn có metadata/provenance, qua chunking và Qdrant, đến hybrid retrieval, grounded context và validation. Governance rail cho biết versioning, evidence IDs và retention được giữ xuyên suốt.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 15,
+    "notes": "Pipeline speech tách hai trách nhiệm: AssemblyAI tạo transcript theo thời gian thực và Faster-Whisper xử lý fallback; SenseVoice chỉ bổ sung tín hiệu LID/SER/AED.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 16,
+    "notes": "Năm lớp kiểm soát được vẽ thành stack shape từ quyền truy cập đến graceful fallback.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 17,
+    "notes": "Request đi từ client qua BFF để xác thực/chuẩn hóa, sau đó qua hợp đồng proto/gRPC tới Python và AI provider. Response phải có JSON + evidence và vượt schema validation trước khi được persist hoặc hiển thị.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 18,
+    "notes": "Thay screenshot bằng sơ đồ module native shape.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 19,
+    "notes": "Thay screenshot dashboard bằng ma trận RBAC dạng shape.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 20,
+    "notes": "Thay screenshot practice list bằng state machine editable.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 21,
+    "notes": "Thay screenshot preparation bằng recruitment lifecycle native shape.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 22,
+    "notes": "Thay screenshot câu hỏi bằng sơ đồ fallback editable.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 23,
+    "notes": "Stack được tổ chức theo ba ranh giới: product/state, AI services và operations foundation. Web/BFF cùng dữ liệu thuộc lớp nghiệp vụ; Python/gRPC là biên AI kết nối LLM/RAG và speech; vận hành hỗ trợ toàn hệ thống.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 24,
+    "notes": "Quy mô hiện vật cho thấy phạm vi triển khai end-to-end.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 25,
+    "notes": "4,106 giây là thời gian chạy bộ test, không phải latency production.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 26,
+    "notes": "Grounding là chuỗi kiểm soát, không chỉ là prompt.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 27,
+    "notes": "Đây là rào chắn bắt buộc của speech pipeline.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 28,
+    "notes": "Các đóng góp truy ngược được về hiện vật triển khai.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 29,
+    "notes": "Giới hạn xác định bước nghiên cứu tiếp theo.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 30,
+    "notes": "Chỉ tăng tự động hóa khi bằng chứng và quản trị tăng tương ứng.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 31,
+    "notes": "Tóm tắt ba nền tảng kỹ thuật và nhấn mạnh phạm vi triển khai có kiểm soát.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  },
+  {
+    "slide_num": 32,
+    "notes": "Mời Hội đồng đặt câu hỏi.\n\n[Sources]\n- KLTN_InterV_LeMinhDuy_v6.docx"
+  }
+]

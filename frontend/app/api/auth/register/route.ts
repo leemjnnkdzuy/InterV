@@ -248,6 +248,7 @@ async function POSTHandler(request: NextRequest) {
               isVerified: true,
               isActive: true,
               credits: 500,
+              isOnboarded: false,
             });
             newUser.$locals.passwordAlreadyHashed = true;
             await newUser.save({ session: dbSession });

@@ -1,4 +1,5 @@
 import type { SocialLink } from "./Auth";
+import type { UserGender, UserEducation, UserExperience, UserCvFile } from "./User";
 
 export interface ProfilePageProps {
   targetUsername?: string;
@@ -13,6 +14,16 @@ export interface ProfileUser {
   dob?: string;
   socialLinks?: SocialLink[];
   credits?: number;
+  fullName?: string;
+  gender?: UserGender;
+  headline?: string;
+  targetRole?: string;
+  targetIndustry?: string;
+  skills?: string[];
+  education?: UserEducation[];
+  workExperience?: UserExperience[];
+  cvFile?: UserCvFile;
+  isOnboarded?: boolean;
   createdAt: string;
 }
 
@@ -20,6 +31,26 @@ export interface UserProfileUpdateResponse {
   success: boolean;
   message?: string;
   user: ProfileUser;
+}
+
+export interface OnboardingData {
+  fullName?: string;
+  dob?: Date | string;
+  birthYear?: number;
+  gender?: UserGender;
+  headline?: string;
+  targetRole?: string;
+  targetIndustry?: string;
+  skills?: string[];
+  education?: UserEducation[];
+  workExperience?: UserExperience[];
+  cvFile?: UserCvFile | null;
+}
+
+export interface OnboardingResponse {
+  success: boolean;
+  message?: string;
+  user?: ProfileUser;
 }
 
 export interface AuthSessionData {

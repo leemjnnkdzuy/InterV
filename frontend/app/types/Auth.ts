@@ -1,4 +1,4 @@
-import type { AppRole } from "./User";
+import type { AppRole, UserGender, UserEducation, UserExperience, UserCvFile } from "./User";
 
 export interface TokenPayload {
   userId: string;
@@ -15,7 +15,6 @@ export interface SocialLink {
   usernameOrUrl: string;
 }
 
-
 export interface User {
   id: string;
   username: string;
@@ -25,6 +24,16 @@ export interface User {
   dob?: string;
   socialLinks?: SocialLink[];
   credits: number;
+  fullName?: string;
+  gender?: UserGender;
+  headline?: string;
+  targetRole?: string;
+  targetIndustry?: string;
+  skills?: string[];
+  education?: UserEducation[];
+  workExperience?: UserExperience[];
+  cvFile?: UserCvFile;
+  isOnboarded?: boolean;
   createdAt: string;
 }
 

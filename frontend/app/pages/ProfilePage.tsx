@@ -17,7 +17,7 @@ import {
   TrashBinMinimalistic,
   Earth,
 } from "@solar-icons/react";
-import { Plus, Check, X } from "lucide-react";
+import { Plus, Check, X, GraduationCap, Briefcase, Sparkles, FileText, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { userService } from "@/app/services";
 import { DatePicker } from "@/app/components/ui/date-picker";
@@ -290,9 +290,21 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
 
             {/* User Details */}
             <div className="text-left mt-4 w-full">
-              <h2 className="text-xl font-bold truncate">{displayedUser.username}</h2>
+              <h2 className="text-xl font-bold truncate">
+                {displayedUser.fullName || displayedUser.username}
+              </h2>
+              {displayedUser.fullName && (
+                <p className="text-xs text-muted-foreground truncate">
+                  @{displayedUser.username}
+                </p>
+              )}
+              {displayedUser.headline && (
+                <p className="text-xs font-medium text-[var(--chart-1)] mt-1">
+                  {displayedUser.headline}
+                </p>
+              )}
               {isOwnProfile && displayedUser.email && (
-                <p className="text-sm text-muted-foreground truncate mt-1">
+                <p className="text-xs text-muted-foreground truncate mt-1">
                   {displayedUser.email}
                 </p>
               )}
@@ -546,6 +558,194 @@ export default function ProfilePage({ targetUsername }: ProfilePageProps = {}) {
                   <Progress value={88} className="h-2" />
                 </div>
               </div>
+            </div>
+          </Card>
+
+          {/* Candidate Profile Details (Education, Experience, Skills, CV) */}
+          <Card className="border-none bg-card/40 backdrop-blur-md shadow-lg rounded-4xl p-6 mt-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-border/10 pb-4">
+                <div>
+                  <h3 className="text-lg font-bold">Hồ sơ ứng viên & Kinh nghiệm</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Thông tin phục vụ mô phỏng phỏng vấn AI và đánh giá năng lực
+                  </p>
+                </div>
+                {isOwnProfile && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/onboarding")}
+                    className="rounded-full text-xs border-border/40 hover:bg-muted/50 gap-1.5 cursor-pointer"
+                  >
+                    <PenLine className="w-3.5 h-3.5" />
+                    <span>Cập nhật qua phỏng vấn AI</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* Target Role & Industry */}
+              {(displayedUser.targetRole || displayedUser.targetIndustry) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {displayedUser.targetRole && (
+                    <div className="rounded-2xl bg-muted/20 border border-border/10 p-3.5">
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold block">
+                        Vị trí mục tiêu
+                      </span>
+                      <span className="text-sm font-bold text-foreground mt-0.5 block">
+                        {displayedUser.targetRole}
+                      </span>
+                    </div>
+                  )}
+                  {displayedUser.targetIndustry && (
+                    <div className="rounded-2xl bg-muted/20 border border-border/10 p-3.5">
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold block">
+                        Ngành nghề
+                      </span>
+                      <span className="text-sm font-bold text-foreground mt-0.5 block">
+                        {displayedUser.targetIndustry}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Skills list */}
+              {displayedUser.skills && displayedUser.skills.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[var(--chart-1)]" />
+                    <span>Kỹ năng chuyên môn</span>
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {displayedUser.skills.map((skill, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Education list */}
+              {displayedUser.education && displayedUser.education.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-[var(--chart-1)]" />
+                    <span>Học vấn & Bằng cấp</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {displayedUser.education.map((edu, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-2xl bg-muted/20 border border-border/10 p-3.5 flex items-start justify-between gap-3"
+                      >
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{edu.school}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {edu.degree} {edu.major ? `• ${edu.major}` : ""}
+                          </p>
+                        </div>
+                        {(edu.startYear || edu.endYear) && (
+                          <span className="text-xs text-muted-foreground font-mono shrink-0">
+                            {edu.startYear || "?"} - {edu.endYear || "Hiện tại"}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience list */}
+              {displayedUser.workExperience && displayedUser.workExperience.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-[var(--chart-1)]" />
+                    <span>Kinh nghiệm làm việc</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {displayedUser.workExperience.map((exp, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-2xl bg-muted/20 border border-border/10 p-3.5 space-y-1.5"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-bold text-foreground">{exp.role}</p>
+                            <p className="text-xs text-[var(--chart-1)] font-medium">{exp.company}</p>
+                          </div>
+                          {exp.duration && (
+                            <span className="text-xs text-muted-foreground font-mono shrink-0">
+                              {exp.duration}
+                            </span>
+                          )}
+                        </div>
+                        {exp.description && (
+                          <p className="text-xs text-muted-foreground leading-relaxed pt-1 border-t border-border/10">
+                            {exp.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CV File */}
+              {displayedUser.cvFile?.name && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[var(--chart-1)]" />
+                    <span>File CV đính kèm</span>
+                  </h4>
+                  <div className="rounded-2xl bg-muted/20 border border-border/10 p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="w-5 h-5 text-[var(--chart-1)] shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">
+                          {displayedUser.cvFile.name}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {(displayedUser.cvFile.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    {displayedUser.cvFile.data && (
+                      <a
+                        href={displayedUser.cvFile.data}
+                        download={displayedUser.cvFile.name}
+                        className="text-xs text-[var(--chart-1)] hover:underline font-medium"
+                      >
+                        Tải về
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State if not onboarded yet */}
+              {!displayedUser.skills?.length &&
+                !displayedUser.education?.length &&
+                !displayedUser.workExperience?.length &&
+                !displayedUser.cvFile?.name && (
+                  <div className="text-center py-6 border border-dashed border-border/20 rounded-3xl">
+                    <p className="text-xs text-muted-foreground">Chưa có thông tin hồ sơ chi tiết</p>
+                    {isOwnProfile && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push("/onboarding")}
+                        className="mt-3 rounded-full text-xs cursor-pointer"
+                      >
+                        Bắt đầu phỏng vấn tạo hồ sơ
+                      </Button>
+                    )}
+                  </div>
+                )}
             </div>
           </Card>
         </div>

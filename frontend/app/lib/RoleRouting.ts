@@ -1,4 +1,4 @@
-import type { AppRole } from "@/app/types";
+import type { AppRole, User } from "@/app/types";
 
 export function normalizeAppRole(role: AppRole | string | null | undefined): AppRole {
   const normalizedRole = typeof role === "string" ? role.trim().toLowerCase() : "";
@@ -18,6 +18,21 @@ export function roleHomePath(role: AppRole | string | null | undefined) {
   }
   if (normalizedRole === "recruiter") {
     return "/recruiter";
+  }
+  return "/";
+}
+
+export function getUserLandingPath(user: Partial<User> | null | undefined): string {
+  if (!user) return "/";
+  const normalizedRole = normalizeAppRole(user.role);
+  if (normalizedRole === "admin") {
+    return "/admin";
+  }
+  if (normalizedRole === "recruiter") {
+    return "/recruiter";
+  }
+  if (user.isOnboarded === false) {
+    return "/onboarding";
   }
   return "/";
 }

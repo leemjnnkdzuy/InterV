@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useLanguage } from "@/app/hooks/useLanguage";
 import SilkBackground from "@/app/components/common/SilkBackground";
-import { roleHomePath } from "@/app/lib/RoleRouting";
+import { getUserLandingPath } from "@/app/lib/RoleRouting";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,9 +20,9 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
-      window.location.replace(roleHomePath(user?.role));
+      window.location.replace(getUserLandingPath(user));
     }
-  }, [isAuthenticated, loading, user?.role]);
+  }, [isAuthenticated, loading, user]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const res = await login(identifier, password, remember);
       if (res.success && res.user) {
-        window.location.replace(roleHomePath(res.user.role));
+        window.location.replace(getUserLandingPath(res.user));
         return;
       } else {
         toast.error(res.message || t("auth.invalidLogin"));

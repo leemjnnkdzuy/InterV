@@ -5,7 +5,7 @@ import connectDB from "@/app/lib/ConnectDB";
 import User from "@/app/models/User";
 import { authenticateRequest } from "@/app/lib/Auth";
 import { SOCIAL_PLATFORMS } from "@/app/contants";
-import type { ISocialLink } from "@/app/types";
+import type { ISocialLink, UserEducation, UserExperience, UserGender } from "@/app/types";
 import {
   readJsonBodyLimited,
   RequestBodyTooLargeError,
@@ -68,6 +68,51 @@ function normalizeSocialLinks(value: unknown): ISocialLink[] | null {
   return links;
 }
 
+function normalizeSkills(val: unknown): string[] {
+  if (!Array.isArray(val)) return [];
+  return val
+    .filter((item): item is string => typeof item === "string")
+    .map((s) => s.trim().slice(0, 50))
+    .filter((s) => s.length > 0)
+    .slice(0, 30);
+}
+
+function normalizeEducation(val: unknown): UserEducation[] {
+  if (!Array.isArray(val)) return [];
+  const list: UserEducation[] = [];
+  for (const item of val.slice(0, 10)) {
+    if (typeof item !== "object" || item === null) continue;
+    const school = String((item as { school?: unknown }).school || "").trim().slice(0, 150);
+    if (!school) continue;
+    const major = String((item as { major?: unknown }).major || "").trim().slice(0, 150);
+    const degree = String((item as { degree?: unknown }).degree || "").trim().slice(0, 100);
+    const startYear = typeof (item as { startYear?: unknown }).startYear === "number" ? (item as { startYear?: number }).startYear : undefined;
+    const endYear = typeof (item as { endYear?: unknown }).endYear === "number" ? (item as { endYear?: number }).endYear : undefined;
+    list.push({ school, major, degree, startYear, endYear });
+  }
+  return list;
+}
+
+function normalizeWorkExperience(val: unknown): UserExperience[] {
+  if (!Array.isArray(val)) return [];
+  const list: UserExperience[] = [];
+  for (const item of val.slice(0, 10)) {
+    if (typeof item !== "object" || item === null) continue;
+    const company = String((item as { company?: unknown }).company || "").trim().slice(0, 150);
+    const role = String((item as { role?: unknown }).role || "").trim().slice(0, 150);
+    if (!company && !role) continue;
+    const duration = String((item as { duration?: unknown }).duration || "").trim().slice(0, 100);
+    const description = String((item as { description?: unknown }).description || "").trim().slice(0, 1000);
+    list.push({
+      company: company || "Chưa cập nhật",
+      role: role || "Vị trí",
+      duration,
+      description,
+    });
+  }
+  return list;
+}
+
 async function PUTHandler(request: NextRequest) {
   try {
     const payload = await authenticateRequest(request);
@@ -79,7 +124,7 @@ async function PUTHandler(request: NextRequest) {
     }
     const body = (await readJsonBodyLimited(
       request,
-      3 * 1024 * 1024
+      6 * 1024 * 1024
     )) as Record<string, unknown>;
     await connectDB();
     const user = await User.findById(payload.userId);
@@ -140,6 +185,53 @@ async function PUTHandler(request: NextRequest) {
       user.socialLinks = links;
     }
 
+    if (typeof body.fullName === "string") {
+      user.fullName = body.fullName.trim().slice(0, 100);
+    }
+
+    if (typeof body.gender === "string" && ["male", "female", "other", ""].includes(body.gender)) {
+      user.gender = body.gender as UserGender;
+    }
+
+    if (typeof body.headline === "string") {
+      user.headline = body.headline.trim().slice(0, 200);
+    }
+
+    if (typeof body.targetRole === "string") {
+      user.targetRole = body.targetRole.trim().slice(0, 100);
+    }
+
+    if (typeof body.targetIndustry === "string") {
+      user.targetIndustry = body.targetIndustry.trim().slice(0, 100);
+    }
+
+    if (body.skills !== undefined) {
+      user.skills = normalizeSkills(body.skills);
+    }
+
+    if (body.education !== undefined) {
+      user.education = normalizeEducation(body.education);
+    }
+
+    if (body.workExperience !== undefined) {
+      user.workExperience = normalizeWorkExperience(body.workExperience);
+    }
+
+    if (body.cvFile !== undefined && typeof body.cvFile === "object" && body.cvFile !== null) {
+      const raw = body.cvFile as Record<string, unknown>;
+      const name = typeof raw.name === "string" ? raw.name.slice(0, 200) : "";
+      const size = typeof raw.size === "number" ? raw.size : 0;
+      const data = typeof raw.data === "string" ? raw.data : "";
+      if (name || data) {
+        user.cvFile = {
+          name,
+          size,
+          data: data && data.length <= 7 * 1024 * 1024 ? data : "",
+          uploadedAt: new Date(),
+        };
+      }
+    }
+
     await user.save();
     return NextResponse.json({
       success: true,
@@ -152,6 +244,16 @@ async function PUTHandler(request: NextRequest) {
         avatar: user.avatar,
         dob: user.dob,
         socialLinks: user.socialLinks || [],
+        fullName: user.fullName || "",
+        gender: user.gender || "",
+        headline: user.headline || "",
+        targetRole: user.targetRole || "",
+        targetIndustry: user.targetIndustry || "",
+        skills: user.skills || [],
+        education: user.education || [],
+        workExperience: user.workExperience || [],
+        cvFile: user.cvFile,
+        isOnboarded: user.isOnboarded ?? false,
         createdAt: user.createdAt,
       },
     });

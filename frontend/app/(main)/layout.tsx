@@ -12,10 +12,14 @@ export default function MainRouteLayout({ children }: { children: React.ReactNod
   const { user, isAuthenticated, loading } = useAuthContext();
 
   React.useEffect(() => {
-    if (!loading && (user?.role === "admin" || user?.role === "recruiter")) {
-      router.replace(roleHomePath(user.role));
+    if (!loading && isAuthenticated) {
+      if (user?.role === "admin" || user?.role === "recruiter") {
+        router.replace(roleHomePath(user.role));
+      } else if (user?.role === "user" && user?.isOnboarded === false) {
+        router.replace("/onboarding");
+      }
     }
-  }, [loading, router, user?.role]);
+  }, [loading, router, user?.role, user?.isOnboarded, isAuthenticated]);
 
   if (loading) {
     return (
@@ -30,6 +34,14 @@ export default function MainRouteLayout({ children }: { children: React.ReactNod
   }
 
   if (user?.role === "admin" || user?.role === "recruiter") {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-b-primary" />
+      </div>
+    );
+  }
+
+  if (user?.role === "user" && user?.isOnboarded === false) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-b-primary" />
