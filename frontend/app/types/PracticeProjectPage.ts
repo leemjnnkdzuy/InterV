@@ -49,6 +49,7 @@ export interface PracticeResultData {
 
 export interface PracticeProjectSession {
   id: string;
+  source?: "practice" | "recruitment";
   title: string;
   jobDescription?: string;
   jobDescriptionSource?: "upload" | "paste";

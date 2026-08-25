@@ -10,7 +10,7 @@ import {
   Play,
   Widget,
   List,
-  FolderOpen
+  FolderOpen,
 } from "@solar-icons/react";
 import { Plus, Check, X } from "lucide-react";
 import { Card, CardTitle } from "@/app/components/ui/card";
@@ -52,7 +52,9 @@ export default function PracticeProjectPage() {
       setIsLoading(true);
       const data = (await practiceService.getAll()) as PracticeSessionsResponse;
       if (data.success) {
-        setSessions(data.sessions);
+        setSessions(
+          (data.sessions || []).filter((s) => s.source !== "recruitment")
+        );
       } else {
         toast.error(t("practiceList.loadFailed"));
       }

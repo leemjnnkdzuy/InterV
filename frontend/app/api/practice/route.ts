@@ -49,6 +49,7 @@ async function GETHandler(request: NextRequest) {
     const sessions = await PracticeSession.find({
       userId: payload.userId,
       archivedAt: { $exists: false },
+      source: { $ne: "recruitment" },
     })
       .sort({ updatedAt: -1 })
       .limit(100)
@@ -179,6 +180,7 @@ async function POSTHandler(request: NextRequest) {
       tags: uniqueTags,
       attemptCount: 0,
       highestScore: 0,
+      source: "practice",
     });
 
     return NextResponse.json({

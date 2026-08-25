@@ -7,12 +7,17 @@ import {
   CheckCircle as CheckCircle2,
   Clipboard,
   Eye,
+  Letter as Mail,
   LetterUnread as MailPlus,
   LetterUnread as MailWarning,
   PauseCircle,
   PlayCircle,
+  AddCircle as Plus,
   Refresh as RefreshCw,
+  Refresh as LoaderCircle,
+  Magnifier as Search,
   SendSquare as Send,
+  TrashBin2 as Trash2,
   UserPlus,
   UsersGroupRounded as Users,
   CloseCircle as XCircle,
@@ -20,6 +25,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { QUESTION_CREDIT_COST } from "@/app/lib/PracticeBilling";
 import {
@@ -31,7 +37,6 @@ import {
   DialogTitle,
 } from "@/app/components/ui/dialog";
 import { DateTimePickerInput } from "@/app/components/ui/date-picker";
-import { Textarea } from "@/app/components/ui/textarea";
 import {
   DashboardError,
   DashboardLoading,
@@ -45,6 +50,18 @@ import {
   DashboardApiError,
   dashboardRequest,
 } from "@/app/dashboard/lib/client";
+
+interface CandidateSuggestion {
+  id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+}
+
+interface CandidateSearchResponse {
+  success: true;
+  candidates: CandidateSuggestion[];
+}
 
 interface InterviewResult {
   score: number;
@@ -150,32 +167,102 @@ export default function RecruiterInterviewDetailPage({
   const [error, setError] = useState("");
   const [mutating, setMutating] = useState(false);
   const [showAddCandidates, setShowAddCandidates] = useState(false);
-  const [candidateEmails, setCandidateEmails] = useState("");
+  const [selectedCandidates, setSelectedCandidates] = useState<CandidateSuggestion[]>([]);
+  const [candidateQuery, setCandidateQuery] = useState("");
+  const [searchingCandidates, setSearchingCandidates] = useState(false);
+  const [suggestions, setSuggestions] = useState<CandidateSuggestion[]>([]);
   const [showArchive, setShowArchive] = useState(false);
   const [showDeadline, setShowDeadline] = useState(false);
   const [deadline, setDeadline] = useState("");
   const [selectedResult, setSelectedResult] = useState<Invitation | null>(null);
 
-  const addCandidateEmailsList = useMemo(() => {
-    return Array.from(
-      new Set(
-        candidateEmails
-          .split(/[\s,;]+/)
-          .map((email) => email.trim().toLowerCase())
-          .filter(Boolean)
-      )
-    );
-  }, [candidateEmails]);
-
   const addCandidateCost = useMemo(() => {
     const costPerCandidate =
       (data?.campaign.questionCount || 5) * QUESTION_CREDIT_COST;
-    return addCandidateEmailsList.length * costPerCandidate;
-  }, [addCandidateEmailsList.length, data?.campaign.questionCount]);
+    return selectedCandidates.length * costPerCandidate;
+  }, [selectedCandidates.length, data?.campaign.questionCount]);
 
   const userCredits = user?.credits || 0;
   const hasSufficientCreditsForAdd =
-    addCandidateEmailsList.length === 0 || userCredits >= addCandidateCost;
+    selectedCandidates.length === 0 || userCredits >= addCandidateCost;
+
+  useEffect(() => {
+    const query = candidateQuery.trim();
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setSearchingCandidates(true);
+      try {
+        const response = await dashboardRequest<CandidateSearchResponse>(
+          `/api/recruiter/candidate-search?q=${encodeURIComponent(query)}`
+        );
+        if (!cancelled) {
+          const existingEmails = new Set(
+            (data?.invitations || [])
+              .map((i) => i.candidate?.email?.toLowerCase())
+              .filter(Boolean)
+          );
+          const existingIds = new Set(
+            (data?.invitations || [])
+              .map((i) => i.candidate?.id)
+              .filter(Boolean)
+          );
+          const selectedIds = new Set(selectedCandidates.map((c) => c.id));
+          const selectedEmails = new Set(
+            selectedCandidates.map((c) => c.email.toLowerCase())
+          );
+
+          setSuggestions(
+            response.candidates.filter(
+              (candidate) =>
+                !existingIds.has(candidate.id) &&
+                !existingEmails.has(candidate.email.toLowerCase()) &&
+                !selectedIds.has(candidate.id) &&
+                !selectedEmails.has(candidate.email.toLowerCase())
+            )
+          );
+        }
+      } catch {
+        if (!cancelled) setSuggestions([]);
+      } finally {
+        if (!cancelled) setSearchingCandidates(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [candidateQuery, data?.invitations, selectedCandidates]);
+
+  const addCandidate = (candidate: CandidateSuggestion) => {
+    setSelectedCandidates((current) =>
+      current.some((item) => item.id === candidate.id)
+        ? current
+        : [...current, candidate]
+    );
+    setCandidateQuery("");
+    setSuggestions([]);
+  };
+
+  const removeCandidate = (id: string) => {
+    setSelectedCandidates((current) =>
+      current.filter((item) => item.id !== id)
+    );
+  };
+
+  const handleOpenAddCandidates = (open: boolean) => {
+    if (!mutating) {
+      setShowAddCandidates(open);
+      if (!open) {
+        setCandidateQuery("");
+        setSuggestions([]);
+        setSelectedCandidates([]);
+      }
+    }
+  };
 
   const load = useCallback(async () => {
     setError("");
@@ -245,14 +332,13 @@ export default function RecruiterInterviewDetailPage({
   };
 
   const addCandidates = async () => {
-    const emails = addCandidateEmailsList;
-    if (emails.length === 0) {
-      toast.error("Nhập ít nhất một email");
+    if (selectedCandidates.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
       return;
     }
     if (!hasSufficientCreditsForAdd) {
       toast.error(
-        `Không đủ Credits. Bạn cần ${addCandidateCost.toLocaleString("vi-VN")} Credits để thêm ${emails.length} ứng viên.`
+        `Không đủ Credits. Bạn cần ${addCandidateCost.toLocaleString("vi-VN")} Credits để thêm ${selectedCandidates.length} ứng viên.`
       );
       return;
     }
@@ -262,11 +348,15 @@ export default function RecruiterInterviewDetailPage({
         `/api/recruiter/interviews/${campaignId}/candidates`,
         {
           method: "POST",
-          body: JSON.stringify({ candidateEmails: emails }),
+          body: JSON.stringify({
+            candidateEmails: selectedCandidates.map((c) => c.email),
+          }),
         }
       );
       toast.success("Đã thêm ứng viên và xếp hàng gửi thư mời");
-      setCandidateEmails("");
+      setSelectedCandidates([]);
+      setCandidateQuery("");
+      setSuggestions([]);
       setShowAddCandidates(false);
       await load();
     } catch (mutationError) {
@@ -676,56 +766,168 @@ export default function RecruiterInterviewDetailPage({
 
       <Dialog
         open={showAddCandidates}
-        onOpenChange={(open) => !mutating && setShowAddCandidates(open)}
+        onOpenChange={handleOpenAddCandidates}
       >
-        <DialogContent className="rounded-lg sm:max-w-lg">
+        <DialogContent className="rounded-2xl sm:max-w-lg overflow-visible">
           <DialogHeader>
-            <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/15 text-primary">
+            <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <MailPlus className="size-5" />
             </div>
-            <DialogTitle className="font-extrabold">Thêm ứng viên</DialogTitle>
-            <DialogDescription>
-              Nhập email tài khoản ứng viên, phân tách bằng dấu phẩy hoặc xuống
-              dòng.
+            <DialogTitle className="font-extrabold text-base sm:text-lg">
+              Thêm ứng viên vào chiến dịch
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Tìm kiếm theo username hoặc email để chọn ứng viên. Ứng viên đã có trong chiến dịch sẽ tự động được ẩn.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <Textarea
-              value={candidateEmails}
-              onChange={(event) => setCandidateEmails(event.target.value)}
-              placeholder={"candidate1@example.com\ncandidate2@example.com"}
-              className="min-h-32 resize-y"
-            />
-            {addCandidateEmailsList.length > 0 && (
-              <div className="rounded-lg border border-border/70 bg-muted/25 p-3 text-xs space-y-1.5">
+
+          <div className="space-y-4">
+            {/* Search Input with dropdown suggestions */}
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={candidateQuery}
+                onChange={(event) => setCandidateQuery(event.target.value)}
+                placeholder="Tìm email hoặc username của ứng viên..."
+                className="pl-9 pr-10 h-9.5 text-xs sm:text-sm"
+              />
+              {searchingCandidates && (
+                <LoaderCircle className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+              )}
+
+              {candidateQuery.trim().length >= 2 && suggestions.length > 0 && (
+                <div className="absolute inset-x-0 top-[calc(100%+6px)] z-50 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95">
+                  {suggestions.map((candidate) => (
+                    <button
+                      type="button"
+                      key={candidate.id}
+                      onClick={() => addCandidate(candidate)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-7 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0">
+                          {candidate.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block truncate text-xs font-bold text-foreground">
+                            {candidate.username}
+                          </span>
+                          <span className="block truncate text-[11px] text-muted-foreground">
+                            {candidate.email}
+                          </span>
+                        </div>
+                      </div>
+                      <Plus className="size-4 shrink-0 text-primary" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {candidateQuery.trim().length >= 2 &&
+                !searchingCandidates &&
+                suggestions.length === 0 && (
+                  <div className="absolute inset-x-0 top-[calc(100%+6px)] z-50 rounded-xl border border-border bg-popover p-3 text-center text-xs text-muted-foreground shadow-xl">
+                    Không tìm thấy ứng viên mới phù hợp (hoặc ứng viên đã có trong danh sách).
+                  </div>
+                )}
+            </div>
+
+            {/* Selected Candidates Box */}
+            <div className="rounded-xl border border-border/70 overflow-hidden bg-card/60">
+              <div className="bg-muted/40 px-3.5 py-2 border-b border-border/60 flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">
+                  Ứng viên đã chọn ({selectedCandidates.length})
+                </span>
+                {selectedCandidates.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCandidates([])}
+                    className="text-[11px] text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
+                  >
+                    Xóa tất cả
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-48 overflow-y-auto divide-y divide-border/40">
+                {selectedCandidates.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-muted-foreground">
+                    <Mail className="mx-auto size-6 text-muted-foreground/50 mb-1.5" />
+                    <p className="text-xs font-medium">
+                      Chưa chọn ứng viên nào. Hãy tìm kiếm ở trên để thêm.
+                    </p>
+                  </div>
+                ) : (
+                  selectedCandidates.map((candidate) => (
+                    <div
+                      key={candidate.id}
+                      className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-muted/20 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-6 rounded-full bg-primary/10 text-primary font-bold text-[11px] flex items-center justify-center shrink-0">
+                          {candidate.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-bold text-foreground">
+                            {candidate.username}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {candidate.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        title="Bỏ ứng viên"
+                        aria-label={`Bỏ ${candidate.username}`}
+                        onClick={() => removeCandidate(candidate.id)}
+                        className="size-7 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Credit Cost Summary */}
+            {selectedCandidates.length > 0 && (
+              <div className="rounded-xl border border-border/70 bg-muted/25 p-3 text-xs space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Số ứng viên thêm:</span>
-                  <span className="font-bold">{addCandidateEmailsList.length}</span>
+                  <span className="font-bold">{selectedCandidates.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Chi phí:</span>
+                  <span className="text-muted-foreground">Chi phí cần trừ:</span>
                   <span className="font-bold text-amber-500">
                     {addCandidateCost.toLocaleString("vi-VN")} Credits
                   </span>
                 </div>
+                <p className="text-[10px] text-muted-foreground">
+                  ({selectedCandidates.length} ứng viên × {((data?.campaign.questionCount || 5) * QUESTION_CREDIT_COST)} Credits/lượt)
+                </p>
                 <div className="flex items-center justify-between border-t border-border/40 pt-1.5">
                   <span className="text-muted-foreground">Số dư hiện tại:</span>
                   <span className="font-bold">{userCredits.toLocaleString("vi-VN")} Credits</span>
                 </div>
                 {!hasSufficientCreditsForAdd && (
-                  <p className="text-[11px] font-bold text-destructive pt-1">
-                    Số dư không đủ. Bạn cần nạp thêm {(addCandidateCost - userCredits).toLocaleString("vi-VN")} Credits.
+                  <p className="text-[11px] font-bold text-destructive pt-1 leading-snug">
+                    Số dư không đủ. Bạn cần nạp thêm {(addCandidateCost - userCredits).toLocaleString("vi-VN")} Credits để thực hiện.
                   </p>
                 )}
               </div>
             )}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button
               type="button"
               variant="outline"
               disabled={mutating}
-              onClick={() => setShowAddCandidates(false)}
+              onClick={() => handleOpenAddCandidates(false)}
             >
               Hủy
             </Button>
@@ -734,7 +936,7 @@ export default function RecruiterInterviewDetailPage({
               disabled={
                 mutating ||
                 !hasSufficientCreditsForAdd ||
-                addCandidateEmailsList.length === 0
+                selectedCandidates.length === 0
               }
               onClick={() => void addCandidates()}
             >
@@ -742,7 +944,7 @@ export default function RecruiterInterviewDetailPage({
                 ? "Đang thêm..."
                 : !hasSufficientCreditsForAdd
                 ? "Không đủ Credits"
-                : "Thêm và gửi email"}
+                : `Thêm ${selectedCandidates.length} ứng viên`}
             </Button>
           </DialogFooter>
         </DialogContent>
