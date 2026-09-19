@@ -109,6 +109,7 @@ export default function InterviewPhase({
   const [answeredCount, setAnsweredCount] = useState(0);
   const [showEarlyFinishConfirm, setShowEarlyFinishConfirm] = useState(false);
   const [isEarlyFinishing, setIsEarlyFinishing] = useState(false);
+  const [isFinishCancelled, setIsFinishCancelled] = useState(false);
   const [finishingStep, setFinishingStep] = useState(0);
   const [failureMessage, setFailureMessage] = useState("");
   const [questionAttempt, setQuestionAttempt] = useState(0);
@@ -718,6 +719,7 @@ export default function InterviewPhase({
       stopInterviewAudio();
 
       try {
+        setIsFinishCancelled(false);
         if (isEarly) setIsEarlyFinishing(true);
         cancelRecording();
         setFinishingStep(1);
@@ -782,7 +784,13 @@ export default function InterviewPhase({
         }
 
         if (data.cancelled) {
-          router.push(`/practice/${encodeURIComponent(practiceId)}`);
+          setIsFinishCancelled(true);
+          // The interview component can stay mounted when navigating to the
+          // same practice pathname. Force a fresh page so it cannot remain on
+          // the finishing screen after a no-answer cancellation.
+          window.location.replace(
+            `/practice/${encodeURIComponent(practiceId)}?ended=1`
+          );
           return;
         }
 
@@ -1014,7 +1022,12 @@ export default function InterviewPhase({
           exit={{ opacity: 0, filter: "blur(14px)", scale: 1.025 }}
           transition={{ duration: 0.55, ease: "easeInOut" }}
         >
-          <FinishingPhase completedSteps={finishingStep} />
+          <FinishingPhase
+            completedSteps={finishingStep}
+            evaluating={
+              !isFinishCancelled && (!isEarlyFinishing || answeredCount > 0)
+            }
+          />
         </motion.div>
       ) : (
         <motion.div

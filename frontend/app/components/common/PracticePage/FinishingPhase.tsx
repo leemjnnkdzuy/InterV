@@ -7,9 +7,10 @@ import { useLanguage } from "@/app/hooks/useLanguage";
 
 interface FinishingPhaseProps {
   completedSteps?: number;
+  evaluating?: boolean;
 }
 
-export default function FinishingPhase({}: FinishingPhaseProps) {
+export default function FinishingPhase({ evaluating = true }: FinishingPhaseProps) {
   const { t } = useLanguage();
 
   return (
@@ -31,7 +32,11 @@ export default function FinishingPhase({}: FinishingPhaseProps) {
           role="status"
           aria-live="polite"
         >
-          {t("interview.finishingTitle")}
+          {t(
+            evaluating
+              ? "interview.finishingTitle"
+              : "interview.finishingCancelledTitle"
+          )}
         </p>
       </div>
     </div>

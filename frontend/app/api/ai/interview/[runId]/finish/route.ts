@@ -210,6 +210,11 @@ async function POSTHandler(
     const answeredCount = qaHistory.filter((item) => item.answer.trim()).length;
 
     if (answeredCount === 0) {
+      console.info("Early finish cancelled without evaluation", {
+        runId: run._id.toString(),
+        practiceId: session._id.toString(),
+        reason: "no_submitted_answers",
+      });
       await PracticeRun.updateOne(
         { _id: run._id, userId: tokenPayload.userId },
         { $set: { status: "CANCELLED" } }
@@ -261,6 +266,14 @@ async function POSTHandler(
           finalChunk: index === arr.length - 1,
         };
       });
+
+    console.info("Interview evaluation started", {
+      runId: run._id.toString(),
+      practiceId: session._id.toString(),
+      earlyFinish: isEarlyFinish,
+      answeredCount,
+      audioChunkCount: audioChunks.length,
+    });
 
     claimStartedAt = new Date();
     const claimedRun = await PracticeRun.findOneAndUpdate(

@@ -97,7 +97,11 @@ export default function EarlyFinishConfirmDialog({
               {isFinishing ? (
                 <div className="flex items-center justify-center gap-2">
                   <Spinner className="h-4 w-4" />
-                  <span>{t("interview.closingEvaluating")}</span>
+                  <span>
+                    {hasAnswers
+                      ? t("interview.closingEvaluating")
+                      : t("interview.closingCancelling")}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-1.5">
